@@ -1,0 +1,33 @@
+{
+  "name": "docs",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "docs",
+  "// targets": "to see all targets run: nx show project hendriks-react --web",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "docs",
+        "color": true,
+        "command": "vitepress dev"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "docs",
+        "color": true,
+        "command": "vitepress build"
+      }
+    },
+    "preview": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "docs",
+        "color": true,
+        "command": "vitepress preview"
+      }
+    }
+  }
+}
