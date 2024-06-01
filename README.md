@@ -1,7 +1,6 @@
 <img 
     src="https://raw.githubusercontent.com/overlap-dev/Nimbus/main/media/intro.png" 
-    alt="Nimbus" 
-    width="256"
+    alt="Nimbus"
 />
 
 # Introduction
