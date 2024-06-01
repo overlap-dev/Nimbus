@@ -17,7 +17,10 @@
     "projects": ["core"],
     "version": {
       "preVersionCommand": "npx nx run-many -t build",
-      "conventionalCommits": false
+      "conventionalCommits": false,
+      "generatorOptions": {
+        "skipLockFileUpdate": true
+      }
     },
     "changelog": {
       "workspaceChangelog": {
