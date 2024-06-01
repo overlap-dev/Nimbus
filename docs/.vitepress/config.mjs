@@ -6,7 +6,7 @@ export default defineConfig({
   description: "A Framework to build event-driven applications in the cloud.",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
-    logo: "/Nimbus.svg",
+    logo: "https://raw.githubusercontent.com/overlap-dev/Nimbus/main/media/Nimbus.svg",
     search: {
       provider: "local",
     },
