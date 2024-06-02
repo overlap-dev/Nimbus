@@ -31,12 +31,12 @@
     "verdaccio": "^5.0.4",
     "vitepress": "^1.2.2"
   },
-  "workspaces": [
-    "packages/*"
-  ],
   "dependencies": {
     "tslib": "^2.3.0"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "nx": {
     "includedScripts": []
   }
