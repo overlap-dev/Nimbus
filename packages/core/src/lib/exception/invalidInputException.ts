@@ -5,7 +5,7 @@ export class InvalidInputException extends Exception {
     constructor(message?: string, details?: Record<string, unknown>) {
         super(
             'INVALID_INPUT_EXCEPTION',
-            message ?? 'The provided input is invalid.',
+            message ?? 'The provided input is invalid',
             details,
             400,
         );

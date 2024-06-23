@@ -3,7 +3,7 @@ import { Exception } from './exception';
 describe('Exceptions :: Exception', () => {
     test('Create new Exception', () => {
         const name = 'TEST_EXCEPTION';
-        const message = 'Test exception message.';
+        const message = 'Test exception message';
         const details = { foo: 'bar' };
         const statusCode = 500;
 
@@ -22,7 +22,7 @@ describe('Exceptions :: Exception', () => {
         const nativeError = new Error('Something unexpected happened!');
 
         const name = 'TEST_EXCEPTION';
-        const message = 'Test exception message.';
+        const message = 'Test exception message';
         const details = { foo: 'bar' };
         const statusCode = 500;
 

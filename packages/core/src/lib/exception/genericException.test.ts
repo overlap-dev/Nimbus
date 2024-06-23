@@ -7,14 +7,14 @@ describe('Exceptions :: GenericException', () => {
         expect(genericException instanceof Error).toBe(false);
         expect(genericException instanceof GenericException).toBe(true);
         expect(genericException.name).toBe('GENERIC_EXCEPTION');
-        expect(genericException.message).toBe('An error occurred.');
+        expect(genericException.message).toBe('An error occurred');
         expect(genericException.statusCode).toBe(500);
         expect(typeof genericException.details).toBe('undefined');
         expect(typeof genericException.stack).toBe('undefined');
     });
 
     test('GenericException with constructor input', () => {
-        const message = 'May custom message.';
+        const message = 'My custom message';
         const details = {
             foo: 'bar',
         };
@@ -46,12 +46,13 @@ describe('Exceptions :: GenericException', () => {
 
     test('GenericException from error with constructor input', () => {
         const nativeError = new Error('Something unexpected happened!');
-
+        const message = 'My custom message';
         const details = {
             foo: 'bar',
         };
+
         const genericException = new GenericException(
-            undefined,
+            message,
             details,
         ).fromError(nativeError);
 
