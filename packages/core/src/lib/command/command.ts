@@ -1,31 +1,30 @@
 import { ZodType, z } from 'zod';
-import { AuthContext } from '../authContext';
+import { CommandMetadata } from './commandMetadata';
 
 export const Command = <
-    TType extends ZodType,
+    TName extends ZodType,
     TData extends ZodType,
     TAuthPolicy extends ZodType,
 >(
-    typeType: TType,
+    nameType: TName,
     dataType: TData,
     authPolicyType: TAuthPolicy,
 ) => {
     return z.object({
-        type: typeType,
-        correlationId: z.string(),
-        authContext: AuthContext(authPolicyType).optional(),
+        name: nameType,
+        metadata: CommandMetadata(authPolicyType),
         data: dataType,
     });
 };
 
 type CommandType<
-    TType extends ZodType,
+    TName extends ZodType,
     TData extends ZodType,
     TAuthPolicy extends ZodType,
-> = ReturnType<typeof Command<TType, TData, TAuthPolicy>>;
+> = ReturnType<typeof Command<TName, TData, TAuthPolicy>>;
 
-export type Command<TType, TData, TAuthPolicy> = z.infer<
-    CommandType<ZodType<TType>, ZodType<TData>, ZodType<TAuthPolicy>>
+export type Command<TName, TData, TAuthPolicy> = z.infer<
+    CommandType<ZodType<TName>, ZodType<TData>, ZodType<TAuthPolicy>>
 >;
 
 export const AnyCommand = Command(z.string(), z.unknown(), z.unknown());

@@ -1,42 +1,32 @@
 import { ZodType, z } from 'zod';
-import { AuthContext } from '../authContext';
+import { EventMetadata } from './eventMetadata';
 
 export const Event = <
-    TSource extends ZodType,
-    TType extends ZodType,
+    TName extends ZodType,
     TData extends ZodType,
     TAuthPolicy extends ZodType,
 >(
-    sourceType: TSource,
-    typeType: TType,
+    nameType: TName,
     dataType: TData,
     authPolicyType: TAuthPolicy,
 ) => {
     return z.object({
-        source: sourceType,
-        type: typeType,
-        correlationId: z.string(),
-        authContext: AuthContext(authPolicyType).optional(),
+        name: nameType,
+        metadata: EventMetadata(authPolicyType),
         data: dataType,
     });
 };
 
 type EventType<
-    TSource extends ZodType,
-    TType extends ZodType,
+    TName extends ZodType,
     TData extends ZodType,
     TAuthPolicy extends ZodType,
-> = ReturnType<typeof Event<TSource, TType, TData, TAuthPolicy>>;
+> = ReturnType<typeof Event<TName, TData, TAuthPolicy>>;
 
-export type Event<TSource, TType, TData, TAuthPolicy> = z.infer<
-    EventType<
-        ZodType<TSource>,
-        ZodType<TType>,
-        ZodType<TData>,
-        ZodType<TAuthPolicy>
-    >
+export type Event<TName, TData, TAuthPolicy> = z.infer<
+    EventType<ZodType<TName>, ZodType<TData>, ZodType<TAuthPolicy>>
 >;
 
-export const AnyEvent = Event(z.string(), z.string(), z.unknown(), z.unknown());
+export const AnyEvent = Event(z.string(), z.unknown(), z.unknown());
 
 export type AnyEvent = z.infer<typeof AnyEvent>;

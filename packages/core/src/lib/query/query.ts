@@ -1,31 +1,30 @@
 import { ZodType, z } from 'zod';
-import { AuthContext } from '../authContext';
+import { QueryMetadata } from './queryMetadata';
 
 export const Query = <
-    TType extends ZodType,
+    TName extends ZodType,
     TParams extends ZodType,
     TAuthPolicy extends ZodType,
 >(
-    typeType: TType,
+    nameType: TName,
     paramsType: TParams,
     authPolicyType: TAuthPolicy,
 ) => {
     return z.object({
-        type: typeType,
-        correlationId: z.string(),
-        authContext: AuthContext(authPolicyType).optional(),
+        name: nameType,
+        metadata: QueryMetadata(authPolicyType),
         params: paramsType.optional(),
     });
 };
 
 type QueryType<
-    TType extends ZodType,
+    TName extends ZodType,
     TParams extends ZodType,
     TAuthPolicy extends ZodType,
-> = ReturnType<typeof Query<TType, TParams, TAuthPolicy>>;
+> = ReturnType<typeof Query<TName, TParams, TAuthPolicy>>;
 
-export type Query<TType, TParams, TAuthPolicy> = z.infer<
-    QueryType<ZodType<TType>, ZodType<TParams>, ZodType<TAuthPolicy>>
+export type Query<TName, TParams, TAuthPolicy> = z.infer<
+    QueryType<ZodType<TName>, ZodType<TParams>, ZodType<TAuthPolicy>>
 >;
 
 export const AnyQuery = Query(z.string(), z.unknown(), z.unknown());
