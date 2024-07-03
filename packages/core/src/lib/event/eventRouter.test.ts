@@ -101,6 +101,42 @@ describe('EventRouter', () => {
         );
     });
 
+    test('EventRouter handles an unknown event', async () => {
+        const payload = {
+            name: 'UNKNOWN_EVENT',
+            metadata: {
+                domain: 'TestDomain',
+                producer: 'JestTest',
+                version: 1,
+                correlationId: '123',
+                authContext: {
+                    sub: 'admin@host.tld',
+                    groups: ['admin'],
+                    policy: { allowAnything: true },
+                },
+            },
+            data: {
+                testException: false,
+                aNumber: 1,
+            },
+        };
+
+        const eventRouter = createEventRouter({ eventHandlerMap, logger });
+
+        pipe(
+            await eventRouter(payload),
+            E.match(
+                (exception) => {
+                    expect(exception instanceof NotFoundException).toBe(true);
+                    expect(exception.message).toBe('Event handler not found');
+                },
+                (result) => {
+                    expect(result).toBeUndefined();
+                },
+            ),
+        );
+    });
+
     test('EventRouter handles an invalid payload', async () => {
         const invalidPayload = {
             name: 'TEST_EVENT',
@@ -144,6 +180,41 @@ describe('EventRouter', () => {
                             },
                         ],
                     });
+                },
+                (result) => {
+                    expect(result).toBeUndefined();
+                },
+            ),
+        );
+    });
+
+    test('EventRouter handles a valid payload that returns an Exception', async () => {
+        const payload = {
+            name: 'TEST_EVENT',
+            metadata: {
+                domain: 'TestDomain',
+                producer: 'JestTest',
+                version: 1,
+                correlationId: '123',
+                authContext: {
+                    sub: 'admin@host.tld',
+                    groups: ['admin'],
+                    policy: { allowAnything: true },
+                },
+            },
+            data: {
+                testException: true,
+                aNumber: 1,
+            },
+        };
+
+        const eventRouter = createEventRouter({ eventHandlerMap, logger });
+
+        pipe(
+            await eventRouter(payload),
+            E.match(
+                (exception) => {
+                    expect(exception instanceof NotFoundException).toBe(true);
                 },
                 (result) => {
                     expect(result).toBeUndefined();

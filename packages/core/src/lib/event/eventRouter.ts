@@ -44,11 +44,9 @@ export const createEventRouter = ({
     // TODO: Do we need middleware support, and would this be the place to add it?
 
     const eventRouter: EventRouter = async (event) => {
-        logger.debug('Nimbus - EventRouter received event', event);
+        logger.debug({ msg: 'Nimbus :: EventRouter received event', event });
 
-        const { handler, eventType } = eventHandlerMap[event.name];
-
-        if (!handler) {
+        if (!eventHandlerMap[event.name]) {
             const notFoundException = new NotFoundException(
                 'Event handler not found',
                 {
@@ -56,9 +54,14 @@ export const createEventRouter = ({
                 },
             );
 
-            logger.info('Nimbus - EventRouter', notFoundException);
+            logger.info({
+                msg: 'Nimbus :: EventRouter event not found',
+                exception: notFoundException,
+            });
             return E.left(notFoundException);
         }
+
+        const { handler, eventType } = eventHandlerMap[event.name];
 
         try {
             const validEvent = eventType.parse(event);
@@ -69,14 +72,20 @@ export const createEventRouter = ({
                 const invalidInputException =
                     new InvalidInputException().fromZodError(error);
 
-                logger.info('Nimbus - EventRouter', invalidInputException);
+                logger.info({
+                    msg: 'Nimbus :: EventRouter got invalid input',
+                    exception: invalidInputException,
+                });
                 return E.left(invalidInputException);
             } else {
                 const genericException = new GenericException().fromError(
                     error as Error,
                 );
 
-                logger.error('Nimbus - EventRouter', genericException);
+                logger.error({
+                    msg: 'Nimbus :: EventRouter error',
+                    exception: genericException,
+                });
                 return E.left(genericException);
             }
         }
