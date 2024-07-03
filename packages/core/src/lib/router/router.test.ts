@@ -2,16 +2,12 @@ import * as E from 'fp-ts/Either';
 import { pipe } from 'fp-ts/function';
 import pino from 'pino';
 import { z } from 'zod';
+import { Event } from '../event/event';
 import { InvalidInputException } from '../exception/invalidInputException';
 import { NotFoundException } from '../exception/notFoundException';
-import { Event } from './event';
-import {
-    EventHandler,
-    EventHandlerMap,
-    createEventRouter,
-} from './eventRouter';
+import { RouteHandler, RouteHandlerMap, createRouter } from './router';
 
-describe('EventRouter', () => {
+describe('Router', () => {
     const logger = pino({ level: 'silent' });
 
     const AuthPolicy = z.object({
@@ -28,7 +24,7 @@ describe('EventRouter', () => {
     const TestEvent = Event(z.literal('TEST_EVENT'), TestEventData, AuthPolicy);
     type TestEvent = z.infer<typeof TestEvent>;
 
-    const testEventHandler: EventHandler<TestEvent, TestEventData> = async (
+    const testEventHandler: RouteHandler<TestEvent, TestEventData> = async (
         event,
     ) => {
         if (event.data.testException) {
@@ -44,21 +40,63 @@ describe('EventRouter', () => {
         });
     };
 
-    const eventHandlerMap: EventHandlerMap = {
+    const eventHandlerMap: RouteHandlerMap = {
         TEST_EVENT: {
             handler: testEventHandler,
-            eventType: TestEvent,
+            inputType: TestEvent,
         },
     };
 
-    test('Create new EventRouter', () => {
-        const eventRouter = createEventRouter({ eventHandlerMap, logger });
+    test('Create a new router', () => {
+        const router = createRouter({
+            handlerMap: {},
+            logger,
+        });
 
-        expect(eventRouter).toBeDefined();
+        expect(router).toBeDefined();
     });
 
-    test('EventRouter handles a valid payload', async () => {
-        const payload = {
+    test('Router handles input with an unknown handler name', async () => {
+        const input = {
+            name: 'UNKNOWN_EVENT',
+            metadata: {
+                domain: 'TestDomain',
+                producer: 'JestTest',
+                version: 1,
+                correlationId: '123',
+                authContext: {
+                    sub: 'admin@host.tld',
+                    groups: ['admin'],
+                    policy: { allowAnything: true },
+                },
+            },
+            data: {
+                testException: false,
+                aNumber: 1,
+            },
+        };
+
+        const router = createRouter({
+            handlerMap: {},
+            logger,
+        });
+
+        pipe(
+            await router(input),
+            E.match(
+                (exception) => {
+                    expect(exception instanceof NotFoundException).toBe(true);
+                    expect(exception.message).toBe('Route handler not found');
+                },
+                (result) => {
+                    expect(result).toBeUndefined();
+                },
+            ),
+        );
+    });
+
+    test('Router handles valid event input', async () => {
+        const input = {
             name: 'TEST_EVENT',
             metadata: {
                 domain: 'TestDomain',
@@ -77,10 +115,13 @@ describe('EventRouter', () => {
             },
         };
 
-        const eventRouter = createEventRouter({ eventHandlerMap, logger });
+        const eventRouter = createRouter({
+            handlerMap: eventHandlerMap,
+            logger,
+        });
 
         pipe(
-            await eventRouter(payload),
+            await eventRouter(input),
             E.match(
                 (exception) => {
                     expect(exception).toBeUndefined();
@@ -101,44 +142,8 @@ describe('EventRouter', () => {
         );
     });
 
-    test('EventRouter handles an unknown event', async () => {
-        const payload = {
-            name: 'UNKNOWN_EVENT',
-            metadata: {
-                domain: 'TestDomain',
-                producer: 'JestTest',
-                version: 1,
-                correlationId: '123',
-                authContext: {
-                    sub: 'admin@host.tld',
-                    groups: ['admin'],
-                    policy: { allowAnything: true },
-                },
-            },
-            data: {
-                testException: false,
-                aNumber: 1,
-            },
-        };
-
-        const eventRouter = createEventRouter({ eventHandlerMap, logger });
-
-        pipe(
-            await eventRouter(payload),
-            E.match(
-                (exception) => {
-                    expect(exception instanceof NotFoundException).toBe(true);
-                    expect(exception.message).toBe('Event handler not found');
-                },
-                (result) => {
-                    expect(result).toBeUndefined();
-                },
-            ),
-        );
-    });
-
-    test('EventRouter handles an invalid payload', async () => {
-        const invalidPayload = {
+    test('Router handles invalid event input', async () => {
+        const invalidInput = {
             name: 'TEST_EVENT',
             metadata: {
                 domain: 'TestDomain',
@@ -157,10 +162,13 @@ describe('EventRouter', () => {
             },
         };
 
-        const eventRouter = createEventRouter({ eventHandlerMap, logger });
+        const eventRouter = createRouter({
+            handlerMap: eventHandlerMap,
+            logger,
+        });
 
         pipe(
-            await eventRouter(invalidPayload),
+            await eventRouter(invalidInput),
             E.match(
                 (exception) => {
                     expect(exception instanceof InvalidInputException).toBe(
@@ -188,8 +196,8 @@ describe('EventRouter', () => {
         );
     });
 
-    test('EventRouter handles a valid payload that returns an Exception', async () => {
-        const payload = {
+    test('Router handles valid event input but handler returns an exception', async () => {
+        const input = {
             name: 'TEST_EVENT',
             metadata: {
                 domain: 'TestDomain',
@@ -208,10 +216,13 @@ describe('EventRouter', () => {
             },
         };
 
-        const eventRouter = createEventRouter({ eventHandlerMap, logger });
+        const eventRouter = createRouter({
+            handlerMap: eventHandlerMap,
+            logger,
+        });
 
         pipe(
-            await eventRouter(payload),
+            await eventRouter(input),
             E.match(
                 (exception) => {
                     expect(exception instanceof NotFoundException).toBe(true);
@@ -222,4 +233,6 @@ describe('EventRouter', () => {
             ),
         );
     });
+
+    // TODO: add tests for commandRouter and queryRouter
 });

@@ -6,74 +6,74 @@ import { GenericException } from '../exception/genericException';
 import { InvalidInputException } from '../exception/invalidInputException';
 import { NotFoundException } from '../exception/notFoundException';
 
-export type EventHandlerResult<TData = unknown> = {
+export type RouteHandlerResult<TData = unknown> = {
     statusCode: number;
     headers?: Record<string, string>;
     data: TData;
 };
 
-export type EventHandler<TEvent = any, TResultData = any> = (
-    event: TEvent,
-) => Promise<E.Either<Exception, EventHandlerResult<TResultData>>>;
+export type RouteHandler<TInput = any, TResultData = any> = (
+    input: TInput,
+) => Promise<E.Either<Exception, RouteHandlerResult<TResultData>>>;
 
-export type EventHandlerMap = Record<
+export type RouteHandlerMap = Record<
     string,
     {
-        handler: EventHandler;
-        eventType: ZodType;
+        handler: RouteHandler;
+        inputType: ZodType;
     }
 >;
 
-export type EventRouter = (event: any) => Promise<E.Either<Exception, unknown>>;
+export type Router = (input: any) => Promise<E.Either<Exception, unknown>>;
 
-export type CreateEventRouterInput = {
-    eventHandlerMap: EventHandlerMap;
+export type CreateRouterInput = {
+    handlerMap: RouteHandlerMap;
     logger: Logger;
 };
 
 /**
- * Creates an event router that routes events to the appropriate event handler.
+ * Creates a router that routes events, commands or queries to the appropriate handler.
  *
- * @param CreateEventRouterInput - The input to create the event router.
- * @returns EventRouter
+ * @param CreateRouterInput - The input to create the router.
+ * @returns Router
  */
-export const createEventRouter = ({
-    eventHandlerMap,
+export const createRouter = ({
+    handlerMap,
     logger,
-}: CreateEventRouterInput): EventRouter => {
+}: CreateRouterInput): Router => {
     // TODO: Do we need middleware support, and would this be the place to add it?
 
-    const eventRouter: EventRouter = async (event) => {
-        logger.debug({ msg: 'Nimbus :: EventRouter received event', event });
+    const router: Router = async (input) => {
+        logger.debug({ msg: 'Nimbus Router :: received input', input });
 
-        if (!eventHandlerMap[event.name]) {
+        if (!handlerMap[input.name]) {
             const notFoundException = new NotFoundException(
-                'Event handler not found',
+                'Route handler not found',
                 {
-                    reason: `No handler is defined for the "${event.name}" event.`,
+                    reason: `Could not find a handler for "${input.name}"`,
                 },
             );
 
             logger.info({
-                msg: 'Nimbus :: EventRouter event not found',
+                msg: 'Nimbus Router :: handler not found',
                 exception: notFoundException,
             });
             return E.left(notFoundException);
         }
 
-        const { handler, eventType } = eventHandlerMap[event.name];
+        const { handler, inputType } = handlerMap[input.name];
 
         try {
-            const validEvent = eventType.parse(event);
+            const validInput = inputType.parse(input);
 
-            return handler(validEvent);
+            return handler(validInput);
         } catch (error) {
             if (error instanceof ZodError) {
                 const invalidInputException =
                     new InvalidInputException().fromZodError(error);
 
                 logger.info({
-                    msg: 'Nimbus :: EventRouter got invalid input',
+                    msg: 'Nimbus Router :: invalid input',
                     exception: invalidInputException,
                 });
                 return E.left(invalidInputException);
@@ -83,7 +83,7 @@ export const createEventRouter = ({
                 );
 
                 logger.error({
-                    msg: 'Nimbus :: EventRouter error',
+                    msg: 'Nimbus Router :: error catched',
                     exception: genericException,
                 });
                 return E.left(genericException);
@@ -91,5 +91,5 @@ export const createEventRouter = ({
         }
     };
 
-    return eventRouter;
+    return router;
 };
