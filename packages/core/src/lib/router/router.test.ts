@@ -1,51 +1,14 @@
 import * as E from 'fp-ts/Either';
 import { pipe } from 'fp-ts/function';
 import pino from 'pino';
-import { z } from 'zod';
-import { Event } from '../event/event';
-import { InvalidInputException } from '../exception/invalidInputException';
-import { NotFoundException } from '../exception/notFoundException';
-import { RouteHandler, RouteHandlerMap, createRouter } from './router';
+import { InvalidInputException, NotFoundException } from '../exception';
+import { createRouter } from './router';
+import { commandHandlerMap } from './testCommand';
+import { eventHandlerMap } from './testEvent';
+import { queryHandlerMap } from './testQuery';
 
 describe('Router', () => {
     const logger = pino({ level: 'silent' });
-
-    const AuthPolicy = z.object({
-        allowAnything: z.boolean(),
-    });
-    type AuthPolicy = z.infer<typeof AuthPolicy>;
-
-    const TestEventData = z.object({
-        testException: z.boolean(),
-        aNumber: z.number(),
-    });
-    type TestEventData = z.infer<typeof TestEventData>;
-
-    const TestEvent = Event(z.literal('TEST_EVENT'), TestEventData, AuthPolicy);
-    type TestEvent = z.infer<typeof TestEvent>;
-
-    const testEventHandler: RouteHandler<TestEvent, TestEventData> = async (
-        event,
-    ) => {
-        if (event.data.testException) {
-            return E.left(new NotFoundException());
-        }
-
-        return E.right({
-            statusCode: 200,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            data: event.data,
-        });
-    };
-
-    const eventHandlerMap: RouteHandlerMap = {
-        TEST_EVENT: {
-            handler: testEventHandler,
-            inputType: TestEvent,
-        },
-    };
 
     test('Create a new router', () => {
         const router = createRouter({
@@ -90,6 +53,93 @@ describe('Router', () => {
                 },
                 (result) => {
                     expect(result).toBeUndefined();
+                },
+            ),
+        );
+    });
+
+    test('Router handles valid command input', async () => {
+        const input = {
+            name: 'TEST_COMMAND',
+            metadata: {
+                domain: 'TestDomain',
+                producer: 'JestTest',
+                version: 1,
+                correlationId: '123',
+                authContext: {
+                    sub: 'admin@host.tld',
+                    groups: ['admin'],
+                    policy: { allowAnything: true },
+                },
+            },
+            data: {
+                aNumber: 1,
+            },
+        };
+
+        const commandRouter = createRouter({
+            handlerMap: commandHandlerMap,
+            logger,
+        });
+
+        pipe(
+            await commandRouter(input),
+            E.match(
+                (exception) => {
+                    expect(exception).toBeUndefined();
+                },
+                (result) => {
+                    expect(result).toEqual({
+                        statusCode: 200,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        data: {
+                            aNumber: 1,
+                        },
+                    });
+                },
+            ),
+        );
+    });
+
+    test('Router handles valid query input', async () => {
+        const input = {
+            name: 'TEST_QUERY',
+            metadata: {
+                domain: 'TestDomain',
+                producer: 'JestTest',
+                version: 1,
+                correlationId: '123',
+                authContext: {
+                    sub: 'admin@host.tld',
+                    groups: ['admin'],
+                    policy: { allowAnything: true },
+                },
+            },
+        };
+
+        const queryRouter = createRouter({
+            handlerMap: queryHandlerMap,
+            logger,
+        });
+
+        pipe(
+            await queryRouter(input),
+            E.match(
+                (exception) => {
+                    expect(exception).toBeUndefined();
+                },
+                (result) => {
+                    expect(result).toEqual({
+                        statusCode: 200,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        data: {
+                            foo: 'bar',
+                        },
+                    });
                 },
             ),
         );
@@ -233,6 +283,4 @@ describe('Router', () => {
             ),
         );
     });
-
-    // TODO: add tests for commandRouter and queryRouter
 });
