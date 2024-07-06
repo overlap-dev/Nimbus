@@ -63,7 +63,6 @@ describe('Router', () => {
             name: 'TEST_COMMAND',
             metadata: {
                 domain: 'TestDomain',
-                producer: 'JestTest',
                 version: 1,
                 correlationId: '123',
                 authContext: {
@@ -108,7 +107,6 @@ describe('Router', () => {
             name: 'TEST_QUERY',
             metadata: {
                 domain: 'TestDomain',
-                producer: 'JestTest',
                 version: 1,
                 correlationId: '123',
                 authContext: {

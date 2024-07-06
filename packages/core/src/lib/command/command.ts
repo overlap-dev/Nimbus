@@ -26,7 +26,3 @@ type CommandType<
 export type Command<TName, TData, TAuthPolicy> = z.infer<
     CommandType<ZodType<TName>, ZodType<TData>, ZodType<TAuthPolicy>>
 >;
-
-export const AnyCommand = Command(z.string(), z.unknown(), z.unknown());
-
-export type AnyCommand = z.infer<typeof AnyCommand>;

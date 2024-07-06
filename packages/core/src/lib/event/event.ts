@@ -26,7 +26,3 @@ type EventType<
 export type Event<TName, TData, TAuthPolicy> = z.infer<
     EventType<ZodType<TName>, ZodType<TData>, ZodType<TAuthPolicy>>
 >;
-
-export const AnyEvent = Event(z.string(), z.unknown(), z.unknown());
-
-export type AnyEvent = z.infer<typeof AnyEvent>;

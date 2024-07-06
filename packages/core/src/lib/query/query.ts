@@ -26,7 +26,3 @@ type QueryType<
 export type Query<TName, TParams, TAuthPolicy> = z.infer<
     QueryType<ZodType<TName>, ZodType<TParams>, ZodType<TAuthPolicy>>
 >;
-
-export const AnyQuery = Query(z.string(), z.unknown(), z.unknown());
-
-export type AnyQuery = z.infer<typeof AnyQuery>;

@@ -36,9 +36,9 @@ features:
 
 We will build the core with events, commands and queries.
 
-There will be an eventRouter, commandRouter and queryRouter in the core itself. All return an Either<Exception, ResultObject>.
+There will be a router in the core itself. The router returns an Either<Exception, ResultObject>.
 
-Those routers can be used to build adapters for different frameworks or interfaces. For example Express or Fastify to handle HTTP requests. Or the AWS Lambda invoked by APIGateway etc.
+The router can be used to build adapters for different frameworks or interfaces. For example Express or Fastify to handle HTTP requests. Or the AWS Lambda invoked by APIGateway etc.
 
 There should be other I/O adapters for databases, queues, etc.
 
