@@ -15,7 +15,9 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@ovl-nimbus/core": ["packages/core/src/index.ts"]
+      "@ovl-nimbus/core": ["packages/core/src/index.ts"],
+      "@ovl-nimbus/aws": ["packages/aws/src/index.ts"],
+      "@ovl-nimbus/mongodb": ["packages/mongodb/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
