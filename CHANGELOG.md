@@ -1,3 +1,14 @@
+## 0.0.2-9 (2024-07-06)
+
+
+### 🚀 Features
+
+- **core:** adds a first PoC for commands, queries, events and a router ([#1](https://github.com/overlap-dev/Nimbus/pull/1))
+
+### ❤️  Thank You
+
+- Daniel Gördes @dgoerdes
+
 ## 0.0.2-8 (2024-07-06)
 
 This was a version bump only, there were no code changes.
