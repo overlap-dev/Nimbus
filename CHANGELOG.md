@@ -1,3 +1,14 @@
+## 0.0.2-10 (2024-07-06)
+
+
+### 🩹 Fixes
+
+- **core:** fixes router type ([173f5fd](https://github.com/overlap-dev/Nimbus/commit/173f5fd))
+
+### ❤️  Thank You
+
+- Daniel Gördes @dgoerdes
+
 ## 0.0.2-9 (2024-07-06)
 
 
