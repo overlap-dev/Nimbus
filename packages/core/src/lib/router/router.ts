@@ -24,7 +24,9 @@ export type RouteHandlerMap = Record<
     }
 >;
 
-export type Router = (input: any) => Promise<E.Either<Exception, unknown>>;
+export type Router = (
+    input: any,
+) => Promise<E.Either<Exception, RouteHandlerResult>>;
 
 export type CreateRouterInput = {
     handlerMap: RouteHandlerMap;
