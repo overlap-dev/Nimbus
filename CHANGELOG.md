@@ -1,3 +1,14 @@
+## 0.0.2-11 (2024-07-07)
+
+
+### 🚀 Features
+
+- **mongodb:** adds first draft for mongoDB adapters and utils ([#2](https://github.com/overlap-dev/Nimbus/pull/2))
+
+### ❤️  Thank You
+
+- Daniel Gördes @dgoerdes
+
 ## 0.0.2-10 (2024-07-06)
 
 
