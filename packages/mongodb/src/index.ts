@@ -1,1 +1,15 @@
-// TODO: NPM Audit is picking up this package as the original mongodb package ... need to fix this
+export * from './lib/bulkWrite';
+export * from './lib/countDocuments';
+export * from './lib/deleteMany';
+export * from './lib/deleteOne';
+export * from './lib/find';
+export * from './lib/findOne';
+export * from './lib/findOneAndDelete';
+export * from './lib/findOneAndReplace';
+export * from './lib/findOneAndUpdate';
+export * from './lib/handleMongoError';
+export * from './lib/insertMany';
+export * from './lib/insertOne';
+export * from './lib/mongodbClient';
+export * from './lib/updateMany';
+export * from './lib/updateOne';
