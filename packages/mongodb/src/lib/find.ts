@@ -10,10 +10,10 @@ export type FindInput<TData> = {
     database: string;
     collectionName: string;
     filter: Filter<Document>;
-    limit: number;
-    skip: number;
-    sort: Sort;
-    project: Document;
+    limit?: number;
+    skip?: number;
+    sort?: Sort;
+    project?: Document;
     mapDocument: (document: Document) => TData;
     outputType: ZodType;
     options?: FindOptions;
