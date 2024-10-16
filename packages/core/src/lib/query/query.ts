@@ -13,7 +13,7 @@ export const Query = <
     return z.object({
         name: nameType,
         metadata: QueryMetadata(authPolicyType),
-        params: paramsType.optional(),
+        params: paramsType,
     });
 };
 
