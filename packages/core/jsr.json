@@ -1,0 +1,6 @@
+{
+  "name": "@nimbus/core",
+  "version": "0.0.2-13",
+  "exports": "./src/index.js",
+  "license": "MIT"
+}
