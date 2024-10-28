@@ -1,3 +1,18 @@
+## 0.0.2-13 (2024-10-28)
+
+
+### 🚀 Features
+
+- **core:** change query type to make params property mandatory ([8ce5b55](https://github.com/overlap-dev/Nimbus/commit/8ce5b55))
+- **core:** adds new exceptions ([a7b5cc5](https://github.com/overlap-dev/Nimbus/commit/a7b5cc5))
+- **fastify:** adds fastify package ([1672a3c](https://github.com/overlap-dev/Nimbus/commit/1672a3c))
+- **mongodb:** change input type for find to have some properties optional ([75eb1a6](https://github.com/overlap-dev/Nimbus/commit/75eb1a6))
+- **utils:** adds utils package ([cafbf6a](https://github.com/overlap-dev/Nimbus/commit/cafbf6a))
+
+### ❤️  Thank You
+
+- Daniel Gördes @dgoerdes
+
 ## 0.0.2-12 (2024-07-07)
 
 This was a version bump only, there were no code changes.
