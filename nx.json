@@ -14,7 +14,7 @@
     }
   },
   "release": {
-    "projects": ["core", "mongodb", "utils"],
+    "projects": ["core", "fastify", "mongodb", "utils"],
     "version": {
       "preVersionCommand": "npx nx run-many -t build",
       "conventionalCommits": false,
