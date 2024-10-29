@@ -1,3 +1,14 @@
+## 0.0.2-14 (2024-10-29)
+
+
+### 🩹 Fixes
+
+- **core:** fixes exported exceptions ([af00636](https://github.com/overlap-dev/Nimbus/commit/af00636))
+
+### ❤️  Thank You
+
+- Daniel Gördes @dgoerdes
+
 ## 0.0.2-13 (2024-10-28)
 
 
