@@ -20,6 +20,7 @@ export const createQueryHandler = ({
     queryRouter,
     authContextGenerator,
 }: CreateQueryHandlerInput) => {
+    // TODO: change inputs to be an object
     /**
      * The queryHandler is a Fastify request handler
      * that works as an adapter between the Fastify API

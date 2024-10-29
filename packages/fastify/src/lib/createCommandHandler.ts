@@ -19,6 +19,7 @@ export const createCommandHandler = ({
     commandRouter,
     authContextGenerator,
 }: CreateCommandHandlerInput) => {
+    // TODO: change inputs to be an object
     /**
      * The commandHandler is a Fastify request handler
      * that works as an adapter between the Fastify API and the Nimbus command router.
