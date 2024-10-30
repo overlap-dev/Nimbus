@@ -1,3 +1,14 @@
+## 0.0.2-15 (2024-10-30)
+
+
+### 🚀 Features
+
+- **mongodb:** adds more error details for bulkwrite errors ([28c07f7](https://github.com/overlap-dev/Nimbus/commit/28c07f7))
+
+### ❤️  Thank You
+
+- Daniel Gördes @dgoerdes
+
 ## 0.0.2-14 (2024-10-29)
 
 
