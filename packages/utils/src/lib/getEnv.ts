@@ -1,10 +1,10 @@
-import { Exception, GenericException } from '@ovl-nimbus/core';
-import * as E from 'fp-ts/Either';
-import type { Logger } from 'pino';
+import * as E from '@baetheus/fun/either';
+import { type Exception, GenericException } from '@nimbus/core';
+import { getLogger } from '@std/log';
+import process from 'node:process';
 
 type GetEnvInput = {
     variables: string[];
-    logger?: Logger;
 };
 
 /**
@@ -13,12 +13,13 @@ type GetEnvInput = {
  * and returns an Exception if one or more are missing.
  *
  * @param variables - The list of environment variables to get
- * @returns fp-ts/Either<Exception, Record<string, string>>
+ * @returns Either<Exception, Record<string, string>>
  */
 export const getEnv = ({
     variables,
-    logger,
 }: GetEnvInput): E.Either<Exception, Record<string, string>> => {
+    const logger = getLogger('nimbus-logger');
+
     const envVars: Record<string, string> = {};
     const missingEnvVars: string[] = [];
 
