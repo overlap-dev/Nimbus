@@ -1,7 +1,7 @@
-import type { AuthContext, Router } from '@ovl-nimbus/core';
+import * as E from '@baetheus/fun/either';
+import { pipe } from '@baetheus/fun/fn';
+import type { AuthContext, Router } from '@nimbus/core';
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import * as E from 'fp-ts/Either';
-import { pipe } from 'fp-ts/lib/function';
 
 type CreateCommandHandlerInput = {
     commandRouter: Router;

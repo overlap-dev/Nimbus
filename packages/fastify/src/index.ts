@@ -1,3 +1,3 @@
-export * from './lib/commandSchema';
-export * from './lib/createCommandHandler';
-export * from './lib/createQueryHandler';
+export * from './lib/commandSchema.ts';
+export * from './lib/createCommandHandler.ts';
+export * from './lib/createQueryHandler.ts';

@@ -1,0 +1,38 @@
+{
+  "name": "@nimbus/fastify",
+  "version": "0.3.0",
+  "license": "MIT",
+  "author": "Daniel Gördes <d.goerdes@overlap.at> (https://overlap.at)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/overlap-dev/Nimbus"
+  },
+  "bugs": {
+    "url": "https://github.com/overlap-dev/Nimbus/issues"
+  },
+  "homepage": "https://nimbus.overlap.at",
+  "exports": "./src/index.ts",
+  "fmt": {
+    "include": ["src/"],
+    "useTabs": false,
+    "lineWidth": 80,
+    "indentWidth": 4,
+    "semiColons": true,
+    "singleQuote": true,
+    "proseWrap": "always"
+  },
+  "lint": {
+    "include": ["src/"],
+    "rules": {
+      "exclude": ["no-explicit-any"]
+    }
+  },
+  "test": {
+    "include": ["src/"]
+  },
+  "imports": {
+    "@baetheus/fun": "jsr:@baetheus/fun@^2.2.2",
+    "@std/ulid": "jsr:@std/ulid@^1.0.0",
+    "fastify": "npm:fastify@^5.0.0"
+  }
+}
