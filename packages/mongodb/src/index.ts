@@ -1,3 +1,4 @@
+export * from './lib/aggregate';
 export * from './lib/bulkWrite';
 export * from './lib/countDocuments';
 export * from './lib/deleteMany';
