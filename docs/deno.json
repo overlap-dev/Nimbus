@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "imports": {
+    "vitepress": "npm:vitepress@^1.4.2"
+  }
+}
