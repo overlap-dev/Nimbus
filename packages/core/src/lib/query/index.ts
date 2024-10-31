@@ -1,2 +1,2 @@
-export * from './query';
-export * from './queryMetadata';
+export * from './query.ts';
+export * from './queryMetadata.ts';

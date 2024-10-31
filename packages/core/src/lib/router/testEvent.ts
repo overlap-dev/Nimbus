@@ -1,9 +1,9 @@
-import * as E from 'fp-ts/Either';
+import * as E from '@baetheus/fun/either';
 import { z } from 'zod';
-import { Event } from '../event';
-import { NotFoundException } from '../exception/notFoundException';
-import { RouteHandler, RouteHandlerMap } from './router';
-import { AuthPolicy } from './testAuthPolicy';
+import { Event } from '../event/index.ts';
+import { NotFoundException } from '../exception/notFoundException.ts';
+import type { RouteHandler, RouteHandlerMap } from './router.ts';
+import { AuthPolicy } from './testAuthPolicy.ts';
 
 export const TestEventData = z.object({
     testException: z.boolean(),
@@ -18,20 +18,20 @@ export const TestEvent = Event(
 );
 export type TestEvent = z.infer<typeof TestEvent>;
 
-export const testEventHandler: RouteHandler<TestEvent, TestEventData> = async (
+export const testEventHandler: RouteHandler<TestEvent, TestEventData> = (
     event,
 ) => {
     if (event.data.testException) {
-        return E.left(new NotFoundException());
+        return Promise.resolve(E.left(new NotFoundException()));
     }
 
-    return E.right({
+    return Promise.resolve(E.right({
         statusCode: 200,
         headers: {
             'Content-Type': 'application/json',
         },
         data: event.data,
-    });
+    }));
 };
 
 export const eventHandlerMap: RouteHandlerMap = {

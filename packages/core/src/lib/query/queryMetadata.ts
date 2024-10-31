@@ -1,5 +1,5 @@
-import { ZodType, z } from 'zod';
-import { AuthContext } from '../authContext';
+import { z, type ZodType } from 'zod';
+import { AuthContext } from '../authContext.ts';
 
 export const QueryMetadata = <TAuthPolicy extends ZodType>(
     authPolicyType: TAuthPolicy,

@@ -1,5 +1,5 @@
-import { ZodType, z } from 'zod';
-import { EventMetadata } from './eventMetadata';
+import { z, type ZodType } from 'zod';
+import { EventMetadata } from './eventMetadata.ts';
 
 export const Event = <
     TName extends ZodType,

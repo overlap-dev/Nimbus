@@ -1,4 +1,4 @@
-import { Exception } from './exception';
+import { Exception } from './exception.ts';
 
 export class NotFoundException extends Exception {
     constructor(message?: string, details?: Record<string, unknown>) {

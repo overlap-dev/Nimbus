@@ -1,10 +1,10 @@
-import * as E from 'fp-ts/Either';
-import { Logger } from 'pino';
-import { ZodError, ZodType } from 'zod';
-import { Exception } from '../exception/exception';
-import { GenericException } from '../exception/genericException';
-import { InvalidInputException } from '../exception/invalidInputException';
-import { NotFoundException } from '../exception/notFoundException';
+import * as E from '@baetheus/fun/either';
+import { getLogger } from '@std/log';
+import { ZodError, type ZodType } from 'zod';
+import type { Exception } from '../exception/exception.ts';
+import { GenericException } from '../exception/genericException.ts';
+import { InvalidInputException } from '../exception/invalidInputException.ts';
+import { NotFoundException } from '../exception/notFoundException.ts';
 
 export type RouteHandlerResult<TData = unknown> = {
     statusCode: number;
@@ -30,7 +30,6 @@ export type Router = (
 
 export type CreateRouterInput = {
     handlerMap: RouteHandlerMap;
-    logger: Logger;
 };
 
 /**
@@ -41,11 +40,12 @@ export type CreateRouterInput = {
  */
 export const createRouter = ({
     handlerMap,
-    logger,
 }: CreateRouterInput): Router => {
     // TODO: Do we need middleware support, and would this be the place to add it?
 
-    const router: Router = async (input) => {
+    const logger = getLogger('nimbus-logger');
+
+    const router: Router = (input) => {
         logger.debug({ msg: 'Nimbus Router :: received input', input });
 
         if (!handlerMap[input.name]) {
@@ -60,7 +60,8 @@ export const createRouter = ({
                 msg: 'Nimbus Router :: handler not found',
                 exception: notFoundException,
             });
-            return E.left(notFoundException);
+
+            return Promise.resolve(E.left(notFoundException));
         }
 
         const { handler, inputType } = handlerMap[input.name];
@@ -71,14 +72,15 @@ export const createRouter = ({
             return handler(validInput);
         } catch (error) {
             if (error instanceof ZodError) {
-                const invalidInputException =
-                    new InvalidInputException().fromZodError(error);
+                const invalidInputException = new InvalidInputException()
+                    .fromZodError(error);
 
                 logger.info({
                     msg: 'Nimbus Router :: invalid input',
                     exception: invalidInputException,
                 });
-                return E.left(invalidInputException);
+
+                return Promise.resolve(E.left(invalidInputException));
             } else {
                 const genericException = new GenericException().fromError(
                     error as Error,
@@ -88,7 +90,8 @@ export const createRouter = ({
                     msg: 'Nimbus Router :: error catched',
                     exception: genericException,
                 });
-                return E.left(genericException);
+
+                return Promise.resolve(E.left(genericException));
             }
         }
     };

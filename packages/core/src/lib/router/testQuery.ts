@@ -1,18 +1,18 @@
-import * as E from 'fp-ts/Either';
+import * as E from '@baetheus/fun/either';
 import { z } from 'zod';
-import { Query } from '../query';
-import { RouteHandler, RouteHandlerMap } from './router';
-import { AuthPolicy } from './testAuthPolicy';
+import { Query } from '../query/index.ts';
+import type { RouteHandler, RouteHandlerMap } from './router.ts';
+import { AuthPolicy } from './testAuthPolicy.ts';
 
 export const TestQuery = Query(
     z.literal('TEST_QUERY'),
-    AuthPolicy,
     z.object({}),
+    AuthPolicy,
 );
 export type TestQuery = z.infer<typeof TestQuery>;
 
-export const testQueryHandler: RouteHandler<TestQuery, any> = async () => {
-    return E.right({
+export const testQueryHandler: RouteHandler<TestQuery, any> = () => {
+    return Promise.resolve(E.right({
         statusCode: 200,
         headers: {
             'Content-Type': 'application/json',
@@ -20,7 +20,7 @@ export const testQueryHandler: RouteHandler<TestQuery, any> = async () => {
         data: {
             foo: 'bar',
         },
-    });
+    }));
 };
 
 export const queryHandlerMap: RouteHandlerMap = {
