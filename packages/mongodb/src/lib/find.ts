@@ -1,9 +1,9 @@
-import { Exception, GenericException } from '@ovl-nimbus/core';
-import * as E from 'fp-ts/Either';
-import { Document, Filter, FindOptions, Sort, WithId } from 'mongodb';
-import { ZodType } from 'zod';
-import { handleMongoError } from './handleMongoError';
-import { getMongoClient } from './mongodbClient';
+import * as E from '@baetheus/fun/either';
+import { type Exception, GenericException } from '@nimbus/core';
+import type { Document, Filter, FindOptions, Sort, WithId } from 'mongodb';
+import type { ZodType } from 'zod';
+import { handleMongoError } from './handleMongoError.ts';
+import { getMongoClient } from './mongodbClient.ts';
 
 export type FindInput<TData> = {
     mongoUrl: string;
@@ -70,10 +70,9 @@ export const find: Find = async ({
         const result = res.map((item) => outputType.parse(mapDocument(item)));
         return E.right(result);
     } catch (error) {
-        const exception =
-            error instanceof Error
-                ? new GenericException().fromError(error)
-                : new GenericException();
+        const exception = error instanceof Error
+            ? new GenericException().fromError(error)
+            : new GenericException();
 
         return E.left(exception);
     }

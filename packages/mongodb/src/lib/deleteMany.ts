@@ -1,8 +1,8 @@
-import { Exception } from '@ovl-nimbus/core';
-import * as E from 'fp-ts/Either';
-import { DeleteOptions, DeleteResult, Document, Filter } from 'mongodb';
-import { handleMongoError } from './handleMongoError';
-import { getMongoClient } from './mongodbClient';
+import * as E from '@baetheus/fun/either';
+import type { Exception } from '@nimbus/core';
+import type { DeleteOptions, DeleteResult, Document, Filter } from 'mongodb';
+import { handleMongoError } from './handleMongoError.ts';
+import { getMongoClient } from './mongodbClient.ts';
 
 export type DeleteManyInput = {
     mongoUrl: string;

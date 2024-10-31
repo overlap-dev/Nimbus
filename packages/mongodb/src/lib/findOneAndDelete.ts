@@ -1,13 +1,18 @@
+import * as E from '@baetheus/fun/either';
 import {
-    Exception,
+    type Exception,
     GenericException,
     NotFoundException,
-} from '@ovl-nimbus/core';
-import * as E from 'fp-ts/Either';
-import { Document, Filter, FindOneAndDeleteOptions, WithId } from 'mongodb';
-import { ZodType } from 'zod';
-import { handleMongoError } from './handleMongoError';
-import { getMongoClient } from './mongodbClient';
+} from '@nimbus/core';
+import type {
+    Document,
+    Filter,
+    FindOneAndDeleteOptions,
+    WithId,
+} from 'mongodb';
+import type { ZodType } from 'zod';
+import { handleMongoError } from './handleMongoError.ts';
+import { getMongoClient } from './mongodbClient.ts';
 
 export type FindOneAndDelete<TData> = {
     mongoUrl: string;
@@ -55,10 +60,9 @@ export const findOneAndDelete: FindOneDelete = async ({
         const result = outputType.parse(mapDocument(res));
         return E.right(result);
     } catch (error) {
-        const exception =
-            error instanceof Error
-                ? new GenericException().fromError(error)
-                : new GenericException();
+        const exception = error instanceof Error
+            ? new GenericException().fromError(error)
+            : new GenericException();
 
         return E.left(exception);
     }

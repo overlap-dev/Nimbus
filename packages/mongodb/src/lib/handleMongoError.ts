@@ -1,8 +1,8 @@
 import {
-    Exception,
+    type Exception,
     GenericException,
     InvalidInputException,
-} from '@ovl-nimbus/core';
+} from '@nimbus/core';
 
 export const handleMongoError = (error: any): Exception => {
     if (error.code && error.code === 121) {

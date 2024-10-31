@@ -1,14 +1,14 @@
-import { Exception } from '@ovl-nimbus/core';
-import * as E from 'fp-ts/Either';
-import {
+import * as E from '@baetheus/fun/either';
+import type { Exception } from '@nimbus/core';
+import type {
     Document,
     Filter,
     UpdateFilter,
     UpdateOptions,
     UpdateResult,
 } from 'mongodb';
-import { handleMongoError } from './handleMongoError';
-import { getMongoClient } from './mongodbClient';
+import { handleMongoError } from './handleMongoError.ts';
+import { getMongoClient } from './mongodbClient.ts';
 
 export type UpdateManyInput = {
     mongoUrl: string;
