@@ -1,3 +1,14 @@
+## 0.0.2-16 (2024-10-31)
+
+
+### 🚀 Features
+
+- **mongodb:** adds function for aggregation ([#3](https://github.com/overlap-dev/Nimbus/pull/3))
+
+### ❤️  Thank You
+
+- V @NurNiek
+
 ## 0.0.2-15 (2024-10-30)
 
 
