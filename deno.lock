@@ -8,7 +8,6 @@
     "jsr:@std/internal@^1.0.4": "1.0.4",
     "jsr:@std/io@0.225": "0.225.0",
     "jsr:@std/log@~0.224.9": "0.224.9",
-    "jsr:@std/testing@^1.0.3": "1.0.3",
     "jsr:@std/ulid@1": "1.0.0",
     "npm:@types/node@*": "22.5.4",
     "npm:fastify@5": "5.0.0",
@@ -47,9 +46,6 @@
         "jsr:@std/fs",
         "jsr:@std/io"
       ]
-    },
-    "@std/testing@1.0.3": {
-      "integrity": "f98c2bee53860a5916727d7e7d3abe920dd6f9edace022e2d059f00d05c2cf42"
     },
     "@std/ulid@1.0.0": {
       "integrity": "d41c3d27a907714413649fee864b7cde8d42ee68437d22b79d5de4f81d808780"
@@ -1288,7 +1284,6 @@
           "jsr:@baetheus/fun@^2.2.2",
           "jsr:@std/assert@^1.0.6",
           "jsr:@std/log@~0.224.9",
-          "jsr:@std/testing@^1.0.3",
           "npm:zod@^3.23.8"
         ]
       },
@@ -1301,7 +1296,9 @@
       },
       "packages/mongodb": {
         "dependencies": [
-          "npm:mongodb@^6.10.0"
+          "jsr:@baetheus/fun@^2.2.2",
+          "npm:mongodb@^6.10.0",
+          "npm:zod@^3.23.8"
         ]
       },
       "packages/utils": {
