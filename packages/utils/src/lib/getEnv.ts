@@ -18,8 +18,6 @@ type GetEnvInput = {
 export const getEnv = ({
     variables,
 }: GetEnvInput): E.Either<Exception, Record<string, string>> => {
-    const logger = getLogger('nimbus-logger');
-
     const envVars: Record<string, string> = {};
     const missingEnvVars: string[] = [];
 
@@ -32,12 +30,10 @@ export const getEnv = ({
     }
 
     if (missingEnvVars.length > 0) {
-        if (logger) {
-            logger.error({
-                message: 'Undefined environment variables',
-                undefinedVariables: missingEnvVars,
-            });
-        }
+        getLogger('Nimbus').error({
+            message: 'Undefined environment variables',
+            undefinedVariables: missingEnvVars,
+        });
 
         return E.left(new GenericException());
     }

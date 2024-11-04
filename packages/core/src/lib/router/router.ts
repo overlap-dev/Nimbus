@@ -43,10 +43,8 @@ export const createRouter = ({
 }: CreateRouterInput): Router => {
     // TODO: Do we need middleware support, and would this be the place to add it?
 
-    const logger = getLogger('nimbus-logger');
-
     const router: Router = (input) => {
-        logger.debug({ msg: 'Nimbus Router :: received input', input });
+        getLogger('Nimbus').info({ msg: 'Router received input', input });
 
         if (!handlerMap[input.name]) {
             const notFoundException = new NotFoundException(
@@ -56,8 +54,8 @@ export const createRouter = ({
                 },
             );
 
-            logger.info({
-                msg: 'Nimbus Router :: handler not found',
+            getLogger('Nimbus').warn({
+                msg: 'Router handler not found',
                 exception: notFoundException,
             });
 
@@ -75,8 +73,8 @@ export const createRouter = ({
                 const invalidInputException = new InvalidInputException()
                     .fromZodError(error);
 
-                logger.info({
-                    msg: 'Nimbus Router :: invalid input',
+                getLogger('Nimbus').warn({
+                    msg: 'Router invalid input',
                     exception: invalidInputException,
                 });
 
@@ -86,8 +84,8 @@ export const createRouter = ({
                     error as Error,
                 );
 
-                logger.error({
-                    msg: 'Nimbus Router :: error catched',
+                getLogger('Nimbus').error({
+                    msg: 'Router catched unexpected handler error',
                     exception: genericException,
                 });
 
