@@ -1,3 +1,14 @@
+## 0.0.2-17 (2024-11-11)
+
+
+### 🚀 Features
+
+- **mongodb:** adds mongodb client reconnecting ([1f56b0b](https://github.com/overlap-dev/Nimbus/commit/1f56b0b))
+
+### ❤️  Thank You
+
+- Daniel Gördes @dgoerdes
+
 ## 0.0.2-16 (2024-10-31)
 
 
