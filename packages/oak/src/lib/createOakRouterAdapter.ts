@@ -7,23 +7,27 @@ export type CreateOakRouterAdapterInput = {
     nimbusRouter: Router;
 };
 
-export type OakRouterAdapterInput<TInput> = {
-    input: TInput;
+export type OakRouterAdapterInput = {
+    input: any;
     context: Context;
 };
 
+export type OakRouterAdapter = (
+    input: OakRouterAdapterInput,
+) => Promise<void>;
+
 /**
- * Creates a commandHandler function that can be used as a Fastify request handler.
- * The commandHandler works as an adapter between the Fastify API
- * and a Nimbus command router.
+ * Creates an oakRouterAdapter to forward "@oak/oak" requests to a Nimbus router.
+ *
+ * @param nimbusRouter - Nimbus Router to forward requests to.
  */
 export const createOakRouterAdapter = ({
     nimbusRouter,
-}: CreateOakRouterAdapterInput) => {
-    const oakRouterAdapter = async <TInput>({
+}: CreateOakRouterAdapterInput): OakRouterAdapter => {
+    const oakRouterAdapter: OakRouterAdapter = async ({
         input,
         context,
-    }: OakRouterAdapterInput<TInput>) => {
+    }) => {
         pipe(
             await nimbusRouter(input),
             E.match(
