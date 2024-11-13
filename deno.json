@@ -5,8 +5,9 @@
   "workspace": [
     "./docs",
     "./packages/core",
-    "./packages/mongodb",
     "./packages/fastify",
+    "./packages/mongodb",
+    "./packages/oak",
     "./packages/utils"
   ],
   "nodeModulesDir": "auto"

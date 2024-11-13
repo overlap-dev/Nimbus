@@ -6,7 +6,7 @@ import { GenericException } from '../exception/genericException.ts';
 import { InvalidInputException } from '../exception/invalidInputException.ts';
 import { NotFoundException } from '../exception/notFoundException.ts';
 
-export type RouteHandlerResult<TData = unknown> = {
+export type RouteHandlerResult<TData = any> = {
     statusCode: number;
     headers?: Record<string, string>;
     data: TData;

@@ -2,16 +2,29 @@
   "version": "4",
   "specifiers": {
     "jsr:@baetheus/fun@^2.2.2": "2.2.2",
+    "jsr:@oak/commons@1": "1.0.0",
+    "jsr:@oak/oak@^17.1.3": "17.1.3",
+    "jsr:@std/assert@1": "1.0.6",
     "jsr:@std/assert@^1.0.6": "1.0.6",
+    "jsr:@std/bytes@1": "1.0.3",
+    "jsr:@std/bytes@^1.0.2": "1.0.3",
+    "jsr:@std/crypto@1": "1.0.3",
+    "jsr:@std/encoding@1": "1.0.5",
+    "jsr:@std/encoding@^1.0.5": "1.0.5",
     "jsr:@std/fmt@^1.0.2": "1.0.3",
     "jsr:@std/fs@^1.0.4": "1.0.5",
+    "jsr:@std/http@1": "1.0.9",
     "jsr:@std/internal@^1.0.4": "1.0.4",
+    "jsr:@std/io@0.224": "0.224.9",
     "jsr:@std/io@0.225": "0.225.0",
     "jsr:@std/log@~0.224.9": "0.224.9",
+    "jsr:@std/media-types@1": "1.0.3",
+    "jsr:@std/path@1": "1.0.8",
     "jsr:@std/ulid@1": "1.0.0",
     "npm:@types/node@*": "22.5.4",
     "npm:fastify@5": "5.0.0",
     "npm:mongodb@^6.10.0": "6.10.0",
+    "npm:path-to-regexp@6.2.1": "6.2.1",
     "npm:vitepress@1.4.2": "1.4.2_vite@5.4.10_vue@3.5.12_focus-trap@7.6.0",
     "npm:vitepress@^1.4.2": "1.4.2_vite@5.4.10_vue@3.5.12_focus-trap@7.6.0",
     "npm:zod@*": "3.23.8",
@@ -21,11 +34,45 @@
     "@baetheus/fun@2.2.2": {
       "integrity": "af59249fedb34d4d157d54a5909415217e57b35d207dec008633399cbe5063fc"
     },
+    "@oak/commons@1.0.0": {
+      "integrity": "49805b55603c3627a9d6235c0655aa2b6222d3036b3a13ff0380c16368f607ac",
+      "dependencies": [
+        "jsr:@std/assert@1",
+        "jsr:@std/bytes@1",
+        "jsr:@std/crypto",
+        "jsr:@std/encoding@1",
+        "jsr:@std/http",
+        "jsr:@std/media-types"
+      ]
+    },
+    "@oak/oak@17.1.3": {
+      "integrity": "d89296c22db91681dd3a2a1e1fd14e258d0d5a9654de55637aee5b661c159f33",
+      "dependencies": [
+        "jsr:@oak/commons",
+        "jsr:@std/assert@1",
+        "jsr:@std/bytes@1",
+        "jsr:@std/crypto",
+        "jsr:@std/http",
+        "jsr:@std/io@0.224",
+        "jsr:@std/media-types",
+        "jsr:@std/path",
+        "npm:path-to-regexp"
+      ]
+    },
     "@std/assert@1.0.6": {
       "integrity": "1904c05806a25d94fe791d6d883b685c9e2dcd60e4f9fc30f4fc5cf010c72207",
       "dependencies": [
         "jsr:@std/internal"
       ]
+    },
+    "@std/bytes@1.0.3": {
+      "integrity": "e5d5b9e685966314e4edb4be60dfc4bd7624a075bfd4ec8109252b4320f76452"
+    },
+    "@std/crypto@1.0.3": {
+      "integrity": "a2a32f51ddef632d299e3879cd027c630dcd4d1d9a5285d6e6788072f4e51e7f"
+    },
+    "@std/encoding@1.0.5": {
+      "integrity": "ecf363d4fc25bd85bd915ff6733a7e79b67e0e7806334af15f4645c569fefc04"
     },
     "@std/fmt@1.0.3": {
       "integrity": "97765c16aa32245ff4e2204ecf7d8562496a3cb8592340a80e7e554e0bb9149f"
@@ -33,8 +80,20 @@
     "@std/fs@1.0.5": {
       "integrity": "41806ad6823d0b5f275f9849a2640d87e4ef67c51ee1b8fb02426f55e02fd44e"
     },
+    "@std/http@1.0.9": {
+      "integrity": "d409fc319a5e8d4a154e576c758752e9700282d74f31357a12fec6420f9ecb6c",
+      "dependencies": [
+        "jsr:@std/encoding@^1.0.5"
+      ]
+    },
     "@std/internal@1.0.4": {
       "integrity": "62e8e4911527e5e4f307741a795c0b0a9e6958d0b3790716ae71ce085f755422"
+    },
+    "@std/io@0.224.9": {
+      "integrity": "4414664b6926f665102e73c969cfda06d2c4c59bd5d0c603fd4f1b1c840d6ee3",
+      "dependencies": [
+        "jsr:@std/bytes@^1.0.2"
+      ]
     },
     "@std/io@0.225.0": {
       "integrity": "c1db7c5e5a231629b32d64b9a53139445b2ca640d828c26bf23e1c55f8c079b3"
@@ -44,8 +103,14 @@
       "dependencies": [
         "jsr:@std/fmt",
         "jsr:@std/fs",
-        "jsr:@std/io"
+        "jsr:@std/io@0.225"
       ]
+    },
+    "@std/media-types@1.0.3": {
+      "integrity": "b12d30a7852f7578f4d210622df713bbfd1cbdd9b4ec2eaf5c1845ab70bab159"
+    },
+    "@std/path@1.0.8": {
+      "integrity": "548fa456bb6a04d3c1a1e7477986b6cffbce95102d0bb447c67c4ee70e0364be"
     },
     "@std/ulid@1.0.0": {
       "integrity": "d41c3d27a907714413649fee864b7cde8d42ee68437d22b79d5de4f81d808780"
@@ -964,6 +1029,9 @@
         "regex"
       ]
     },
+    "path-to-regexp@6.2.1": {
+      "integrity": "sha512-JLyh7xT1kizaEvcaXOQwOc2/Yhw6KZOvPf1S8401UyLk86CU79LN3vl7ztXGm/pZ+YjoyAJ4rxmHwbkBXJX+yw=="
+    },
     "perfect-debounce@1.0.0": {
       "integrity": "sha512-xCy9V055GLEqoFaHoC1SoLIaLmWctgCUaBaWxDZ7/Zx4CTyX7cJQLJOok/orfjZAh9kEYpjJa4d0KcJmCbctZA=="
     },
@@ -1299,6 +1367,13 @@
           "jsr:@baetheus/fun@^2.2.2",
           "npm:mongodb@^6.10.0",
           "npm:zod@^3.23.8"
+        ]
+      },
+      "packages/oak": {
+        "dependencies": [
+          "jsr:@baetheus/fun@^2.2.2",
+          "jsr:@oak/oak@^17.1.3",
+          "jsr:@std/ulid@1"
         ]
       },
       "packages/utils": {
