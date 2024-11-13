@@ -5,51 +5,41 @@ import {
     NotFoundException,
 } from '@nimbus/core';
 import type {
+    Collection,
     Document,
     Filter,
-    FindOneAndUpdateOptions,
-    UpdateFilter,
+    FindOneAndDeleteOptions,
     WithId,
 } from 'mongodb';
 import type { ZodType } from 'zod';
-import { handleMongoError } from './handleMongoError.ts';
-import { getMongoClient } from './mongodbClient.ts';
+import { handleMongoError } from '../handleMongoError.ts';
 
-export type FindOneAndUpdate<TData> = {
-    mongoUrl: string;
-    database: string;
-    collectionName: string;
+export type FindOneAndDelete<TData> = {
+    collection: Collection<Document>;
     filter: Filter<Document>;
-    update: UpdateFilter<Document>;
     mapDocument: (document: Document) => TData;
     outputType: ZodType;
-    options?: FindOneAndUpdateOptions;
+    options?: FindOneAndDeleteOptions;
 };
 
-export type FindOneUpdate = <TData>(
-    input: FindOneAndUpdate<TData>,
+export type FindOneDelete = <TData>(
+    input: FindOneAndDelete<TData>,
 ) => Promise<E.Either<Exception, TData>>;
 
-export const findOneAndUpdate: FindOneUpdate = async ({
-    mongoUrl,
-    database,
-    collectionName,
+export const findOneAndDelete: FindOneDelete = async ({
+    collection,
     filter,
-    update,
     mapDocument,
     outputType,
     options,
 }) => {
     let res: WithId<Document> | null = null;
+
     try {
-        const mongoClient = await getMongoClient(mongoUrl);
-
-        const collection = mongoClient.db(database).collection(collectionName);
-
         if (options) {
-            res = await collection.findOneAndUpdate(filter, update, options);
+            res = await collection.findOneAndDelete(filter, options);
         } else {
-            res = await collection.findOneAndUpdate(filter, update);
+            res = await collection.findOneAndDelete(filter);
         }
     } catch (error) {
         return E.left(handleMongoError(error));

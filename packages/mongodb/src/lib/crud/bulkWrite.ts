@@ -4,15 +4,13 @@ import type {
     AnyBulkWriteOperation,
     BulkWriteOptions,
     BulkWriteResult,
+    Collection,
     Document,
 } from 'mongodb';
-import { handleMongoError } from './handleMongoError.ts';
-import { getMongoClient } from './mongodbClient.ts';
+import { handleMongoError } from '../handleMongoError.ts';
 
 export type BulkWriteInput = {
-    mongoUrl: string;
-    database: string;
-    collectionName: string;
+    collection: Collection<Document>;
     operations: AnyBulkWriteOperation<Document>[];
     options?: BulkWriteOptions;
 };
@@ -22,19 +20,12 @@ export type BulkWrite = (
 ) => Promise<E.Either<Exception, BulkWriteResult>>;
 
 export const bulkWrite: BulkWrite = async ({
-    mongoUrl,
-    database,
-    collectionName,
+    collection,
     operations,
     options,
 }) => {
     try {
-        const mongoClient = await getMongoClient(mongoUrl);
-
-        const res = await mongoClient
-            .db(database)
-            .collection(collectionName)
-            .bulkWrite(operations, options);
+        const res = await collection.bulkWrite(operations, options);
 
         return E.right(res);
     } catch (error) {

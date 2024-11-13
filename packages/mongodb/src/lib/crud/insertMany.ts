@@ -2,17 +2,15 @@ import * as E from '@baetheus/fun/either';
 import type { Exception } from '@nimbus/core';
 import type {
     BulkWriteOptions,
+    Collection,
     Document,
     InsertManyResult,
     OptionalUnlessRequiredId,
 } from 'mongodb';
-import { handleMongoError } from './handleMongoError.ts';
-import { getMongoClient } from './mongodbClient.ts';
+import { handleMongoError } from '../handleMongoError.ts';
 
 export type InsertManyInput = {
-    mongoUrl: string;
-    database: string;
-    collectionName: string;
+    collection: Collection<Document>;
     documents: OptionalUnlessRequiredId<Document>[];
     options?: BulkWriteOptions;
 };
@@ -22,19 +20,12 @@ export type InsertMany = (
 ) => Promise<E.Either<Exception, InsertManyResult<Document>>>;
 
 export const insertMany: InsertMany = async ({
-    mongoUrl,
-    database,
-    collectionName,
+    collection,
     documents,
     options,
 }) => {
     try {
-        const mongoClient = await getMongoClient(mongoUrl);
-
-        const res = await mongoClient
-            .db(database)
-            .collection(collectionName)
-            .insertMany(documents, options);
+        const res = await collection.insertMany(documents, options);
 
         return E.right(res);
     } catch (error) {

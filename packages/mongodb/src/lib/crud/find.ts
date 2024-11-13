@@ -1,14 +1,18 @@
 import * as E from '@baetheus/fun/either';
 import { type Exception, GenericException } from '@nimbus/core';
-import type { Document, Filter, FindOptions, Sort, WithId } from 'mongodb';
+import type {
+    Collection,
+    Document,
+    Filter,
+    FindOptions,
+    Sort,
+    WithId,
+} from 'mongodb';
 import type { ZodType } from 'zod';
-import { handleMongoError } from './handleMongoError.ts';
-import { getMongoClient } from './mongodbClient.ts';
+import { handleMongoError } from '../handleMongoError.ts';
 
 export type FindInput<TData> = {
-    mongoUrl: string;
-    database: string;
-    collectionName: string;
+    collection: Collection<Document>;
     filter: Filter<Document>;
     limit?: number;
     skip?: number;
@@ -24,9 +28,7 @@ export type Find = <TData>(
 ) => Promise<E.Either<Exception, TData[]>>;
 
 export const find: Find = async ({
-    mongoUrl,
-    database,
-    collectionName,
+    collection,
     filter,
     limit,
     skip,
@@ -37,13 +39,9 @@ export const find: Find = async ({
     options,
 }) => {
     let res: WithId<Document>[] = [];
-    try {
-        const mongoClient = await getMongoClient(mongoUrl);
 
-        const findRes = mongoClient
-            .db(database)
-            .collection(collectionName)
-            .find(filter, options);
+    try {
+        const findRes = collection.find(filter, options);
 
         if (typeof limit !== 'undefined') {
             findRes.limit(limit);

@@ -1,13 +1,15 @@
 import * as E from '@baetheus/fun/either';
 import type { Exception } from '@nimbus/core';
-import type { CountDocumentsOptions, Document, Filter } from 'mongodb';
-import { handleMongoError } from './handleMongoError.ts';
-import { getMongoClient } from './mongodbClient.ts';
+import type {
+    Collection,
+    CountDocumentsOptions,
+    Document,
+    Filter,
+} from 'mongodb';
+import { handleMongoError } from '../handleMongoError.ts';
 
 export type CountDocumentsInput = {
-    mongoUrl: string;
-    database: string;
-    collectionName: string;
+    collection: Collection<Document>;
     filter: Filter<Document>;
     options?: CountDocumentsOptions;
 };
@@ -17,20 +19,14 @@ export type CountDocuments = (
 ) => Promise<E.Either<Exception, number>>;
 
 export const countDocuments: CountDocuments = async ({
-    mongoUrl,
-    database,
-    collectionName,
+    collection,
     filter,
     options,
 }) => {
     let res = 0;
 
     try {
-        const mongoClient = await getMongoClient(mongoUrl);
-
-        res = await mongoClient
-            .db(database)
-            .collection(collectionName)
+        res = await collection
             .countDocuments(filter, options);
     } catch (error) {
         return E.left(handleMongoError(error));

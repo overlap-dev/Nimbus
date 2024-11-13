@@ -1,14 +1,11 @@
 import * as E from '@baetheus/fun/either';
 import { type Exception, GenericException } from '@nimbus/core';
-import type { AggregateOptions, Document } from 'mongodb';
+import type { AggregateOptions, Collection, Document } from 'mongodb';
 import type { ZodType } from 'zod';
-import { handleMongoError } from './handleMongoError.ts';
-import { getMongoClient } from './mongodbClient.ts';
+import { handleMongoError } from '../handleMongoError.ts';
 
 export type AggregateInput<TData> = {
-    mongoUrl: string;
-    database: string;
-    collectionName: string;
+    collection: Collection<Document>;
     aggregation: Document[];
     mapDocument: (document: Document) => TData;
     outputType: ZodType;
@@ -20,9 +17,7 @@ export type Aggregate = <TData>(
 ) => Promise<E.Either<Exception, TData[]>>;
 
 export const aggregate: Aggregate = async ({
-    mongoUrl,
-    database,
-    collectionName,
+    collection,
     aggregation,
     mapDocument,
     outputType,
@@ -30,12 +25,7 @@ export const aggregate: Aggregate = async ({
 }) => {
     let res: Document[] = [];
     try {
-        const mongoClient = await getMongoClient(mongoUrl);
-
-        const aggregationRes = mongoClient
-            .db(database)
-            .collection(collectionName)
-            .aggregate(aggregation, options);
+        const aggregationRes = collection.aggregate(aggregation, options);
 
         res = await aggregationRes.toArray();
     } catch (error) {
