@@ -1,5 +1,3 @@
-import * as E from '@baetheus/fun/either';
-import type { Exception } from '@nimbus/core';
 import type {
     Collection,
     DeleteOptions,
@@ -17,7 +15,7 @@ export type DeleteManyInput = {
 
 export type DeleteMany = (
     input: DeleteManyInput,
-) => Promise<E.Either<Exception, DeleteResult>>;
+) => Promise<DeleteResult>;
 
 export const deleteMany: DeleteMany = async ({
     collection,
@@ -26,9 +24,8 @@ export const deleteMany: DeleteMany = async ({
 }) => {
     try {
         const res = await collection.deleteMany(filter, options);
-
-        return E.right(res);
+        return res;
     } catch (error) {
-        return E.left(handleMongoError(error));
+        throw handleMongoError(error);
     }
 };

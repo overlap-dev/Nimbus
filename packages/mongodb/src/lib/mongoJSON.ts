@@ -1,6 +1,4 @@
-import * as E from '@baetheus/fun/either';
-import { pipe } from '@baetheus/fun/fn';
-import { type Exception, InvalidInputException } from '@nimbus/core';
+import { InvalidInputException } from '@nimbus/core';
 import { ObjectId } from 'mongodb';
 
 const mongoJSONStringify = (object: Record<string, unknown>): string => {
@@ -37,35 +35,16 @@ const mongoJSONParse = (
 
     try {
         return JSON.parse(text, reviver);
-    } catch (error: any) {
-        if (error.name === 'SyntaxError') {
-            throw new Error('MongoJSON parse error', error);
+    } catch (error) {
+        if (error instanceof Error) {
+            throw new InvalidInputException().fromError(error);
         } else {
-            throw new Error('MongoJSON parse error');
+            throw new InvalidInputException('MongoJSON parse error');
         }
     }
 };
 
-const mongoJSONSafeParse = (
-    text: string,
-    operatorBlackList: string[] = ['$where'],
-): E.Either<Exception, any> => {
-    return pipe(
-        [text, operatorBlackList],
-        E.tryCatch<Exception, any, any[]>(([text, operatorBlackList]) => {
-            return mongoJSONParse(text, operatorBlackList);
-        }, (error) => {
-            if (error instanceof Error) {
-                return new InvalidInputException().fromError(error);
-            } else {
-                return new InvalidInputException('MongoJSON parse error');
-            }
-        }),
-    );
-};
-
 export const MongoJSON = {
     parse: mongoJSONParse,
-    safeParse: mongoJSONSafeParse,
     stringify: mongoJSONStringify,
 };

@@ -1,5 +1,3 @@
-import * as E from '@baetheus/fun/either';
-import type { Exception } from '@nimbus/core';
 import type {
     AnyBulkWriteOperation,
     BulkWriteOptions,
@@ -17,7 +15,7 @@ export type BulkWriteInput = {
 
 export type BulkWrite = (
     input: BulkWriteInput,
-) => Promise<E.Either<Exception, BulkWriteResult>>;
+) => Promise<BulkWriteResult>;
 
 export const bulkWrite: BulkWrite = async ({
     collection,
@@ -26,9 +24,8 @@ export const bulkWrite: BulkWrite = async ({
 }) => {
     try {
         const res = await collection.bulkWrite(operations, options);
-
-        return E.right(res);
+        return res;
     } catch (error) {
-        return E.left(handleMongoError(error));
+        throw handleMongoError(error);
     }
 };

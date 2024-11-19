@@ -1,9 +1,4 @@
-import * as E from '@baetheus/fun/either';
-import {
-    type Exception,
-    GenericException,
-    NotFoundException,
-} from '@nimbus/core';
+import { GenericException, NotFoundException } from '@nimbus/core';
 import type {
     Collection,
     Document,
@@ -24,7 +19,7 @@ export type FindOneAndDelete<TData> = {
 
 export type FindOneDelete = <TData>(
     input: FindOneAndDelete<TData>,
-) => Promise<E.Either<Exception, TData>>;
+) => Promise<TData>;
 
 export const findOneAndDelete: FindOneDelete = async ({
     collection,
@@ -42,21 +37,20 @@ export const findOneAndDelete: FindOneDelete = async ({
             res = await collection.findOneAndDelete(filter);
         }
     } catch (error) {
-        return E.left(handleMongoError(error));
+        throw handleMongoError(error);
     }
 
     if (!res) {
-        return E.left(new NotFoundException('Document not found'));
+        throw new NotFoundException('Document not found');
     }
 
     try {
-        const result = outputType.parse(mapDocument(res));
-        return E.right(result);
+        return outputType.parse(mapDocument(res));
     } catch (error) {
         const exception = error instanceof Error
             ? new GenericException().fromError(error)
             : new GenericException();
 
-        return E.left(exception);
+        throw exception;
     }
 };

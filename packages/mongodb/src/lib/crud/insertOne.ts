@@ -1,5 +1,3 @@
-import * as E from '@baetheus/fun/either';
-import type { Exception } from '@nimbus/core';
 import type {
     Collection,
     Document,
@@ -17,7 +15,7 @@ export type InsertOneInput = {
 
 export type InsertOne = (
     input: InsertOneInput,
-) => Promise<E.Either<Exception, InsertOneResult<Document>>>;
+) => Promise<InsertOneResult<Document>>;
 
 export const insertOne: InsertOne = async ({
     collection,
@@ -26,9 +24,8 @@ export const insertOne: InsertOne = async ({
 }) => {
     try {
         const res = await collection.insertOne(document, options);
-
-        return E.right(res);
+        return res;
     } catch (error) {
-        return E.left(handleMongoError(error));
+        throw handleMongoError(error);
     }
 };

@@ -1,5 +1,4 @@
-import * as E from '@baetheus/fun/either';
-import { type Exception, GenericException } from '@nimbus/core';
+import { GenericException } from '@nimbus/core';
 import type {
     Collection,
     Document,
@@ -25,7 +24,7 @@ export type FindInput<TData> = {
 
 export type Find = <TData>(
     input: FindInput<TData>,
-) => Promise<E.Either<Exception, TData[]>>;
+) => Promise<TData[]>;
 
 export const find: Find = async ({
     collection,
@@ -61,17 +60,16 @@ export const find: Find = async ({
 
         res = await findRes.toArray();
     } catch (error) {
-        return E.left(handleMongoError(error));
+        throw handleMongoError(error);
     }
 
     try {
-        const result = res.map((item) => outputType.parse(mapDocument(item)));
-        return E.right(result);
+        return res.map((item) => outputType.parse(mapDocument(item)));
     } catch (error) {
         const exception = error instanceof Error
             ? new GenericException().fromError(error)
             : new GenericException();
 
-        return E.left(exception);
+        throw exception;
     }
 };

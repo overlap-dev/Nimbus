@@ -1,10 +1,9 @@
-import * as E from '@baetheus/fun/either';
-import { pipe } from '@baetheus/fun/fn';
-import type { Router } from '@nimbus/core';
+import { Exception, type Router } from '@nimbus/core';
 import type { Context } from '@oak/oak/context';
 
 export type CreateOakRouterAdapterInput = {
     nimbusRouter: Router;
+    onError?: (error: any) => void;
 };
 
 export type OakRouterAdapterInput = {
@@ -23,41 +22,47 @@ export type OakRouterAdapter = (
  */
 export const createOakRouterAdapter = ({
     nimbusRouter,
+    onError,
 }: CreateOakRouterAdapterInput): OakRouterAdapter => {
     const oakRouterAdapter: OakRouterAdapter = async ({
         input,
         context,
     }) => {
-        pipe(
-            await nimbusRouter(input),
-            E.match(
-                (exception) => {
-                    context.response.status = exception.statusCode || 500;
+        try {
+            const result = await nimbusRouter(input);
+
+            context.response.status = result.statusCode;
+
+            if (result.headers) {
+                for (const header of Object.keys(result.headers)) {
+                    context.response.headers.set(
+                        header,
+                        result.headers[header],
+                    );
+                }
+            }
+
+            context.response.body = result.data;
+        } catch (error) {
+            if (onError) {
+                onError(error);
+            } else {
+                if (error instanceof Exception) {
+                    const statusCode = error.statusCode || 500;
+
+                    context.response.status = statusCode;
                     context.response.body = {
-                        statusCode: exception.statusCode || 500,
-                        code: exception.name,
-                        message: exception.message,
-                        ...(exception.details
-                            ? { details: exception.details }
-                            : {}),
+                        statusCode,
+                        code: error.name,
+                        message: error.message,
+                        ...(error.details ? { details: error.details } : {}),
                     };
-                },
-                (result) => {
-                    context.response.status = result.statusCode;
-
-                    if (result.headers) {
-                        for (const header of Object.keys(result.headers)) {
-                            context.response.headers.set(
-                                header,
-                                result.headers[header],
-                            );
-                        }
-                    }
-
-                    context.response.body = result.data;
-                },
-            ),
-        );
+                } else {
+                    context.response.status = 500;
+                    context.response.body = {};
+                }
+            }
+        }
     };
 
     return oakRouterAdapter;

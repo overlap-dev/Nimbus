@@ -31,7 +31,6 @@
     "include": ["src/"]
   },
   "imports": {
-    "@baetheus/fun": "jsr:@baetheus/fun@^2.2.2",
     "@std/ulid": "jsr:@std/ulid@^1.0.0",
     "@oak/oak": "jsr:@oak/oak@^17.1.3"
   }

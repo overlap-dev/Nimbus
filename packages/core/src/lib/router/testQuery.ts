@@ -1,4 +1,3 @@
-import * as E from '@baetheus/fun/either';
 import { z } from 'zod';
 import { Query } from '../query/index.ts';
 import type { RouteHandler, RouteHandlerMap } from './router.ts';
@@ -12,7 +11,7 @@ export const TestQuery = Query(
 export type TestQuery = z.infer<typeof TestQuery>;
 
 export const testQueryHandler: RouteHandler<TestQuery, any> = () => {
-    return Promise.resolve(E.right({
+    return Promise.resolve({
         statusCode: 200,
         headers: {
             'Content-Type': 'application/json',
@@ -20,7 +19,7 @@ export const testQueryHandler: RouteHandler<TestQuery, any> = () => {
         data: {
             foo: 'bar',
         },
-    }));
+    });
 };
 
 export const queryHandlerMap: RouteHandlerMap = {

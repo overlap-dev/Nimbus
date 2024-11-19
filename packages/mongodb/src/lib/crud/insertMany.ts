@@ -1,5 +1,3 @@
-import * as E from '@baetheus/fun/either';
-import type { Exception } from '@nimbus/core';
 import type {
     BulkWriteOptions,
     Collection,
@@ -17,7 +15,7 @@ export type InsertManyInput = {
 
 export type InsertMany = (
     input: InsertManyInput,
-) => Promise<E.Either<Exception, InsertManyResult<Document>>>;
+) => Promise<InsertManyResult<Document>>;
 
 export const insertMany: InsertMany = async ({
     collection,
@@ -26,9 +24,8 @@ export const insertMany: InsertMany = async ({
 }) => {
     try {
         const res = await collection.insertMany(documents, options);
-
-        return E.right(res);
+        return res;
     } catch (error) {
-        return E.left(handleMongoError(error));
+        throw handleMongoError(error);
     }
 };

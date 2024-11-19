@@ -1,5 +1,3 @@
-import * as E from '@baetheus/fun/either';
-import { pipe } from '@baetheus/fun/fn';
 import { getLogger } from '@std/log';
 import EventEmitter from 'node:events';
 import type { Exception } from '../exception/exception.ts';
@@ -49,17 +47,12 @@ export class NimbusEventProcessor extends EventEmitter {
         }
 
         this.on('NimbusEvent', async (event: Event<string, any, any>) => {
-            pipe(
-                await eventRouter(event),
-                E.match(
-                    (exception) => {
-                        this._onError(event, exception);
-                    },
-                    (result) => {
-                        this._onSuccess(event, result);
-                    },
-                ),
-            );
+            try {
+                const result = await eventRouter(event);
+                this._onSuccess(event, result);
+            } catch (error: any) {
+                this._onError(event, error);
+            }
         });
     }
 

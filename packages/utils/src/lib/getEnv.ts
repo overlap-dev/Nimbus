@@ -1,5 +1,4 @@
-import * as E from '@baetheus/fun/either';
-import { type Exception, GenericException } from '@nimbus/core';
+import { GenericException } from '@nimbus/core';
 import { getLogger } from '@std/log';
 import process from 'node:process';
 
@@ -8,16 +7,16 @@ type GetEnvInput = {
 };
 
 /**
- * Get environment variables in a safe way.
- * Optionally logs an error listing the missing environment variables
- * and returns an Exception if one or more are missing.
+ * Get environment variables from the process.env object.
+ * Throws an exception if any of the variables are not defined
+ * and logs the missing variable names.
  *
  * @param variables - The list of environment variables to get
- * @returns Either<Exception, Record<string, string>>
+ * @returns Record<string, string>
  */
 export const getEnv = ({
     variables,
-}: GetEnvInput): E.Either<Exception, Record<string, string>> => {
+}: GetEnvInput): Record<string, string> => {
     const envVars: Record<string, string> = {};
     const missingEnvVars: string[] = [];
 
@@ -35,8 +34,10 @@ export const getEnv = ({
             undefinedVariables: missingEnvVars,
         });
 
-        return E.left(new GenericException());
+        throw new GenericException('Undefined environment variables', {
+            undefinedVariables: missingEnvVars,
+        });
     }
 
-    return E.right(envVars);
+    return envVars;
 };

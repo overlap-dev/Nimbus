@@ -1,6 +1,5 @@
-import * as E from '@baetheus/fun/either';
-import { pipe } from '@baetheus/fun/fn';
 import { assertEquals, assertInstanceOf } from '@std/assert';
+import { GenericException } from '../exception/genericException.ts';
 import {
     InvalidInputException,
     NotFoundException,
@@ -34,18 +33,13 @@ Deno.test('Router handles input with an unknown handler name', async () => {
         },
     };
 
-    pipe(
-        await router(input),
-        E.match(
-            (exception) => {
-                assertInstanceOf(exception, NotFoundException);
-                assertEquals(exception.message, 'Route handler not found');
-            },
-            (result) => {
-                assertEquals(typeof result === 'undefined', true);
-            },
-        ),
-    );
+    try {
+        const result = await router(input);
+        assertEquals(typeof result === 'undefined', true);
+    } catch (exception: any) {
+        assertInstanceOf(exception, NotFoundException);
+        assertEquals(exception.message, 'Route handler not found');
+    }
 });
 
 Deno.test('Router handles valid command input', async () => {
@@ -70,25 +64,20 @@ Deno.test('Router handles valid command input', async () => {
         },
     };
 
-    pipe(
-        await commandRouter(input),
-        E.match(
-            (exception) => {
-                assertEquals(typeof exception === 'undefined', true);
+    try {
+        const result = await commandRouter(input);
+        assertEquals(result, {
+            statusCode: 200,
+            headers: {
+                'Content-Type': 'application/json',
             },
-            (result) => {
-                assertEquals(result, {
-                    statusCode: 200,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    data: {
-                        aNumber: 1,
-                    },
-                });
+            data: {
+                aNumber: 1,
             },
-        ),
-    );
+        });
+    } catch (exception: any) {
+        assertEquals(typeof exception === 'undefined', true);
+    }
 });
 
 Deno.test('Router handles valid query input', async () => {
@@ -111,26 +100,20 @@ Deno.test('Router handles valid query input', async () => {
         },
     };
 
-    pipe(
-        await queryRouter(input),
-        E.match(
-            (exception) => {
-                console.log(exception);
-                assertEquals(typeof exception === 'undefined', true);
+    try {
+        const result = await queryRouter(input);
+        assertEquals(result, {
+            statusCode: 200,
+            headers: {
+                'Content-Type': 'application/json',
             },
-            (result) => {
-                assertEquals(result, {
-                    statusCode: 200,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    data: {
-                        foo: 'bar',
-                    },
-                });
+            data: {
+                foo: 'bar',
             },
-        ),
-    );
+        });
+    } catch (exception: any) {
+        assertEquals(typeof exception === 'undefined', true);
+    }
 });
 
 Deno.test('Router handles valid event input', async () => {
@@ -157,26 +140,21 @@ Deno.test('Router handles valid event input', async () => {
         },
     };
 
-    pipe(
-        await eventRouter(input),
-        E.match(
-            (exception) => {
-                assertEquals(typeof exception === 'undefined', true);
+    try {
+        const result = await eventRouter(input);
+        assertEquals(result, {
+            statusCode: 200,
+            headers: {
+                'Content-Type': 'application/json',
             },
-            (result) => {
-                assertEquals(result, {
-                    statusCode: 200,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    data: {
-                        testException: false,
-                        aNumber: 1,
-                    },
-                });
+            data: {
+                testException: false,
+                aNumber: 1,
             },
-        ),
-    );
+        });
+    } catch (exception: any) {
+        assertEquals(typeof exception === 'undefined', true);
+    }
 });
 
 Deno.test('Router handles invalid event input', async () => {
@@ -203,32 +181,27 @@ Deno.test('Router handles invalid event input', async () => {
         },
     };
 
-    pipe(
-        await eventRouter(invalidInput),
-        E.match(
-            (exception) => {
-                assertInstanceOf(exception, InvalidInputException);
-                assertEquals(
-                    exception.message,
-                    'The provided input is invalid',
-                );
-                assertEquals(exception.details, {
-                    issues: [
-                        {
-                            code: 'invalid_type',
-                            expected: 'number',
-                            received: 'string',
-                            path: ['data', 'aNumber'],
-                            message: 'Expected number, received string',
-                        },
-                    ],
-                });
-            },
-            (result) => {
-                assertEquals(typeof result === 'undefined', true);
-            },
-        ),
-    );
+    try {
+        const result = await eventRouter(invalidInput);
+        assertEquals(typeof result === 'undefined', true);
+    } catch (exception: any) {
+        assertInstanceOf(exception, InvalidInputException);
+        assertEquals(
+            exception.message,
+            'The provided input is invalid',
+        );
+        assertEquals(exception.details, {
+            issues: [
+                {
+                    code: 'invalid_type',
+                    expected: 'number',
+                    received: 'string',
+                    path: ['data', 'aNumber'],
+                    message: 'Expected number, received string',
+                },
+            ],
+        });
+    }
 });
 
 Deno.test('Router handles valid event input but handler returns an exception', async () => {
@@ -255,15 +228,10 @@ Deno.test('Router handles valid event input but handler returns an exception', a
         },
     };
 
-    pipe(
-        await eventRouter(input),
-        E.match(
-            (exception) => {
-                assertInstanceOf(exception, NotFoundException);
-            },
-            (result) => {
-                assertEquals(typeof result === 'undefined', true);
-            },
-        ),
-    );
+    try {
+        const result = await eventRouter(input);
+        assertEquals(typeof result === 'undefined', true);
+    } catch (exception: any) {
+        assertInstanceOf(exception, GenericException);
+    }
 });

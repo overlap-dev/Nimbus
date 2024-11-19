@@ -28,7 +28,6 @@
     "include": ["src/"]
   },
   "imports": {
-    "@baetheus/fun": "jsr:@baetheus/fun@^2.2.2",
     "@std/log": "jsr:@std/log@^0.224.9"
   }
 }

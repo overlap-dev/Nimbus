@@ -1,9 +1,4 @@
-import * as E from '@baetheus/fun/either';
-import {
-    type Exception,
-    GenericException,
-    NotFoundException,
-} from '@nimbus/core';
+import { GenericException, NotFoundException } from '@nimbus/core';
 import type { Collection, Document, Filter, WithId } from 'mongodb';
 import type { ZodType } from 'zod';
 import { handleMongoError } from '../handleMongoError.ts';
@@ -17,7 +12,7 @@ export type FindOneInput<TData> = {
 
 export type FindOne = <TData>(
     input: FindOneInput<TData>,
-) => Promise<E.Either<Exception, TData>>;
+) => Promise<TData>;
 
 export const findOne: FindOne = async ({
     collection,
@@ -30,21 +25,20 @@ export const findOne: FindOne = async ({
     try {
         res = await collection.findOne(filter);
     } catch (error) {
-        return E.left(handleMongoError(error));
+        throw handleMongoError(error);
     }
 
     if (!res) {
-        return E.left(new NotFoundException('Document not found'));
+        throw new NotFoundException('Document not found');
     }
 
     try {
-        const result = outputType.parse(mapDocument(res));
-        return E.right(result);
+        return outputType.parse(mapDocument(res));
     } catch (error) {
         const exception = error instanceof Error
             ? new GenericException().fromError(error)
             : new GenericException();
 
-        return E.left(exception);
+        throw exception;
     }
 };

@@ -1,5 +1,3 @@
-import * as E from '@baetheus/fun/either';
-import type { Exception } from '@nimbus/core';
 import type {
     Collection,
     Document,
@@ -19,7 +17,7 @@ export type ReplaceOneInput = {
 
 export type ReplaceOne = (
     input: ReplaceOneInput,
-) => Promise<E.Either<Exception, Document | UpdateResult<Document>>>;
+) => Promise<Document | UpdateResult<Document>>;
 
 export const replaceOne: ReplaceOne = async ({
     collection,
@@ -29,9 +27,8 @@ export const replaceOne: ReplaceOne = async ({
 }) => {
     try {
         const res = await collection.replaceOne(filter, replacement, options);
-
-        return E.right(res);
+        return res;
     } catch (error) {
-        return E.left(handleMongoError(error));
+        throw handleMongoError(error);
     }
 };

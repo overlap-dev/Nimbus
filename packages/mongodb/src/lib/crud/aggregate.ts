@@ -1,5 +1,4 @@
-import * as E from '@baetheus/fun/either';
-import { type Exception, GenericException } from '@nimbus/core';
+import { GenericException } from '@nimbus/core';
 import type { AggregateOptions, Collection, Document } from 'mongodb';
 import type { ZodType } from 'zod';
 import { handleMongoError } from '../handleMongoError.ts';
@@ -14,7 +13,7 @@ export type AggregateInput<TData> = {
 
 export type Aggregate = <TData>(
     input: AggregateInput<TData>,
-) => Promise<E.Either<Exception, TData[]>>;
+) => Promise<TData[]>;
 
 export const aggregate: Aggregate = async ({
     collection,
@@ -24,22 +23,21 @@ export const aggregate: Aggregate = async ({
     options,
 }) => {
     let res: Document[] = [];
+
     try {
         const aggregationRes = collection.aggregate(aggregation, options);
-
         res = await aggregationRes.toArray();
     } catch (error) {
-        return E.left(handleMongoError(error));
+        throw handleMongoError(error);
     }
 
     try {
-        const result = res.map((item) => outputType.parse(mapDocument(item)));
-        return E.right(result);
+        return res.map((item) => outputType.parse(mapDocument(item)));
     } catch (error) {
         const exception = error instanceof Error
             ? new GenericException().fromError(error)
             : new GenericException();
 
-        return E.left(exception);
+        throw exception;
     }
 };

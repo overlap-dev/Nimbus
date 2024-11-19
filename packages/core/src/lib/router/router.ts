@@ -1,6 +1,4 @@
-import * as E from '@baetheus/fun/either';
 import { ZodError, type ZodType } from 'zod';
-import type { Exception } from '../exception/exception.ts';
 import { GenericException } from '../exception/genericException.ts';
 import { InvalidInputException } from '../exception/invalidInputException.ts';
 import { NotFoundException } from '../exception/notFoundException.ts';
@@ -13,7 +11,7 @@ export type RouteHandlerResult<TData = any> = {
 
 export type RouteHandler<TInput = any, TResultData = any> = (
     input: TInput,
-) => Promise<E.Either<Exception, RouteHandlerResult<TResultData>>>;
+) => Promise<RouteHandlerResult<TResultData>>;
 
 export type RouteHandlerMap = Record<
     string,
@@ -25,7 +23,7 @@ export type RouteHandlerMap = Record<
 
 export type Router = (
     input: any,
-) => Promise<E.Either<Exception, RouteHandlerResult>>;
+) => Promise<RouteHandlerResult>;
 
 export type CreateRouterInput = {
     handlerMap: RouteHandlerMap;
@@ -48,16 +46,11 @@ export const createRouter = ({
         }
 
         if (!handlerMap[input.name]) {
-            return Promise.resolve(
-                E.left(
-                    new NotFoundException(
-                        'Route handler not found',
-                        {
-                            reason:
-                                `Could not find a handler for "${input.name}"`,
-                        },
-                    ),
-                ),
+            throw new NotFoundException(
+                'Route handler not found',
+                {
+                    reason: `Could not find a handler for "${input.name}"`,
+                },
             );
         }
 
@@ -69,13 +62,9 @@ export const createRouter = ({
             return handler(validInput);
         } catch (error) {
             if (error instanceof ZodError) {
-                return Promise.resolve(
-                    E.left(new InvalidInputException().fromZodError(error)),
-                );
+                throw new InvalidInputException().fromZodError(error);
             } else {
-                return Promise.resolve(
-                    E.left(new GenericException().fromError(error as Error)),
-                );
+                throw new GenericException().fromError(error as Error);
             }
         }
     };

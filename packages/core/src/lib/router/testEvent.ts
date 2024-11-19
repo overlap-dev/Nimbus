@@ -1,4 +1,3 @@
-import * as E from '@baetheus/fun/either';
 import { z } from 'zod';
 import { Event } from '../event/index.ts';
 import { NotFoundException } from '../exception/notFoundException.ts';
@@ -22,16 +21,16 @@ export const testEventHandler: RouteHandler<TestEvent, TestEventData> = (
     event,
 ) => {
     if (event.data.testException) {
-        return Promise.resolve(E.left(new NotFoundException()));
+        throw new NotFoundException();
     }
 
-    return Promise.resolve(E.right({
+    return Promise.resolve({
         statusCode: 200,
         headers: {
             'Content-Type': 'application/json',
         },
         data: event.data,
-    }));
+    });
 };
 
 export const eventHandlerMap: RouteHandlerMap = {

@@ -1,5 +1,3 @@
-import * as E from '@baetheus/fun/either';
-import type { Exception } from '@nimbus/core';
 import type {
     Collection,
     CountDocumentsOptions,
@@ -16,21 +14,17 @@ export type CountDocumentsInput = {
 
 export type CountDocuments = (
     input: CountDocumentsInput,
-) => Promise<E.Either<Exception, number>>;
+) => Promise<number>;
 
 export const countDocuments: CountDocuments = async ({
     collection,
     filter,
     options,
 }) => {
-    let res = 0;
-
     try {
-        res = await collection
-            .countDocuments(filter, options);
+        const res = await collection.countDocuments(filter, options);
+        return res;
     } catch (error) {
-        return E.left(handleMongoError(error));
+        throw handleMongoError(error);
     }
-
-    return E.right(res);
 };

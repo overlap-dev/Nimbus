@@ -1,5 +1,3 @@
-import * as E from '@baetheus/fun/either';
-import type { Exception } from '@nimbus/core';
 import type {
     Collection,
     Document,
@@ -19,7 +17,7 @@ export type UpdateManyInput = {
 
 export type UpdateMany = (
     input: UpdateManyInput,
-) => Promise<E.Either<Exception, UpdateResult<Document>>>;
+) => Promise<UpdateResult<Document>>;
 
 export const updateMany: UpdateMany = async ({
     collection,
@@ -29,9 +27,8 @@ export const updateMany: UpdateMany = async ({
 }) => {
     try {
         const res = await collection.updateMany(filter, update, options);
-
-        return E.right(res);
+        return res;
     } catch (error) {
-        return E.left(handleMongoError(error));
+        throw handleMongoError(error);
     }
 };

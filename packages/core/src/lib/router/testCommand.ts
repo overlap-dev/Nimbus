@@ -1,4 +1,3 @@
-import * as E from '@baetheus/fun/either';
 import { z } from 'zod';
 import { Command } from '../command/index.ts';
 import type { RouteHandler, RouteHandlerMap } from './router.ts';
@@ -20,13 +19,13 @@ export const testCommandHandler: RouteHandler<
     TestCommand,
     TestCommandData
 > = (event) => {
-    return Promise.resolve(E.right({
+    return Promise.resolve({
         statusCode: 200,
         headers: {
             'Content-Type': 'application/json',
         },
         data: event.data,
-    }));
+    });
 };
 
 export const commandHandlerMap: RouteHandlerMap = {

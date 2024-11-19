@@ -31,7 +31,6 @@
     "include": ["src/"]
   },
   "imports": {
-    "@baetheus/fun": "jsr:@baetheus/fun@^2.2.2",
     "mongodb": "npm:mongodb@^6.10.0",
     "zod": "npm:zod@^3.23.8"
   }
