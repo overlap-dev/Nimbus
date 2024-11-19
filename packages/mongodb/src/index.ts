@@ -9,6 +9,7 @@ export * from './lib/crud/findOneAndReplace.ts';
 export * from './lib/crud/findOneAndUpdate.ts';
 export * from './lib/crud/insertMany.ts';
 export * from './lib/crud/insertOne.ts';
+export * from './lib/crud/replaceOne.ts';
 export * from './lib/crud/updateMany.ts';
 export * from './lib/crud/updateOne.ts';
 export * from './lib/handleMongoError.ts';
