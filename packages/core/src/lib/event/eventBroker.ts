@@ -5,26 +5,33 @@ import type { RouteHandlerResult } from '../router/index.ts';
 import type { Router } from '../router/router.ts';
 import type { Event } from './event.ts';
 
-export type NimbusEventProcessorOnError = (
+export type NimbusEventBrokerOnError = (
     event: Event<string, any, any>,
     exception: Exception,
 ) => Promise<void>;
 
-export type NimbusEventProcessorOnSuccess = (
+export type NimbusEventBrokerOnSuccess = (
     event: Event<string, any, any>,
     result: RouteHandlerResult<any>,
 ) => Promise<void>;
 
-export type NimbusEventProcessorOptions = {
-    onError?: NimbusEventProcessorOnError;
-    onSuccess?: NimbusEventProcessorOnSuccess;
+export type NimbusEventBrokerOptions = {
+    onError?: NimbusEventBrokerOnError;
+    onSuccess?: NimbusEventBrokerOnSuccess;
 };
 
-export class NimbusEventProcessor extends EventEmitter {
-    private _onError: NimbusEventProcessorOnError;
-    private _onSuccess: NimbusEventProcessorOnSuccess;
+/**
+ * An event broker to which events can be published.
+ * All events will be passed to the provided event router.
+ *
+ * @param eventRouter - Nimbus Router to which the event will be passed
+ * @param options
+ */
+export class NimbusEventBroker extends EventEmitter {
+    private _onError: NimbusEventBrokerOnError;
+    private _onSuccess: NimbusEventBrokerOnSuccess;
 
-    constructor(eventRouter: Router, options?: NimbusEventProcessorOptions) {
+    constructor(eventRouter: Router, options?: NimbusEventBrokerOptions) {
         super();
 
         if (options?.onSuccess) {
@@ -36,7 +43,7 @@ export class NimbusEventProcessor extends EventEmitter {
         if (options?.onError) {
             this._onError = options.onError;
         } else {
-            this._onError = (exception, event) => {
+            this._onError = (event, exception) => {
                 getLogger('Nimbus').error({
                     msg: `Failed to handle ${event.name} event`,
                     exception,
@@ -46,7 +53,7 @@ export class NimbusEventProcessor extends EventEmitter {
             };
         }
 
-        this.on('NimbusEvent', async (event: Event<string, any, any>) => {
+        this.on('NimbusEventBroker', async (event: Event<string, any, any>) => {
             try {
                 const result = await eventRouter(event);
                 this._onSuccess(event, result);
@@ -56,7 +63,7 @@ export class NimbusEventProcessor extends EventEmitter {
         });
     }
 
-    public publishEvent(event: Event<string, any, any>) {
-        this.emit('NimbusEvent', event);
+    public publishEvent<TEvent extends Event<string, any, any>>(event: TEvent) {
+        this.emit('NimbusEventBroker', event);
     }
 }
