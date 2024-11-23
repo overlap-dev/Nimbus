@@ -40,19 +40,19 @@ import { replaceOne } from './crud/replaceOne.ts';
  * @param entityType - Zod Type used to parse the received data and ensure type safety
  */
 export class MongoDBRepository<TEntity extends WithId<Record<string, any>>> {
-    private _collection: Collection<Document>;
-    private _entityType: ZodType;
+    protected _collection: Collection<Document>;
+    protected _entityType: ZodType;
 
     constructor(collection: Collection<Document>, entityType: ZodType) {
         this._collection = collection;
         this._entityType = entityType;
     }
 
-    private _mapDocumentToEntity(doc: Document): TEntity {
+    protected _mapDocumentToEntity(doc: Document): TEntity {
         return this._entityType.parse(doc);
     }
 
-    private _mapEntityToDocument(item: TEntity): Document {
+    protected _mapEntityToDocument(item: TEntity): Document {
         return item as Document;
     }
 
