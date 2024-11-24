@@ -20,7 +20,6 @@ export default defineConfig({
         nav: [
             { text: "Home", link: "/" },
             { text: "Guide", link: "/guide/quickstart" },
-            { text: "Reference", link: "/reference/commands" },
         ],
 
         sidebar: {
@@ -35,11 +34,15 @@ export default defineConfig({
                 },
 
                 {
-                    text: "Concepts",
+                    text: "Guide",
                     items: [
                         {
-                            text: "Pure Core - Imperative Shell",
-                            link: "/guide/pure-core-imperative-shell",
+                            text: "Project Structure",
+                            link: "/guide/project-structure",
+                        },
+                        {
+                            text: "Router",
+                            link: "/guide/router",
                         },
                         {
                             text: "Commands",
@@ -53,15 +56,27 @@ export default defineConfig({
                             text: "Queries",
                             link: "/guide/queries",
                         },
+                        {
+                            text: "Repositories",
+                            link: "/guide/repositories",
+                        },
                     ],
                 },
 
                 {
-                    text: "Infrastructure as Code",
+                    text: "Packages",
                     items: [
                         {
-                            text: "Pulumi",
-                            link: "/guide/pulumi",
+                            text: "Oak",
+                            link: "/guide/project-structure",
+                        },
+                        {
+                            text: "MongoDB",
+                            link: "/guide/commands",
+                        },
+                        {
+                            text: "Utils",
+                            link: "/guide/queries",
                         },
                     ],
                 },
