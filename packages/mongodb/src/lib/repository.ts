@@ -9,7 +9,6 @@ import type {
     InsertOneOptions,
     ReplaceOptions,
     Sort,
-    WithId,
 } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import type { ZodType } from 'zod';
@@ -22,6 +21,10 @@ import { findOne } from './crud/findOne.ts';
 import { insertMany } from './crud/insertMany.ts';
 import { insertOne } from './crud/insertOne.ts';
 import { replaceOne } from './crud/replaceOne.ts';
+
+export type WithStringId<TSchema> = Omit<TSchema, '_id'> & {
+    _id: string;
+};
 
 /**
  * Repository for interacting with a MongoDB Collection
@@ -39,7 +42,9 @@ import { replaceOne } from './crud/replaceOne.ts';
  * @param collection - MongoDB Collection
  * @param entityType - Zod Type used to parse the received data and ensure type safety
  */
-export class MongoDBRepository<TEntity extends WithId<Record<string, any>>> {
+export class MongoDBRepository<
+    TEntity extends WithStringId<Record<string, any>>,
+> {
     protected _collection: Collection<Document>;
     protected _entityType: ZodType;
 
