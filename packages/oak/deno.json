@@ -1,6 +1,6 @@
 {
   "name": "@nimbus/oak",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "license": "MIT",
   "author": "Daniel Gördes <d.goerdes@overlap.at> (https://overlap.at)",
   "repository": {
@@ -31,6 +31,7 @@
     "include": ["src/"]
   },
   "imports": {
+    "@std/log": "jsr:@std/log@^0.224.11",
     "@std/ulid": "jsr:@std/ulid@^1.0.0",
     "@oak/oak": "jsr:@oak/oak@^17.1.3"
   }
