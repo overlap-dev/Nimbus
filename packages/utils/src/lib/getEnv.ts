@@ -1,24 +1,22 @@
-import { Exception, GenericException } from '@ovl-nimbus/core';
-import * as E from 'fp-ts/Either';
-import type { Logger } from 'pino';
+import { GenericException } from '@nimbus/core';
+import { getLogger } from '@std/log';
+import process from 'node:process';
 
 type GetEnvInput = {
     variables: string[];
-    logger?: Logger;
 };
 
 /**
- * Get environment variables in a safe way.
- * Optionally logs an error listing the missing environment variables
- * and returns an Exception if one or more are missing.
+ * Get environment variables from the process.env object.
+ * Throws an exception if any of the variables are not defined
+ * and logs the missing variable names.
  *
  * @param variables - The list of environment variables to get
- * @returns fp-ts/Either<Exception, Record<string, string>>
+ * @returns Record<string, string>
  */
 export const getEnv = ({
     variables,
-    logger,
-}: GetEnvInput): E.Either<Exception, Record<string, string>> => {
+}: GetEnvInput): Record<string, string> => {
     const envVars: Record<string, string> = {};
     const missingEnvVars: string[] = [];
 
@@ -31,15 +29,15 @@ export const getEnv = ({
     }
 
     if (missingEnvVars.length > 0) {
-        if (logger) {
-            logger.error({
-                message: 'Undefined environment variables',
-                undefinedVariables: missingEnvVars,
-            });
-        }
+        getLogger('Nimbus').error({
+            message: 'Undefined environment variables',
+            undefinedVariables: missingEnvVars,
+        });
 
-        return E.left(new GenericException());
+        throw new GenericException('Undefined environment variables', {
+            undefinedVariables: missingEnvVars,
+        });
     }
 
-    return E.right(envVars);
+    return envVars;
 };

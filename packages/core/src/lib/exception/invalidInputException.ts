@@ -1,5 +1,5 @@
-import { ZodError } from 'zod';
-import { Exception } from './exception';
+import type { ZodError } from 'zod';
+import { Exception } from './exception.ts';
 
 export class InvalidInputException extends Exception {
     constructor(message?: string, details?: Record<string, unknown>) {
@@ -11,7 +11,7 @@ export class InvalidInputException extends Exception {
         );
     }
 
-    public fromZodError(error: ZodError) {
+    public fromZodError(error: ZodError): InvalidInputException {
         this.stack = error.stack;
         this.details = {
             issues: error.issues,

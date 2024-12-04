@@ -1,2 +1,3 @@
-export * from './event';
-export * from './eventMetadata';
+export * from './event.ts';
+export * from './eventBus.ts';
+export * from './eventMetadata.ts';

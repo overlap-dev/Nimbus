@@ -1,13 +1,12 @@
-import type { AuthContext, Router } from '@ovl-nimbus/core';
+import { type AuthContext, Exception, type Router } from '@nimbus/core';
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import * as E from 'fp-ts/Either';
-import { pipe } from 'fp-ts/lib/function';
 
 type CreateCommandHandlerInput = {
     commandRouter: Router;
     authContextGenerator: (
         request: FastifyRequest,
     ) => Promise<AuthContext<Record<string, any>>>;
+    onError?: (error: any) => void;
 };
 
 /**
@@ -18,6 +17,7 @@ type CreateCommandHandlerInput = {
 export const createCommandHandler = ({
     commandRouter,
     authContextGenerator,
+    onError,
 }: CreateCommandHandlerInput) => {
     // TODO: change inputs to be an object
     /**
@@ -52,30 +52,33 @@ export const createCommandHandler = ({
             },
         };
 
-        pipe(
-            await commandRouter(command),
-            E.match(
-                (exception) => {
-                    reply.code(exception.statusCode || 500).send({
-                        statusCode: exception.statusCode || 500,
-                        code: exception.name,
-                        message: exception.message,
-                        ...(exception.details
-                            ? { details: exception.details }
-                            : {}),
+        try {
+            const result = await commandRouter(command);
+            reply.code(result.statusCode);
+
+            if (result.headers) {
+                reply.headers(result.headers);
+            }
+
+            reply.send(result.data);
+        } catch (error: any) {
+            if (onError) {
+                onError(error);
+            } else {
+                if (error instanceof Exception) {
+                    const statusCode = error.statusCode || 500;
+
+                    reply.code(statusCode).send({
+                        statusCode,
+                        code: error.name,
+                        message: error.message,
+                        ...(error.details ? { details: error.details } : {}),
                     });
-                },
-                (result) => {
-                    reply.code(result.statusCode);
-
-                    if (result.headers) {
-                        reply.headers(result.headers);
-                    }
-
-                    reply.send(result.data);
-                },
-            ),
-        );
+                } else {
+                    reply.code(500).send();
+                }
+            }
+        }
     };
 
     return commandHandler;

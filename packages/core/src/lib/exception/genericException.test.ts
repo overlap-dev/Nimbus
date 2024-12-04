@@ -1,67 +1,62 @@
-import { GenericException } from './genericException';
+import { assertEquals, assertInstanceOf } from '@std/assert';
+import { GenericException } from './genericException.ts';
 
-describe('Exceptions :: GenericException', () => {
-    test('GenericException without constructor input', () => {
-        const genericException = new GenericException();
+Deno.test('GenericException without constructor input', () => {
+    const exception = new GenericException();
 
-        expect(genericException instanceof Error).toBe(false);
-        expect(genericException instanceof GenericException).toBe(true);
-        expect(genericException.name).toBe('GENERIC_EXCEPTION');
-        expect(genericException.message).toBe('An error occurred');
-        expect(genericException.statusCode).toBe(500);
-        expect(typeof genericException.details).toBe('undefined');
-        expect(typeof genericException.stack).toBe('undefined');
-    });
+    assertInstanceOf(exception, GenericException);
+    assertEquals(exception.name, 'GENERIC_EXCEPTION');
+    assertEquals(exception.message, 'An error occurred');
+    assertEquals(exception.statusCode, 500);
+    assertEquals(typeof exception.details, 'undefined');
+    assertEquals(typeof exception.stack, 'undefined');
+});
 
-    test('GenericException with constructor input', () => {
-        const message = 'My custom message';
-        const details = {
-            foo: 'bar',
-        };
+Deno.test('GenericException with constructor input', () => {
+    const message = 'My custom message';
+    const details = {
+        foo: 'bar',
+    };
 
-        const genericException = new GenericException(message, details);
+    const exception = new GenericException(message, details);
 
-        expect(genericException instanceof Error).toBe(false);
-        expect(genericException instanceof GenericException).toBe(true);
-        expect(genericException.name).toBe('GENERIC_EXCEPTION');
-        expect(genericException.message).toBe(message);
-        expect(genericException.statusCode).toBe(500);
-        expect(genericException.details).toEqual(details);
-        expect(typeof genericException.stack).toBe('undefined');
-    });
+    assertInstanceOf(exception, GenericException);
+    assertEquals(exception.name, 'GENERIC_EXCEPTION');
+    assertEquals(exception.message, message);
+    assertEquals(exception.statusCode, 500);
+    assertEquals(exception.details, details);
+    assertEquals(typeof exception.stack, 'undefined');
+});
 
-    test('GenericException from error without constructor input', () => {
-        const nativeError = new Error('Something unexpected happened!');
+Deno.test('GenericException from error without constructor input', () => {
+    const nativeError = new Error('Something unexpected happened!');
 
-        const genericException = new GenericException().fromError(nativeError);
+    const exception = new GenericException().fromError(nativeError);
 
-        expect(genericException instanceof Error).toBe(false);
-        expect(genericException instanceof GenericException).toBe(true);
-        expect(genericException.name).toBe('GENERIC_EXCEPTION');
-        expect(genericException.message).toBe(nativeError.message);
-        expect(genericException.statusCode).toBe(500);
-        expect(typeof genericException.details).toBe('undefined');
-        expect(typeof genericException.stack).toBe('string');
-    });
+    assertInstanceOf(exception, GenericException);
+    assertEquals(exception.name, 'GENERIC_EXCEPTION');
+    assertEquals(exception.message, nativeError.message);
+    assertEquals(exception.statusCode, 500);
+    assertEquals(typeof exception.details, 'undefined');
+    assertEquals(exception.stack, nativeError.stack);
+});
 
-    test('GenericException from error with constructor input', () => {
-        const nativeError = new Error('Something unexpected happened!');
-        const message = 'My custom message';
-        const details = {
-            foo: 'bar',
-        };
+Deno.test('GenericException from error with constructor input', () => {
+    const nativeError = new Error('Something unexpected happened!');
+    const message = 'My custom message';
+    const details = {
+        foo: 'bar',
+    };
 
-        const genericException = new GenericException(
-            message,
-            details,
-        ).fromError(nativeError);
+    const exception = new GenericException(
+        message,
+        details,
+    ).fromError(nativeError);
 
-        expect(genericException instanceof Error).toBe(false);
-        expect(genericException instanceof GenericException).toBe(true);
-        expect(genericException.name).toBe('GENERIC_EXCEPTION');
-        expect(genericException.message).toBe(nativeError.message);
-        expect(genericException.statusCode).toBe(500);
-        expect(genericException.details).toEqual(details);
-        expect(typeof genericException.stack).toBe('string');
-    });
+    assertInstanceOf(exception, GenericException);
+    assertEquals(exception.name, 'GENERIC_EXCEPTION');
+    assertEquals(exception.message, nativeError.message);
+    assertEquals(exception.statusCode, 500);
+    assertEquals(exception.details, details);
+    assertEquals(exception.stack, nativeError.stack);
 });

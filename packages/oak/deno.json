@@ -1,0 +1,38 @@
+{
+  "name": "@nimbus/oak",
+  "version": "0.9.1",
+  "license": "MIT",
+  "author": "Daniel Gördes <d.goerdes@overlap.at> (https://overlap.at)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/overlap-dev/Nimbus"
+  },
+  "bugs": {
+    "url": "https://github.com/overlap-dev/Nimbus/issues"
+  },
+  "homepage": "https://nimbus.overlap.at",
+  "exports": "./src/index.ts",
+  "fmt": {
+    "include": ["src/"],
+    "useTabs": false,
+    "lineWidth": 80,
+    "indentWidth": 4,
+    "semiColons": true,
+    "singleQuote": true,
+    "proseWrap": "always"
+  },
+  "lint": {
+    "include": ["src/"],
+    "rules": {
+      "exclude": ["no-explicit-any"]
+    }
+  },
+  "test": {
+    "include": ["src/"]
+  },
+  "imports": {
+    "@std/log": "jsr:@std/log@^0.224.11",
+    "@std/ulid": "jsr:@std/ulid@^1.0.0",
+    "@oak/oak": "jsr:@oak/oak@^17.1.3"
+  }
+}

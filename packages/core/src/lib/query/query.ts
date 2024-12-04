@@ -1,5 +1,5 @@
-import { ZodType, z } from 'zod';
-import { QueryMetadata } from './queryMetadata';
+import { z, type ZodType } from 'zod';
+import { QueryMetadata } from './queryMetadata.ts';
 
 export const Query = <
     TName extends ZodType,

@@ -1,46 +1,21 @@
 # How to release a new version of the packages
 
-We keep the version of all packages in sync.  
-To release a new version of the packages, follow these steps:
+For each package make sure the version in the `packages/<PACKAGE_NAME>/deno.json` is set correctly and stick to semantic versioning.
 
-## Create new Release on GitHub
-
-```
-# Run nx release on a clean main branch which should be released in dry-run to check the changes
-nx release --skip-publish --dry-run
-
-# Run nx release
-nx release --skip-publish
-```
-
-## Publish to NPM
-
-Make sure to login to NPM via command line before going on.
-
-### First Release of a new package
-
-To publish a new package to NPM for the first time you need to go the manual route.
+Once everything is ready make a new commit with a message if this type:
 
 ```
-cd dist/packages/<package-name>
-npm publish . --access public --otp xxxxxx
+chore(<PACKAGE_NAME>): publish 0.0.0
 ```
 
-### Subsequent Releases
-
-For all other packages with subsequent releases, you can use the following command from the root.
-
-```
-nx release publish --otp=xxxxxx
-```
+Push to `main` and create a new release on GitHub.
 
 ## Publish to JSR
 
-For each package make sure the version in the `dist/packages/<package-name>/jsr.json` matches the version in the `dist/packages/<package-name>/package.json` file.
-
-Then run the `npx jsr publish` command from each packages dist folder to publish to JSR:
-
 ```
-cd dist/packages/<package-name>
-npx jsr publish
+cd packages/<PACKAGE_NAME>
+deno publish --allow-slow-types
 ```
+
+**Slow Types**  
+Because of some Zod inferred types, the `--allow-slow-types` flag is required to publish the package to JSR.

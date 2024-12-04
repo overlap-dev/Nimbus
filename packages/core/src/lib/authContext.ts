@@ -1,4 +1,4 @@
-import { ZodType, z } from 'zod';
+import { z, type ZodType } from 'zod';
 
 export const AuthContext = <TPolicy extends ZodType>(policyType: TPolicy) => {
     return z.object({

@@ -1,2 +1,2 @@
-export * from './command';
-export * from './commandMetadata';
+export * from './command.ts';
+export * from './commandMetadata.ts';

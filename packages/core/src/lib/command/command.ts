@@ -1,5 +1,5 @@
-import { ZodType, z } from 'zod';
-import { CommandMetadata } from './commandMetadata';
+import { z, type ZodType } from 'zod';
+import { CommandMetadata } from './commandMetadata.ts';
 
 export const Command = <
     TName extends ZodType,

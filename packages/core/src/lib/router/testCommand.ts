@@ -1,8 +1,7 @@
-import * as E from 'fp-ts/Either';
 import { z } from 'zod';
-import { Command } from '../command';
-import { RouteHandler, RouteHandlerMap } from './router';
-import { AuthPolicy } from './testAuthPolicy';
+import { Command } from '../command/index.ts';
+import type { RouteHandler, RouteHandlerMap } from './router.ts';
+import { AuthPolicy } from './testAuthPolicy.ts';
 
 export const TestCommandData = z.object({
     aNumber: z.number(),
@@ -19,8 +18,8 @@ export type TestCommand = z.infer<typeof TestCommand>;
 export const testCommandHandler: RouteHandler<
     TestCommand,
     TestCommandData
-> = async (event) => {
-    return E.right({
+> = (event) => {
+    return Promise.resolve({
         statusCode: 200,
         headers: {
             'Content-Type': 'application/json',

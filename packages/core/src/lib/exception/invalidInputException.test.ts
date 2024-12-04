@@ -1,111 +1,103 @@
+import { assertEquals, assertInstanceOf } from '@std/assert';
 import { z } from 'zod';
-import { InvalidInputException } from './invalidInputException';
+import { InvalidInputException } from './invalidInputException.ts';
 
-describe('Exceptions :: InvalidInputException', () => {
-    test('InvalidInputException without constructor input', () => {
-        const invalidInputException = new InvalidInputException();
+Deno.test('InvalidInputException without constructor input', () => {
+    const exception = new InvalidInputException();
 
-        expect(invalidInputException instanceof Error).toBe(false);
-        expect(invalidInputException instanceof InvalidInputException).toBe(
-            true,
-        );
-        expect(invalidInputException.name).toBe('INVALID_INPUT_EXCEPTION');
-        expect(invalidInputException.message).toBe(
-            'The provided input is invalid',
-        );
-        expect(invalidInputException.statusCode).toBe(400);
-        expect(typeof invalidInputException.details).toBe('undefined');
-        expect(typeof invalidInputException.stack).toBe('undefined');
+    assertInstanceOf(exception, InvalidInputException);
+    assertEquals(exception.name, 'INVALID_INPUT_EXCEPTION');
+    assertEquals(exception.message, 'The provided input is invalid');
+    assertEquals(exception.statusCode, 400);
+    assertEquals(typeof exception.details, 'undefined');
+    assertEquals(typeof exception.stack, 'undefined');
+});
+
+Deno.test('InvalidInputException with constructor input', () => {
+    const message = 'My custom message';
+    const details = {
+        foo: 'bar',
+    };
+
+    const exception = new InvalidInputException(
+        message,
+        details,
+    );
+
+    assertInstanceOf(exception, InvalidInputException);
+    assertEquals(exception.name, 'INVALID_INPUT_EXCEPTION');
+    assertEquals(exception.message, message);
+    assertEquals(exception.statusCode, 400);
+    assertEquals(exception.details, details);
+    assertEquals(typeof exception.stack, 'undefined');
+});
+
+Deno.test('InvalidInputException from error without constructor input', () => {
+    const nativeError = new Error('Something unexpected happened!');
+
+    const exception = new InvalidInputException().fromError(
+        nativeError,
+    );
+
+    assertInstanceOf(exception, InvalidInputException);
+    assertEquals(exception.name, 'INVALID_INPUT_EXCEPTION');
+    assertEquals(exception.message, nativeError.message);
+    assertEquals(exception.statusCode, 400);
+    assertEquals(typeof exception.details, 'undefined');
+    assertEquals(exception.stack, nativeError.stack);
+});
+
+Deno.test('InvalidInputException from error with constructor input', () => {
+    const nativeError = new Error('Something unexpected happened!');
+    const message = 'My custom message';
+    const details = {
+        foo: 'bar',
+    };
+
+    const exception = new InvalidInputException(
+        message,
+        details,
+    ).fromError(nativeError);
+
+    assertInstanceOf(exception, InvalidInputException);
+    assertEquals(exception.name, 'INVALID_INPUT_EXCEPTION');
+    assertEquals(exception.message, nativeError.message);
+    assertEquals(exception.statusCode, 400);
+    assertEquals(exception.details, details);
+    assertEquals(exception.stack, nativeError.stack);
+});
+
+Deno.test('InvalidInputException from ZodError', () => {
+    const expectedPayload = z.object({
+        foo: z.string(),
     });
+    const payload = {
+        foo: 123,
+    };
 
-    test('InvalidInputException with constructor input', () => {
-        const message = 'My custom message';
-        const details = {
-            foo: 'bar',
-        };
+    try {
+        expectedPayload.parse(payload);
+    } catch (error: any) {
+        const exception = new InvalidInputException()
+            .fromZodError(error);
 
-        const invalidInputException = new InvalidInputException(
-            message,
-            details,
-        );
-
-        expect(invalidInputException instanceof Error).toBe(false);
-        expect(invalidInputException instanceof InvalidInputException).toBe(
-            true,
-        );
-        expect(invalidInputException.name).toBe('INVALID_INPUT_EXCEPTION');
-        expect(invalidInputException.message).toBe(message);
-        expect(invalidInputException.statusCode).toBe(400);
-        expect(invalidInputException.details).toEqual(details);
-        expect(typeof invalidInputException.stack).toBe('undefined');
-    });
-
-    test('invalidInputException from error without constructor input', () => {
-        const nativeError = new Error('Something unexpected happened!');
-
-        const invalidInputException = new InvalidInputException().fromError(
-            nativeError,
-        );
-
-        expect(invalidInputException instanceof Error).toBe(false);
-        expect(invalidInputException instanceof InvalidInputException).toBe(
-            true,
-        );
-        expect(invalidInputException.name).toBe('INVALID_INPUT_EXCEPTION');
-        expect(invalidInputException.message).toBe(nativeError.message);
-        expect(invalidInputException.statusCode).toBe(400);
-        expect(typeof invalidInputException.details).toBe('undefined');
-        expect(typeof invalidInputException.stack).toBe('string');
-    });
-
-    test('invalidInputException from error with constructor input', () => {
-        const nativeError = new Error('Something unexpected happened!');
-        const message = 'My custom message';
-        const details = {
-            foo: 'bar',
-        };
-
-        const invalidInputException = new InvalidInputException(
-            message,
-            details,
-        ).fromError(nativeError);
-
-        expect(invalidInputException instanceof Error).toBe(false);
-        expect(invalidInputException instanceof InvalidInputException).toBe(
-            true,
-        );
-        expect(invalidInputException.name).toBe('INVALID_INPUT_EXCEPTION');
-        expect(invalidInputException.message).toBe(nativeError.message);
-        expect(invalidInputException.statusCode).toBe(400);
-        expect(invalidInputException.details).toEqual(details);
-        expect(typeof invalidInputException.stack).toBe('string');
-    });
-
-    test('InvalidInputException from ZodError', () => {
-        const expectedPayload = z.object({
-            foo: z.string(),
+        assertInstanceOf(exception, InvalidInputException);
+        assertEquals(exception.name, 'INVALID_INPUT_EXCEPTION');
+        assertEquals(exception.message, 'The provided input is invalid');
+        assertEquals(exception.statusCode, 400);
+        assertEquals(exception.details, {
+            'issues': [
+                {
+                    'code': 'invalid_type',
+                    'expected': 'string',
+                    'received': 'number',
+                    'path': [
+                        'foo',
+                    ],
+                    'message': 'Expected string, received number',
+                },
+            ],
         });
-        const payload = {
-            foo: 123,
-        };
-
-        try {
-            expectedPayload.parse(payload);
-        } catch (error: any) {
-            const invalidInputException =
-                new InvalidInputException().fromZodError(error);
-
-            expect(invalidInputException instanceof Error).toBe(false);
-            expect(invalidInputException instanceof InvalidInputException).toBe(
-                true,
-            );
-            expect(invalidInputException.name).toBe('INVALID_INPUT_EXCEPTION');
-            expect(invalidInputException.statusCode).toBe(400);
-            expect(invalidInputException.message).toBe(
-                'The provided input is invalid',
-            );
-            expect(invalidInputException.statusCode).toBe(400);
-            expect(typeof invalidInputException.stack).toBe('string');
-        }
-    });
+        assertEquals(exception.stack, error.stack);
+    }
 });
