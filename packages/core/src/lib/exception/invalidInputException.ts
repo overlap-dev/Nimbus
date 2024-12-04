@@ -11,7 +11,7 @@ export class InvalidInputException extends Exception {
         );
     }
 
-    public fromZodError(error: ZodError) {
+    public fromZodError(error: ZodError): InvalidInputException {
         this.stack = error.stack;
         this.details = {
             issues: error.issues,

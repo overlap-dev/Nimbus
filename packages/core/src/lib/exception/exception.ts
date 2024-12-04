@@ -23,7 +23,7 @@ export class Exception {
         }
     }
 
-    public fromError(error: Error) {
+    public fromError(error: Error): Exception {
         this.message = error.message;
         this.stack = error.stack;
 

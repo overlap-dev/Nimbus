@@ -1,3 +1,3 @@
 export * from './event.ts';
-export * from './eventBroker.ts';
+export * from './eventBus.ts';
 export * from './eventMetadata.ts';
