@@ -28,6 +28,7 @@ export type WithStringId<TSchema> = Omit<TSchema, '_id'> & {
 
 /**
  * Repository for interacting with a MongoDB Collection
+ * which provides a type-safe interface for MongoDB CRUD operations.
  *
  * Why do we not implement a generic repository interface?
  *
@@ -39,8 +40,44 @@ export type WithStringId<TSchema> = Omit<TSchema, '_id'> & {
  * and give the user a way to interact with the repository in a way that feels
  * natural to the underlying data store.
  *
- * @param collection - MongoDB Collection
- * @param entityType - Zod Type used to parse the received data and ensure type safety
+ * @param collection - MongoDB Collection instance
+ * @param entityType - Zod type for validating the data and ensure type safety
+ *
+ * @example
+ * ```ts
+ * import { MongoDBRepository } from '@nimbus/mongodb';
+ * import { getEnv } from '@nimbus/utils';
+ * import { mongoClient } from './mongoDBClient.ts';
+ * import { User } from './user.type.ts';
+ * import { USER_COLLECTION } from './user.collection.ts';
+ *
+ * class UserRepository extends MongoDBRepository<User> {
+ *   constructor() {
+ *     const env = getEnv({ variables: ['MONGO_DB'] });
+ *
+ *     super(
+ *       mongoClient.db(env.MONGO_DB).collection(USER_COLLECTION.name),
+ *       User,
+ *     );
+ *   }
+ *
+ *   override _mapDocumentToEntity(doc: Document): User {
+ *     return User.parse({
+ *       _id: doc._id.toString(),
+ *       email: doc.email,
+ *     });
+ *   }
+ *
+ *   override _mapEntityToDocument(user: User): Document {
+ *     return {
+ *       _id: new ObjectId(user._id),
+ *       email: user.email,
+ *     };
+ *   }
+ * }
+ *
+ * export const userRepository = new UserRepository();
+ * ```
  */
 export class MongoDBRepository<
     TEntity extends WithStringId<Record<string, any>>,
