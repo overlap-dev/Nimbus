@@ -1,4 +1,4 @@
-import { Exception, type Router } from '@nimbus/core';
+import type { Router } from '@nimbus/core';
 import type { Context } from '@oak/oak/context';
 import { getLogger } from '@std/log/get-logger';
 
@@ -44,24 +44,23 @@ export const createOakRouterAdapter = ({
             }
 
             context.response.body = result.data;
-        } catch (error) {
+        } catch (error: any) {
             if (onError) {
                 onError(error, context);
             } else {
                 getLogger('Nimbus').error(error);
 
-                if (error instanceof Exception) {
-                    const statusCode = error.statusCode || 500;
+                const statusCode = error.statusCode ?? 500;
+                context.response.status = statusCode;
 
-                    context.response.status = statusCode;
+                if (statusCode < 500) {
                     context.response.body = {
                         statusCode,
-                        code: error.name,
-                        message: error.message,
+                        ...(error.details ? { code: error.name } : {}),
+                        ...(error.message ? { message: error.message } : {}),
                         ...(error.details ? { details: error.details } : {}),
                     };
                 } else {
-                    context.response.status = 500;
                     context.response.body = {
                         message: 'Internal server error',
                     };
