@@ -10,6 +10,15 @@ type CreateQueryHandlerInput = {
     onError?: (error: any) => void;
 };
 
+type QueryHandler = (
+    queryName: string,
+    domain: string,
+    version: number,
+    params: Record<string, any>,
+    request: FastifyRequest,
+    reply: FastifyReply,
+) => Promise<void>;
+
 /**
  * Creates a queryHandler function that can be used as a Fastify request handler.
  * The queryHandler works as an adapter between the Fastify API
@@ -19,7 +28,7 @@ export const createQueryHandler = ({
     queryRouter,
     authContextGenerator,
     onError,
-}: CreateQueryHandlerInput) => {
+}: CreateQueryHandlerInput): QueryHandler => {
     // TODO: change inputs to be an object
     /**
      * The queryHandler is a Fastify request handler
@@ -33,13 +42,13 @@ export const createQueryHandler = ({
      * @param request - Fastify request
      * @param reply - Fastify reply
      */
-    const queryHandler = async (
-        queryName: string,
-        domain: string,
-        version: number,
-        params: Record<string, any>,
-        request: FastifyRequest,
-        reply: FastifyReply,
+    const queryHandler: QueryHandler = async (
+        queryName,
+        domain,
+        version,
+        params,
+        request,
+        reply,
     ) => {
         const correlationId = ulid();
 

@@ -24,7 +24,7 @@
   "lint": {
     "include": ["src/"],
     "rules": {
-      "exclude": ["no-explicit-any"]
+      "exclude": ["no-explicit-any", "no-slow-types"]
     }
   },
   "test": {

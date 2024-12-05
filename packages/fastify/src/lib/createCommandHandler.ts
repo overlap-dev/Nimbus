@@ -9,6 +9,19 @@ type CreateCommandHandlerInput = {
     onError?: (error: any) => void;
 };
 
+type CommandHandler = (
+    request: FastifyRequest<{
+        Body: {
+            name: string;
+            domain: string;
+            version: number;
+            correlationId: string;
+            data: Record<string, any>;
+        };
+    }>,
+    reply: FastifyReply,
+) => Promise<void>;
+
 /**
  * Creates a commandHandler function that can be used as a Fastify request handler.
  * The commandHandler works as an adapter between the Fastify API
@@ -18,7 +31,7 @@ export const createCommandHandler = ({
     commandRouter,
     authContextGenerator,
     onError,
-}: CreateCommandHandlerInput) => {
+}: CreateCommandHandlerInput): CommandHandler => {
     // TODO: change inputs to be an object
     /**
      * The commandHandler is a Fastify request handler
@@ -27,18 +40,7 @@ export const createCommandHandler = ({
      * @param request - Fastify request
      * @param reply - Fastify reply
      */
-    const commandHandler = async (
-        request: FastifyRequest<{
-            Body: {
-                name: string;
-                domain: string;
-                version: number;
-                correlationId: string;
-                data: Record<string, any>;
-            };
-        }>,
-        reply: FastifyReply,
-    ) => {
+    const commandHandler: CommandHandler = async (request, reply) => {
         const command = {
             name: request.body.name,
             data: request.body.data,

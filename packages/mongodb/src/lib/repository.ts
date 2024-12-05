@@ -102,7 +102,7 @@ export class MongoDBRepository<
         filter,
     }: {
         filter: Filter<Document>;
-    }) {
+    }): Promise<TEntity> {
         return findOne({
             collection: this._collection,
             filter,
@@ -125,7 +125,7 @@ export class MongoDBRepository<
         sort?: Sort;
         project?: Document;
         options?: FindOptions;
-    }) {
+    }): Promise<TEntity[]> {
         return find({
             collection: this._collection,
             filter,
@@ -145,7 +145,7 @@ export class MongoDBRepository<
     }: {
         filter: Filter<Document>;
         options?: CountDocumentsOptions;
-    }) {
+    }): Promise<number> {
         return countDocuments({
             collection: this._collection,
             filter,
@@ -158,7 +158,7 @@ export class MongoDBRepository<
     }: {
         item: TEntity;
         options?: InsertOneOptions;
-    }) {
+    }): Promise<TEntity> {
         await insertOne({
             collection: this._collection,
             document: this._mapEntityToDocument(item),
@@ -173,7 +173,7 @@ export class MongoDBRepository<
     }: {
         items: TEntity[];
         options?: BulkWriteOptions;
-    }) {
+    }): Promise<TEntity[]> {
         await insertMany({
             collection: this._collection,
             documents: items.map(this._mapEntityToDocument),
@@ -189,7 +189,7 @@ export class MongoDBRepository<
     }: {
         item: TEntity;
         options?: ReplaceOptions;
-    }) {
+    }): Promise<TEntity> {
         await replaceOne({
             collection: this._collection,
             filter: { _id: new ObjectId(item._id) },
@@ -206,7 +206,7 @@ export class MongoDBRepository<
     }: {
         items: TEntity[];
         options?: BulkWriteOptions;
-    }) {
+    }): Promise<TEntity[]> {
         if (items.length > 0) {
             const operations = items.map((item) => ({
                 replaceOne: {
@@ -231,7 +231,7 @@ export class MongoDBRepository<
     }: {
         item: TEntity;
         options?: DeleteOptions;
-    }) {
+    }): Promise<TEntity> {
         await deleteOne({
             collection: this._collection,
             filter: { _id: new ObjectId(item._id) },
@@ -247,7 +247,7 @@ export class MongoDBRepository<
     }: {
         items: TEntity[];
         options?: DeleteOptions;
-    }) {
+    }): Promise<TEntity[]> {
         await deleteMany({
             collection: this._collection,
             filter: {

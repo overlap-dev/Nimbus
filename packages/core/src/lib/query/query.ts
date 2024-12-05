@@ -1,6 +1,8 @@
 import { z, type ZodType } from 'zod';
 import { QueryMetadata } from './queryMetadata.ts';
 
+// TODO: fix slow type issue
+
 export const Query = <
     TName extends ZodType,
     TParams extends ZodType,

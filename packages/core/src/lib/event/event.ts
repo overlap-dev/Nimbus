@@ -1,6 +1,8 @@
 import { z, type ZodType } from 'zod';
 import { EventMetadata } from './eventMetadata.ts';
 
+// TODO: fix slow type issue
+
 export const Event = <
     TName extends ZodType,
     TData extends ZodType,

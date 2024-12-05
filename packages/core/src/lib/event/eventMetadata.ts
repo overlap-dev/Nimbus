@@ -1,6 +1,8 @@
 import { z, type ZodType } from 'zod';
 import { AuthContext } from '../authContext.ts';
 
+// TODO: fix slow type issue
+
 export const EventMetadata = <TAuthPolicy extends ZodType>(
     authPolicyType: TAuthPolicy,
 ) => {
