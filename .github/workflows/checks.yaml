@@ -62,17 +62,17 @@ jobs:
 
       # Run all test files in the repository and collect code coverage.
       - name: Test (core)
-        run: deno test --allow-all
+        run: deno test --allow-all --permit-no-files
         working-directory: ./packages/core
       - name: Test (fastify)
-        run: deno test --allow-all
+        run: deno test --allow-all --permit-no-files
         working-directory: ./packages/fastify
       - name: Test (mongodb)
-        run: deno test --allow-all
+        run: deno test --allow-all --permit-no-files
         working-directory: ./packages/mongodb
       - name: Test (oak)
-        run: deno test --allow-all
+        run: deno test --allow-all --permit-no-files
         working-directory: ./packages/oak
       - name: Test (utils)
-        run: deno test --allow-all
+        run: deno test --allow-all --permit-no-files
         working-directory: ./packages/utils
