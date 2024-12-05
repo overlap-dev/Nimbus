@@ -19,4 +19,4 @@ jobs:
 
       - name: Publish core
         working-directory: ./packages/core
-        run: deno publish
+        run: deno publish --allow-slow-types
