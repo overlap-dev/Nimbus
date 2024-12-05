@@ -3,17 +3,15 @@
     alt="Nimbus"
 />
 
-# Introduction
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-
 # Installation
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Find all packages and installation instructions at [jsr.io/@nimbus](https://jsr.io/@nimbus).
 
 # Documentation
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Find the full documentation at [https://nimbus.overlap.at/](https://nimbus.overlap.at/).
+
+In addition code documentation is automatically generated and can be found for each package at [jsr.io/@nimbus](https://jsr.io/@nimbus).
 
 # License
 

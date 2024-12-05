@@ -17,6 +17,18 @@ jobs:
         with:
           deno-version: v2.1.x
 
-      - name: Publish core
+      - name: Publish core package
         working-directory: ./packages/core
         run: deno publish --allow-slow-types
+
+      - name: Publish mongodb package
+        working-directory: ./packages/mongodb
+        run: deno publish
+
+      - name: Publish oak package
+        working-directory: ./packages/oak
+        run: deno publish
+
+      - name: Publish utils package
+        working-directory: ./packages/utils
+        run: deno publish
