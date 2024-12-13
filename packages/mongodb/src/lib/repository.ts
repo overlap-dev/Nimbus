@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nimbus/core';
 import { toSnakeCase } from '@std/text';
 import type {
     BulkWriteOptions,
@@ -13,7 +14,6 @@ import type {
 } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import type { ZodType } from 'zod';
-import { NotFoundException } from '../../../core/src/index.ts';
 import { bulkWrite } from './crud/bulkWrite.ts';
 import { countDocuments } from './crud/countDocuments.ts';
 import { deleteMany } from './crud/deleteMany.ts';
