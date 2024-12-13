@@ -1,3 +1,4 @@
+import { toSnakeCase } from '@std/text';
 import type {
     BulkWriteOptions,
     Collection,
@@ -12,6 +13,7 @@ import type {
 } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import type { ZodType } from 'zod';
+import { NotFoundException } from '../../../core/src/index.ts';
 import { bulkWrite } from './crud/bulkWrite.ts';
 import { countDocuments } from './crud/countDocuments.ts';
 import { deleteMany } from './crud/deleteMany.ts';
@@ -42,6 +44,7 @@ export type WithStringId<TSchema> = Omit<TSchema, '_id'> & {
  *
  * @param collection - MongoDB Collection instance
  * @param entityType - Zod type for validating the data and ensure type safety
+ * @param entityName - Name for the entity, e.g. used in error messages like "Entity not found"
  *
  * @example
  * ```ts
@@ -84,10 +87,16 @@ export class MongoDBRepository<
 > {
     protected _collection: Collection<Document>;
     protected _entityType: ZodType;
+    protected _entityName: string;
 
-    constructor(collection: Collection<Document>, entityType: ZodType) {
+    constructor(
+        collection: Collection<Document>,
+        entityType: ZodType,
+        entityName?: string,
+    ) {
         this._collection = collection;
         this._entityType = entityType;
+        this._entityName = entityName ?? 'Document';
     }
 
     protected _mapDocumentToEntity(doc: Document): TEntity {
@@ -98,17 +107,36 @@ export class MongoDBRepository<
         return item as Document;
     }
 
-    public findOne({
+    public async findOne({
         filter,
     }: {
         filter: Filter<Document>;
     }): Promise<TEntity> {
-        return findOne({
-            collection: this._collection,
-            filter,
-            mapDocument: this._mapDocumentToEntity,
-            outputType: this._entityType,
-        });
+        try {
+            const res = await findOne({
+                collection: this._collection,
+                filter,
+                mapDocument: this._mapDocumentToEntity,
+                outputType: this._entityType,
+            });
+
+            return res;
+        } catch (error: any) {
+            if (error.name === 'NOT_FOUND_EXCEPTION') {
+                throw new NotFoundException(
+                    `${this._entityName} not found`,
+                    {
+                        errorCode: `${
+                            toSnakeCase(this._entityName).toUpperCase()
+                        }_NOT_FOUND`,
+                        reason:
+                            `Could not find ${this._entityName} matching the given filter`,
+                    },
+                );
+            }
+
+            throw error;
+        }
     }
 
     public find({
@@ -190,12 +218,25 @@ export class MongoDBRepository<
         item: TEntity;
         options?: ReplaceOptions;
     }): Promise<TEntity> {
-        await replaceOne({
+        const res = await replaceOne({
             collection: this._collection,
             filter: { _id: new ObjectId(item._id) },
             replacement: this._mapEntityToDocument(item),
             options,
         });
+
+        if (res.matchedCount === 0) {
+            throw new NotFoundException(
+                `${this._entityName} not found`,
+                {
+                    errorCode: `${
+                        toSnakeCase(this._entityName).toUpperCase()
+                    }_NOT_FOUND`,
+                    reason:
+                        `Could not find ${this._entityName} with the id: ${item._id}`,
+                },
+            );
+        }
 
         return item;
     }
@@ -232,11 +273,24 @@ export class MongoDBRepository<
         item: TEntity;
         options?: DeleteOptions;
     }): Promise<TEntity> {
-        await deleteOne({
+        const res = await deleteOne({
             collection: this._collection,
             filter: { _id: new ObjectId(item._id) },
             options,
         });
+
+        if (res.deletedCount === 0) {
+            throw new NotFoundException(
+                `${this._entityName} not found`,
+                {
+                    errorCode: `${
+                        toSnakeCase(this._entityName).toUpperCase()
+                    }_NOT_FOUND`,
+                    reason:
+                        `Could not find ${this._entityName} with the id: ${item._id}`,
+                },
+            );
+        }
 
         return item;
     }

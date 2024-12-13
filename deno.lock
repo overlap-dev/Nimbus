@@ -20,6 +20,7 @@
     "jsr:@std/log@~0.224.9": "0.224.11",
     "jsr:@std/media-types@1": "1.1.0",
     "jsr:@std/path@1": "1.0.8",
+    "jsr:@std/text@^1.0.9": "1.0.9",
     "jsr:@std/ulid@1": "1.0.0",
     "npm:fastify@5": "5.1.0",
     "npm:mongodb@^6.10.0": "6.11.0",
@@ -104,6 +105,9 @@
     },
     "@std/path@1.0.8": {
       "integrity": "548fa456bb6a04d3c1a1e7477986b6cffbce95102d0bb447c67c4ee70e0364be"
+    },
+    "@std/text@1.0.9": {
+      "integrity": "b2db4abc3e6ab93eb0280a0d5e126fd3fca80955bcc297ccaaf555e995eab747"
     },
     "@std/ulid@1.0.0": {
       "integrity": "d41c3d27a907714413649fee864b7cde8d42ee68437d22b79d5de4f81d808780"
@@ -431,6 +435,7 @@
       },
       "packages/mongodb": {
         "dependencies": [
+          "jsr:@std/text@^1.0.9",
           "npm:mongodb@^6.10.0",
           "npm:zod@^3.23.8"
         ]
