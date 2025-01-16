@@ -1,20 +1,19 @@
 import { z, type ZodType } from 'zod';
-import { EventMetadata } from './eventMetadata.ts';
 
 // TODO: fix slow type issue
 
 export const Event = <
     TName extends ZodType,
     TData extends ZodType,
-    TAuthPolicy extends ZodType,
+    TMetadata extends ZodType,
 >(
     nameType: TName,
     dataType: TData,
-    authPolicyType: TAuthPolicy,
+    metadataType: TMetadata,
 ) => {
     return z.object({
         name: nameType,
-        metadata: EventMetadata(authPolicyType),
+        metadata: metadataType,
         data: dataType,
     });
 };
@@ -22,9 +21,9 @@ export const Event = <
 type EventType<
     TName extends ZodType,
     TData extends ZodType,
-    TAuthPolicy extends ZodType,
-> = ReturnType<typeof Event<TName, TData, TAuthPolicy>>;
+    TMetadata extends ZodType,
+> = ReturnType<typeof Event<TName, TData, TMetadata>>;
 
-export type Event<TName, TData, TAuthPolicy> = z.infer<
-    EventType<ZodType<TName>, ZodType<TData>, ZodType<TAuthPolicy>>
+export type Event<TName, TData, TMetadata> = z.infer<
+    EventType<ZodType<TName>, ZodType<TData>, ZodType<TMetadata>>
 >;

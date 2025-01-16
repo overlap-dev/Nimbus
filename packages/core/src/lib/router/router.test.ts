@@ -17,9 +17,6 @@ Deno.test('Router handles input with an unknown handler name', async () => {
     const input = {
         name: 'UNKNOWN_EVENT',
         metadata: {
-            domain: 'TestDomain',
-            producer: 'JestTest',
-            version: 1,
             correlationId: '123',
             authContext: {
                 sub: 'admin@host.tld',
@@ -50,13 +47,9 @@ Deno.test('Router handles valid command input', async () => {
     const input = {
         name: 'TEST_COMMAND',
         metadata: {
-            domain: 'TestDomain',
-            version: 1,
             correlationId: '123',
             authContext: {
                 sub: 'admin@host.tld',
-                groups: ['admin'],
-                policy: { allowAnything: true },
             },
         },
         data: {
@@ -89,13 +82,9 @@ Deno.test('Router handles valid query input', async () => {
         name: 'TEST_QUERY',
         params: {},
         metadata: {
-            domain: 'TestDomain',
-            version: 1,
             correlationId: '123',
             authContext: {
                 sub: 'admin@host.tld',
-                groups: ['admin'],
-                policy: { allowAnything: true },
             },
         },
     };
@@ -124,14 +113,9 @@ Deno.test('Router handles valid event input', async () => {
     const input = {
         name: 'TEST_EVENT',
         metadata: {
-            domain: 'TestDomain',
-            producer: 'JestTest',
-            version: 1,
             correlationId: '123',
             authContext: {
                 sub: 'admin@host.tld',
-                groups: ['admin'],
-                policy: { allowAnything: true },
             },
         },
         data: {
@@ -165,14 +149,9 @@ Deno.test('Router handles invalid event input', async () => {
     const invalidInput = {
         name: 'TEST_EVENT',
         metadata: {
-            domain: 'TestDomain',
-            producer: 'JestTest',
-            version: 1,
             correlationId: '123',
             authContext: {
                 sub: 'admin@host.tld',
-                groups: ['admin'],
-                policy: { allowAnything: true },
             },
         },
         data: {
@@ -212,14 +191,9 @@ Deno.test('Router handles valid event input but handler returns an exception', a
     const input = {
         name: 'TEST_EVENT',
         metadata: {
-            domain: 'TestDomain',
-            producer: 'JestTest',
-            version: 1,
             correlationId: '123',
             authContext: {
                 sub: 'admin@host.tld',
-                groups: ['admin'],
-                policy: { allowAnything: true },
             },
         },
         data: {

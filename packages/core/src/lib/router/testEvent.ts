@@ -1,8 +1,8 @@
 import { z } from 'zod';
+import { EventMetadata } from '../../index.ts';
 import { Event } from '../event/index.ts';
 import { NotFoundException } from '../exception/notFoundException.ts';
 import type { RouteHandler, RouteHandlerMap } from './router.ts';
-import { AuthPolicy } from './testAuthPolicy.ts';
 
 export const TestEventData = z.object({
     testException: z.boolean(),
@@ -13,7 +13,7 @@ export type TestEventData = z.infer<typeof TestEventData>;
 export const TestEvent = Event(
     z.literal('TEST_EVENT'),
     TestEventData,
-    AuthPolicy,
+    EventMetadata(z.record(z.string(), z.string())),
 );
 export type TestEvent = z.infer<typeof TestEvent>;
 

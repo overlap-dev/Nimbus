@@ -1,20 +1,19 @@
 import { z, type ZodType } from 'zod';
-import { CommandMetadata } from './commandMetadata.ts';
 
 // TODO: fix slow type issue
 
 export const Command = <
     TName extends ZodType,
     TData extends ZodType,
-    TAuthPolicy extends ZodType,
+    TMetadata extends ZodType,
 >(
     nameType: TName,
     dataType: TData,
-    authPolicyType: TAuthPolicy,
+    metadataType: TMetadata,
 ) => {
     return z.object({
         name: nameType,
-        metadata: CommandMetadata(authPolicyType),
+        metadata: metadataType,
         data: dataType,
     });
 };
@@ -22,9 +21,9 @@ export const Command = <
 type CommandType<
     TName extends ZodType,
     TData extends ZodType,
-    TAuthPolicy extends ZodType,
-> = ReturnType<typeof Command<TName, TData, TAuthPolicy>>;
+    TMetadata extends ZodType,
+> = ReturnType<typeof Command<TName, TData, TMetadata>>;
 
-export type Command<TName, TData, TAuthPolicy> = z.infer<
-    CommandType<ZodType<TName>, ZodType<TData>, ZodType<TAuthPolicy>>
+export type Command<TName, TData, TMetadata> = z.infer<
+    CommandType<ZodType<TName>, ZodType<TData>, ZodType<TMetadata>>
 >;
