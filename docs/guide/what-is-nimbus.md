@@ -10,10 +10,10 @@ No overly complex object-oriented design principles, no clunky abstractions, no 
 
 ## Pure Core - Imperative Shell
 
-You might think: "Isn't it called Functional Core, Imperative Shell?".  
-And you are right. But ...
+You might think: "Isn't it called Functional Core, Imperative Shell?" or "Isn't it called a Hexagonal Architecture?".
+And might be are right. But ...
 
-As stated above Nimbus wants to keep it simple and therefore avoid overly complex OOP (Object-Oriented-Programming) principles. The same goes for overly complex FP (Functional Programming) principles.
+As stated above Nimbus wants to keep it simple and therefore avoid overly complex OOP (Object-Oriented-Programming) principles. The same goes for overly complex FP (Functional Programming) principles. Also Nimbus fits nicely into an App with Hexagonal Architecture. But if you do not want to follow this pattern, you are still able to use Nimbus.
 
 That is why Nimbus prefers the term **Pure Core - Imperative Shell**.
 
@@ -40,4 +40,4 @@ If the real world is asynchronous, why should your application be synchronous?
 **"Keep it simple all the way."**  
 That is why Nimbus is built with [Deno](https://deno.com) and published on [jsr.io](https://jsr.io/packages?search=@nimbus)
 
-Nimbus is a Typescript framework and runs with on every Node.js compatible runtime. But it recommended to try it with Deno.
+Nimbus is a Typescript framework and runs with every Node.js compatible runtime. But it is recommended to try it with Deno.
