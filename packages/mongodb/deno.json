@@ -31,8 +31,9 @@
     "include": ["src/"]
   },
   "imports": {
+    "@std/log": "jsr:@std/log@^0.224.9",
     "@std/text": "jsr:@std/text@^1.0.9",
-    "mongodb": "npm:mongodb@^6.10.0",
+    "mongodb": "npm:mongodb@^6.12.0",
     "zod": "npm:zod@^3.23.8"
   }
 }
