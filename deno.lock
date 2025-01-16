@@ -2,12 +2,14 @@
   "version": "4",
   "specifiers": {
     "jsr:@oak/commons@1": "1.0.0",
-    "jsr:@oak/oak@^17.1.3": "17.1.3",
+    "jsr:@oak/oak@^17.1.3": "17.1.4",
+    "jsr:@oak/oak@^17.1.4": "17.1.4",
     "jsr:@std/assert@1": "1.0.8",
     "jsr:@std/assert@^1.0.6": "1.0.8",
     "jsr:@std/bytes@1": "1.0.4",
     "jsr:@std/bytes@^1.0.2": "1.0.4",
     "jsr:@std/crypto@1": "1.0.3",
+    "jsr:@std/dotenv@*": "0.225.3",
     "jsr:@std/encoding@1": "1.0.5",
     "jsr:@std/encoding@^1.0.5": "1.0.5",
     "jsr:@std/fmt@^1.0.3": "1.0.3",
@@ -22,9 +24,12 @@
     "jsr:@std/path@1": "1.0.8",
     "jsr:@std/text@^1.0.9": "1.0.9",
     "jsr:@std/ulid@1": "1.0.0",
+    "jsr:@tajpouria/cors@^1.2.1": "1.2.1",
+    "npm:@types/node@*": "22.5.4",
     "npm:fastify@5": "5.1.0",
-    "npm:mongodb@^6.10.0": "6.11.0",
+    "npm:mongodb@^6.12.0": "6.12.0",
     "npm:path-to-regexp@6.2.1": "6.2.1",
+    "npm:path-to-regexp@^6.3.0": "6.3.0",
     "npm:zod@^3.23.8": "3.23.8"
   },
   "jsr": {
@@ -50,7 +55,19 @@
         "jsr:@std/io@0.224",
         "jsr:@std/media-types",
         "jsr:@std/path",
-        "npm:path-to-regexp"
+        "npm:path-to-regexp@6.2.1"
+      ]
+    },
+    "@oak/oak@17.1.4": {
+      "integrity": "60530b582bf276ff741e39cc664026781aa08dd5f2bc5134d756cc427bf2c13e",
+      "dependencies": [
+        "jsr:@oak/commons",
+        "jsr:@std/assert@1",
+        "jsr:@std/bytes@1",
+        "jsr:@std/http",
+        "jsr:@std/media-types",
+        "jsr:@std/path",
+        "npm:path-to-regexp@^6.3.0"
       ]
     },
     "@std/assert@1.0.8": {
@@ -64,6 +81,9 @@
     },
     "@std/crypto@1.0.3": {
       "integrity": "a2a32f51ddef632d299e3879cd027c630dcd4d1d9a5285d6e6788072f4e51e7f"
+    },
+    "@std/dotenv@0.225.3": {
+      "integrity": "a95e5b812c27b0854c52acbae215856d9cce9d4bbf774d938c51d212711e8d4a"
     },
     "@std/encoding@1.0.5": {
       "integrity": "ecf363d4fc25bd85bd915ff6733a7e79b67e0e7806334af15f4645c569fefc04"
@@ -111,6 +131,9 @@
     },
     "@std/ulid@1.0.0": {
       "integrity": "d41c3d27a907714413649fee864b7cde8d42ee68437d22b79d5de4f81d808780"
+    },
+    "@tajpouria/cors@1.2.1": {
+      "integrity": "eca42e4fb7cb3906ef0ee3d1e565dd6bb4632ccd8e70a95cf4279759743328f0"
     }
   },
   "npm": {
@@ -141,6 +164,12 @@
       "integrity": "sha512-tVkljjeEaAhCqTzajSdgbQ6gE6f3oneVwa3iXR6csiEwXXOFsiC6Uh9iAjAhXPtqa/XMDHWjjeNH/77m/Yq2dw==",
       "dependencies": [
         "sparse-bitfield"
+      ]
+    },
+    "@types/node@22.5.4": {
+      "integrity": "sha512-FDuKUJQm/ju9fT/SeX/6+gBzoPzlVCzfzmGkwKvRHQVxi4BntVbyIwf6a4Xn62mrvndLiml6z/UBXIdEVjQLXg==",
+      "dependencies": [
+        "undici-types"
       ]
     },
     "@types/webidl-conversions@7.0.3": {
@@ -286,8 +315,8 @@
         "whatwg-url"
       ]
     },
-    "mongodb@6.11.0": {
-      "integrity": "sha512-yVbPw0qT268YKhG241vAMLaDQAPbRyTgo++odSgGc9kXnzOujQI60Iyj23B9sQQFPSvmNPvMZ3dsFz0aN55KgA==",
+    "mongodb@6.12.0": {
+      "integrity": "sha512-RM7AHlvYfS7jv7+BXund/kR64DryVI+cHbVAy9P61fnb1RcWZqOW1/Wj2YhqMCx+MuYhqTRGv7AwHBzmsCKBfA==",
       "dependencies": [
         "@mongodb-js/saslprep",
         "bson",
@@ -299,6 +328,9 @@
     },
     "path-to-regexp@6.2.1": {
       "integrity": "sha512-JLyh7xT1kizaEvcaXOQwOc2/Yhw6KZOvPf1S8401UyLk86CU79LN3vl7ztXGm/pZ+YjoyAJ4rxmHwbkBXJX+yw=="
+    },
+    "path-to-regexp@6.3.0": {
+      "integrity": "sha512-Yhpw4T9C6hPpgPeA28us07OJeqZ5EzQTkbfwuhsUg0c237RomFoETJgmp2sa3F/41gfLE6G5cqcYwznmeEeOlQ=="
     },
     "pino-abstract-transport@2.0.0": {
       "integrity": "sha512-F63x5tizV6WCh4R6RHyi2Ml+M70DNRXt/+HANowMflpgGFMAym/VKm6G7ZOQRjqN7XbGxK1Lg9t6ZrtzOaivMw==",
@@ -404,6 +436,9 @@
         "punycode"
       ]
     },
+    "undici-types@6.19.8": {
+      "integrity": "sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw=="
+    },
     "webidl-conversions@7.0.0": {
       "integrity": "sha512-VwddBukDzu71offAQR975unBIGqfKZpM+8ZX6ySk8nYhVoo5CYaZyzt3YBvYtRtO+aoGlqxPg/B87NGVZ/fu6g=="
     },
@@ -420,6 +455,15 @@
   },
   "workspace": {
     "members": {
+      "examples/the-expense": {
+        "dependencies": [
+          "jsr:@oak/oak@^17.1.4",
+          "jsr:@std/log@~0.224.9",
+          "jsr:@tajpouria/cors@^1.2.1",
+          "npm:mongodb@^6.12.0",
+          "npm:zod@^3.23.8"
+        ]
+      },
       "packages/core": {
         "dependencies": [
           "jsr:@std/assert@^1.0.6",
@@ -435,8 +479,9 @@
       },
       "packages/mongodb": {
         "dependencies": [
+          "jsr:@std/log@~0.224.9",
           "jsr:@std/text@^1.0.9",
-          "npm:mongodb@^6.10.0",
+          "npm:mongodb@^6.12.0",
           "npm:zod@^3.23.8"
         ]
       },
