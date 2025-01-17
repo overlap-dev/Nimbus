@@ -12,7 +12,8 @@ type GetEnvInput = {
  * and logs the missing variable names.
  *
  * @param variables - The list of environment variables to get
- * @returns Record<string, string>
+ * @returns {Record<string, string>} Object of the environment variables
+ * @throws {GenericException} Thrown if any of the requested variables are not defined
  */
 export const getEnv = ({
     variables,
