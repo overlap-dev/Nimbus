@@ -16,6 +16,16 @@ export type CountDocuments = (
     input: CountDocumentsInput,
 ) => Promise<number>;
 
+/**
+ * Count the number of documents in a MongoDB collection.
+ *
+ * @param {CountDocumentsInput} input - The input object.
+ * @param input.collection - The collection to count documents in.
+ * @param input.filter - The filter for the count operation.
+ * @param [input.options] - The count options.
+ *
+ * @returns {Promise<number>} The number of documents.
+ */
 export const countDocuments: CountDocuments = async ({
     collection,
     filter,
