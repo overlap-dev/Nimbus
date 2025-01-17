@@ -9,11 +9,25 @@ import * as log from '@std/log';
 import { ulid } from '@std/ulid';
 import type { ZodType } from 'npm:zod@^3.23.8';
 
+/**
+ * The NimbusOakRouter extends the Oak Router
+ * to directly route commands and queries coming
+ * in from HTTP requests to a Nimbus router.
+ */
 export class NimbusOakRouter extends OakRouter {
     constructor(opts: RouterOptions = {}) {
         super(opts);
     }
 
+    /**
+     * Routes a POST request to a Nimbus command router.
+     *
+     * @param {string} path - Oak request path
+     * @param {string} commandName - Name of the command
+     * @param {ZodType} commandType - Zod type of the command
+     * @param {RouteHandler} handler - Nimbus Route Handler function
+     * @param {Function} onError - Optional function to customize error handling
+     */
     command(
         path: string,
         commandName: string,
@@ -60,6 +74,15 @@ export class NimbusOakRouter extends OakRouter {
         });
     }
 
+    /**
+     * Routes a GET request to a Nimbus query router.
+     *
+     * @param {string} path - Oak request path
+     * @param {string} queryName - Name of the query
+     * @param {ZodType} queryType - Zod type of the query
+     * @param {RouteHandler} handler - Nimbus Route Handler function
+     * @param {Function} onError - Optional function to customize error handling
+     */
     query(
         path: string,
         queryName: string,
