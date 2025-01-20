@@ -7,7 +7,7 @@ import type { Context } from '@oak/oak/context';
 import { Router as OakRouter, type RouterOptions } from '@oak/oak/router';
 import * as log from '@std/log';
 import { ulid } from '@std/ulid';
-import type { ZodType } from 'npm:zod@^3.23.8';
+import type { ZodType } from 'zod';
 
 /**
  * The NimbusOakRouter extends the Oak Router
