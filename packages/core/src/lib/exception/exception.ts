@@ -1,3 +1,6 @@
+/**
+ * Base exception
+ */
 export class Exception {
     public readonly name: string;
     public message: string;

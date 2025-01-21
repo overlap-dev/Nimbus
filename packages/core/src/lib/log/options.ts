@@ -1,10 +1,16 @@
 import * as log from '@std/log';
 
+/**
+ * Options for the JSON log handler.
+ */
 export const jsonLogHandlerOptions = {
     formatter: log.formatters.jsonFormatter,
     useColors: false,
 };
 
+/**
+ * Options for the pretty log handler.
+ */
 export const prettyLogHandlerOptions = {
     formatter: (record: log.LogRecord) => {
         let dataObject;

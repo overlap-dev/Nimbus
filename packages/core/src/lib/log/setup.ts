@@ -10,8 +10,9 @@ export type SetupLogInput = {
 /**
  * Sets up basic logging based on the @std/log library.
  *
- * @param logLevel - The log level to set for the application.
- * @param format - The format can be set to 'pretty' or 'json' and defaults to json. Pretty format is useful for development.
+ * @param {SetupLogInput} input
+ * @param {string} input.logLevel - The log level to set for the application.
+ * @param {string} input.format - The format can be set to 'pretty' or 'json' and defaults to json. Pretty format is useful for development.
  */
 export const setupLog = ({ logLevel, format }: SetupLogInput) => {
     const handlerOptions = format === 'pretty'

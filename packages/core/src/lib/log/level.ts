@@ -1,5 +1,12 @@
 import type { LevelName } from '@std/log';
 
+/**
+ * Gets a log level suitable for @std/log based on a string.
+ *
+ * @param {string} level - The log level as a string.
+ *
+ * @returns {LevelName} The @std/log LevelName.
+ */
 export const getLogLevel = (level: string = 'NOTSET'): LevelName => {
     const validLogLevels = [
         'DEBUG',
