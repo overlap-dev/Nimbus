@@ -1,7 +1,12 @@
 import { InvalidInputException, type RouteHandler } from '@nimbus/core';
-import { Account } from '../core/account.type.ts';
-import { addAccount, AddAccountCommand } from '../core/commands/addAccount.ts';
-import { accountRepository } from './account.repository.ts';
+import { eventBus } from '../../../eventBus.ts';
+import { Account } from '../../core/account.type.ts';
+import {
+    addAccount,
+    AddAccountCommand,
+} from '../../core/commands/addAccount.ts';
+import { AccountAddedEvent } from '../../core/events/accountAdded.ts';
+import { accountRepository } from '../account.repository.ts';
 
 export const addAccountHandler: RouteHandler<any, Account> = async (
     command: AddAccountCommand,
@@ -26,6 +31,17 @@ export const addAccountHandler: RouteHandler<any, Account> = async (
 
         throw error;
     }
+
+    eventBus.putEvent<AccountAddedEvent>({
+        name: 'ACCOUNT_ADDED',
+        data: {
+            account: account,
+        },
+        metadata: {
+            correlationId: command.metadata.correlationId,
+            authContext: command.metadata.authContext,
+        },
+    });
 
     return {
         statusCode: 200,

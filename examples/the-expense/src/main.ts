@@ -5,6 +5,7 @@ import { oakCors } from '@tajpouria/cors';
 import 'jsr:@std/dotenv/load';
 import process from 'node:process';
 import { exampleAuthMiddleware } from './auth/shell/auth.middleware.ts';
+import { initEventBusReceivers } from './eventBus.ts';
 import { router } from './router.ts';
 
 //
@@ -27,6 +28,8 @@ app.addEventListener('listen', ({ hostname, port, secure }) => {
         }:${port}`,
     );
 });
+
+initEventBusReceivers();
 
 // CORS Middleware
 app.use(oakCors());

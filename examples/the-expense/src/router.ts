@@ -25,7 +25,7 @@ router.get('/health', (ctx) => {
 });
 
 router.use(
-    '/account',
+    '/accounts',
     accountRouter.routes(),
     accountRouter.allowedMethods(),
 );
