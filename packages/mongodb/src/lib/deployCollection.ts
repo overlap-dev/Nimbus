@@ -37,7 +37,7 @@ export const deployMongoCollection = async ({
     dbName,
     collectionDefinition,
     allowUpdateIndexes,
-}: DeployMongoCollectionInput) => {
+}: DeployMongoCollectionInput): Promise<string> => {
     const db = mongoClient.db(dbName);
     const collectionName = collectionDefinition.name;
 
