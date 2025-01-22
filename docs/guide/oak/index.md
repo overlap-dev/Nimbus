@@ -1,3 +1,13 @@
+---
+prev:
+    text: "Logging"
+    link: "/guide/core/logging"
+
+next:
+    text: "Router"
+    link: "/guide/oak/router"
+---
+
 # Nimbus Oak Package
 
 The Oak package provides a simple and easy-to-use interface for working with the Oak web framework.

@@ -3,12 +3,11 @@ import { z, type ZodType } from 'zod';
 // TODO: fix slow type issue
 
 export const EventMetadata = <TAuthContext extends ZodType>(
-    authContextType?: TAuthContext,
+    authContextType: TAuthContext,
 ) => {
     return z.object({
         correlationId: z.string(),
-        authContext: (authContextType ?? z.record(z.string(), z.string()))
-            .optional(),
+        authContext: authContextType.optional(),
     });
 };
 

@@ -2,7 +2,10 @@ import { RouteHandler } from '@nimbus/core';
 import { MongoJSON } from '@nimbus/mongodb';
 import type { WithPagination } from '../../../shared/withPagination.type.ts';
 import { Account } from '../../core/account.type.ts';
-import { ListAccountsQuery } from '../../core/queries/listAccounts.ts';
+import {
+    listAccounts,
+    ListAccountsQuery,
+} from '../../core/queries/listAccounts.ts';
 import { accountRepository } from '../account.repository.ts';
 
 export const listAccountsHandler: RouteHandler<
@@ -13,7 +16,7 @@ export const listAccountsHandler: RouteHandler<
     const skip = parseInt(query.params.skip ?? '0');
     const filter = MongoJSON.parse(query.params.filter ?? '{}');
 
-    const [accounts, total] = await Promise.all([
+    let [accounts, total] = await Promise.all([
         accountRepository.find({
             filter,
             limit,
@@ -28,6 +31,8 @@ export const listAccountsHandler: RouteHandler<
             filter,
         }),
     ]);
+
+    accounts = listAccounts(accounts, query.metadata.authContext);
 
     return {
         statusCode: 200,

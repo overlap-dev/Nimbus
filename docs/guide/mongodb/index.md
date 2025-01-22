@@ -1,3 +1,13 @@
+---
+prev:
+    text: "Middleware"
+    link: "/guide/oak/middleware"
+
+next:
+    text: "Repository"
+    link: "/guide/mongodb/repository"
+---
+
 # Nimbus MongoDB Package
 
 The MongoDB package provides a simple and easy-to-use interface for working with MongoDB databases.

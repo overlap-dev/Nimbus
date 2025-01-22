@@ -1,3 +1,13 @@
+---
+prev:
+    text: "Project Structure"
+    link: "/guide/project-structure"
+
+next:
+    text: "Commands"
+    link: "/guide/core/commands"
+---
+
 # Nimbus Core Package
 
 The core package is the foundation of the entire framework. It provides the basic building blocks for all other packages to build upon.

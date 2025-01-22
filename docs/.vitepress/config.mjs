@@ -58,6 +58,10 @@ export default defineConfig({
                             link: "/guide/core/router",
                         },
                         {
+                            text: "Event Bus",
+                            link: "/guide/core/event-bus",
+                        },
+                        {
                             text: "Exceptions",
                             link: "/guide/core/exceptions",
                         },
