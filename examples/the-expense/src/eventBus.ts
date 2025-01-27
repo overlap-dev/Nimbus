@@ -1,35 +1,22 @@
-import { createRouter, NimbusEventBus, RouteHandlerMap } from '@nimbus/core';
-import * as log from '@std/log';
-import { getLogger } from '@std/log/get-logger';
-import { accountEventReceiver } from './account/shell/account.eventBus.ts';
+import { NimbusEventBus, RouteHandlerMap } from '@nimbus/core';
+import { accountEventSubscriptions } from './account/shell/account.eventBus.ts';
 
 export const eventBus = new NimbusEventBus({
-    maxRetries: 0,
+    maxRetries: 3,
 });
 
-export const initEventBusReceivers = () => {
-    const receivers: Record<string, RouteHandlerMap> = {
-        account: accountEventReceiver,
+export const initEventBusSubscriptions = () => {
+    const subscriptions: Record<string, RouteHandlerMap> = {
+        account: accountEventSubscriptions,
     };
 
-    for (const [key, handlerMap] of Object.entries(receivers)) {
-        const eventRouter = createRouter({
-            handlerMap,
-            inputLogFunc: (input: any) => {
-                getLogger('Nimbus').info({
-                    msg: `:: ${input?.metadata?.correlationId} - [Event] ${input?.name} on ${key} domain`,
-                });
-            },
-        });
-
+    for (const [, handlerMap] of Object.entries(subscriptions)) {
         for (const eventName of Object.keys(handlerMap)) {
-            log.info({ msg: `Subscribe event ${eventName} on ${key} domain` });
-
-            eventBus.onEvent(eventName, async (event) => {
-                await eventRouter(event);
-            }).catch((error) => {
-                log.error(error);
-            });
+            eventBus.subscribeEvent(
+                eventName,
+                handlerMap[eventName].inputType,
+                handlerMap[eventName].handler,
+            );
         }
     }
 };

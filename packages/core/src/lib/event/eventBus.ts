@@ -1,5 +1,13 @@
-import { type Event, GenericException } from '@nimbus/core';
+import {
+    createRouter,
+    type Event,
+    GenericException,
+    type RouteHandler,
+    type Router,
+} from '@nimbus/core';
+import * as log from '@std/log';
 import EventEmitter from 'node:events';
+import type { ZodType } from 'zod';
 
 export type NimbusEventBusOptions = {
     maxRetries?: number;
@@ -18,55 +26,91 @@ export class NimbusEventBus {
         this._retryDelay = options?.retryDelay ?? 1000;
     }
 
-    public onEvent(
+    public putEvent<TEvent extends Event<string, any, any>>(event: TEvent) {
+        this._eventEmitter.emit(event.name, event);
+    }
+
+    public subscribeEvent(
         eventName: string,
-        handler: (event: Event<string, any, any>) => Promise<void> | void,
+        eventType: ZodType,
+        handler: RouteHandler,
+        onError?: (error: any, event: Event<string, any, any>) => void,
         options?: NimbusEventBusOptions,
-    ): Promise<void> {
+    ): void {
+        log.info({ msg: `Subscribed to ${eventName} event` });
+
         const maxRetries = options?.maxRetries ?? this._maxRetries;
         const retryDelay = options?.retryDelay ?? this._retryDelay;
 
-        return new Promise<void>((resolve, reject) => {
-            const handleEvent = async (event: Event<string, any, any>) => {
-                let attempt = -1;
+        const nimbusRouter = createRouter({
+            handlerMap: {
+                [eventName]: {
+                    handler,
+                    inputType: eventType,
+                },
+            },
+            inputLogFunc: this._logInput,
+        });
 
-                while (attempt < maxRetries) {
-                    try {
-                        await handler(event);
-                        break;
-                    } catch (error: any) {
-                        attempt++;
-
-                        if (attempt >= maxRetries) {
-                            const exception = new GenericException(
-                                `Failed to handle ${eventName} event`,
-                                {
-                                    retryAttempts: maxRetries,
-                                    retryDelay: retryDelay,
-                                },
-                            );
-
-                            if (error.stack) {
-                                exception.stack = error.stack;
-                            }
-
-                            reject(exception);
-                        }
-
-                        await new Promise((resolve) =>
-                            setTimeout(resolve, retryDelay)
-                        );
-                    }
+        const handleEvent = async (event: Event<string, any, any>) => {
+            try {
+                await this._processEvent(
+                    nimbusRouter,
+                    event,
+                    maxRetries,
+                    retryDelay,
+                );
+            } catch (error) {
+                if (onError) {
+                    onError(error, event);
+                } else {
+                    log.error(error);
                 }
+            }
+        };
 
-                resolve();
-            };
+        this._eventEmitter.on(eventName, handleEvent);
+    }
 
-            this._eventEmitter.on(eventName, handleEvent);
+    private _logInput(input: any) {
+        log.getLogger('Nimbus').info({
+            msg: `:: ${input?.metadata?.correlationId} - [Event] ${input?.name}`,
         });
     }
 
-    public putEvent<TEvent extends Event<string, any, any>>(event: TEvent) {
-        this._eventEmitter.emit(event.name, event);
+    private async _processEvent(
+        nimbusRouter: Router,
+        event: Event<string, any, any>,
+        maxRetries: number,
+        retryDelay: number,
+    ) {
+        let attempt = -1;
+
+        while (attempt < maxRetries) {
+            try {
+                await nimbusRouter(event);
+                break;
+            } catch (error: any) {
+                attempt++;
+
+                if (attempt >= maxRetries) {
+                    const exception = new GenericException(
+                        `Failed to handle event: ${event.name}`,
+                        {
+                            retryAttempts: maxRetries,
+                            retryDelay: retryDelay,
+                        },
+                    );
+
+                    if (error.stack) {
+                        exception.stack = error.stack;
+                    }
+
+                    throw exception;
+                }
+
+                await new Promise((resolve) => setTimeout(resolve, retryDelay));
+            }
+        }
     }
 }
