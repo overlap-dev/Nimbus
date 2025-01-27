@@ -14,6 +14,35 @@ export type NimbusEventBusOptions = {
     retryDelay?: number;
 };
 
+/**
+ * The NimbusEventBus is used to publish and
+ * subscribe to events within the application.
+ *
+ * @example
+ * ```ts
+ * export const eventBus = new NimbusEventBus({
+ *     maxRetries: 3,
+ *     retryDelay: 3000,
+ * });
+ *
+ * eventBus.subscribeEvent(
+ *     'ACCOUNT_ADDED',
+ *     AccountAddedEvent,
+ *     accountAddedHandler,
+ * );
+ *
+ * eventBus.putEvent<AccountAddedEvent>({
+ *     name: 'ACCOUNT_ADDED',
+ *     data: {
+ *         account: account,
+ *     },
+ *     metadata: {
+ *         correlationId: command.metadata.correlationId,
+ *         authContext: command.metadata.authContext,
+ *     },
+ * });
+ * ```
+ */
 export class NimbusEventBus {
     private _eventEmitter: EventEmitter;
     private _maxRetries: number;
@@ -26,10 +55,28 @@ export class NimbusEventBus {
         this._retryDelay = options?.retryDelay ?? 1000;
     }
 
-    public putEvent<TEvent extends Event<string, any, any>>(event: TEvent) {
+    /**
+     * Publish an event to the event bus.
+     *
+     * @param event - The event to send to the event bus.
+     */
+    public putEvent<TEvent extends Event<string, any, any>>(
+        event: TEvent,
+    ): void {
         this._eventEmitter.emit(event.name, event);
     }
 
+    /**
+     * Subscribe to an event.
+     *
+     * @param {string} eventName - The name of the event to subscribe to.
+     * @param {ZodType} eventType - The ZodType of the event to subscribe to.
+     * @param {RouteHandler} handler - The handler to call when the event got published.
+     * @param {Function} [onError] - The function to call when the event could not be handled after the maximum number of retries.
+     * @param {NimbusEventBusOptions} [options] - The options for the event bus.
+     * @param {number} [options.maxRetries] - The maximum number of retries for handling the event in case of an error.
+     * @param {number} [options.retryDelay] - The delay between retries in milliseconds.
+     */
     public subscribeEvent(
         eventName: string,
         eventType: ZodType,
