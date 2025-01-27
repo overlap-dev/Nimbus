@@ -34,9 +34,6 @@ jobs:
       - name: Check formatting (core)
         run: deno fmt --check
         working-directory: ./packages/core
-      - name: Check formatting (fastify)
-        run: deno fmt --check
-        working-directory: ./packages/fastify
       - name: Check formatting (mongodb)
         run: deno fmt --check
         working-directory: ./packages/mongodb
@@ -51,9 +48,6 @@ jobs:
       - name: Lint (core)
         run: deno lint
         working-directory: ./packages/core
-      - name: Lint (fastify)
-        run: deno lint
-        working-directory: ./packages/fastify
       - name: Lint (mongodb)
         run: deno lint
         working-directory: ./packages/mongodb
@@ -68,9 +62,6 @@ jobs:
       - name: Test (core)
         run: deno test --allow-all --permit-no-files
         working-directory: ./packages/core
-      - name: Test (fastify)
-        run: deno test --allow-all --permit-no-files
-        working-directory: ./packages/fastify
       - name: Test (mongodb)
         run: deno test --allow-all --permit-no-files
         working-directory: ./packages/mongodb
