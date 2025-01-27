@@ -23,6 +23,20 @@ export type FindOneReplace = <TData>(
     input: FindOneAndReplace<TData>,
 ) => Promise<TData>;
 
+/**
+ * Finds a single document in a MongoDB collection, replaces it,
+ * and returns the result as the specified output type.
+ *
+ * @param {FindOneAndReplace} input - The input object.
+ * @param input.collection - The collection to find and replace in.
+ * @param input.filter - The filter for the find operation.
+ * @param input.replacement - The replacement document.
+ * @param input.mapDocument - The function to map the document to the output type.
+ * @param input.outputType - The output zod type.
+ * @param [input.options] - MongoDB find and replace options.
+ *
+ * @returns {Promise<TData>} The found and replaced document.
+ */
 export const findOneAndReplace: FindOneReplace = async ({
     collection,
     filter,

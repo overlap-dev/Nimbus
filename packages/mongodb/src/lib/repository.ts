@@ -99,14 +99,24 @@ export class MongoDBRepository<
         this._entityName = entityName ?? 'Document';
     }
 
+    /**
+     * Function to map the MongoDB Document to the Entity.
+     * ZodType.parse is used to ensure the data is valid and type-safe.
+     */
     protected _mapDocumentToEntity(doc: Document): TEntity {
         return this._entityType.parse(doc);
     }
 
+    /**
+     * Function to map the Entity to a  MongoDB Document.
+     */
     protected _mapEntityToDocument(item: TEntity): Document {
         return item as Document;
     }
 
+    /**
+     * Find one document based on a given filter.
+     */
     public async findOne({
         filter,
     }: {
@@ -139,6 +149,9 @@ export class MongoDBRepository<
         }
     }
 
+    /**
+     * Find multiple documents based on a given filter.
+     */
     public find({
         filter,
         limit,
@@ -167,6 +180,9 @@ export class MongoDBRepository<
         });
     }
 
+    /**
+     * Count all documents matching a given filter.
+     */
     public countDocuments({
         filter,
         options,
@@ -181,6 +197,9 @@ export class MongoDBRepository<
         });
     }
 
+    /**
+     * Insert a single new document.
+     */
     public async insertOne({
         item,
     }: {
@@ -195,6 +214,9 @@ export class MongoDBRepository<
         return item;
     }
 
+    /**
+     * Insert multiple new documents.
+     */
     public async insertMany({
         items,
         options,
@@ -211,6 +233,9 @@ export class MongoDBRepository<
         return items;
     }
 
+    /**
+     * Replace a single document.
+     */
     public async replaceOne({
         item,
         options,
@@ -241,6 +266,9 @@ export class MongoDBRepository<
         return item;
     }
 
+    /**
+     * Replace multiple documents.
+     */
     public async replaceMany({
         items,
         options,
@@ -266,6 +294,9 @@ export class MongoDBRepository<
         return items;
     }
 
+    /**
+     * Delete a single document.
+     */
     public async deleteOne({
         item,
         options,
@@ -295,6 +326,9 @@ export class MongoDBRepository<
         return item;
     }
 
+    /**
+     * Delete multiple documents.
+     */
     public async deleteMany({
         items,
         options,

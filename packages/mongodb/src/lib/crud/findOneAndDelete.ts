@@ -21,6 +21,19 @@ export type FindOneDelete = <TData>(
     input: FindOneAndDelete<TData>,
 ) => Promise<TData>;
 
+/**
+ * Finds a single document in a MongoDB collection, deletes it,
+ * and returns the result as the specified output type.
+ *
+ * @param {FindOneAndDelete} input - The input object.
+ * @param input.collection - The collection to find and delete from.
+ * @param input.filter - The filter for the find operation.
+ * @param input.mapDocument - The function to map the document to the output type.
+ * @param input.outputType - The output zod type.
+ * @param [input.options] - MongoDB find and delete options.
+ *
+ * @returns {Promise<TData>} The found and deleted document.
+ */
 export const findOneAndDelete: FindOneDelete = async ({
     collection,
     filter,

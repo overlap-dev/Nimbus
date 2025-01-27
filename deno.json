@@ -4,10 +4,10 @@
   },
   "workspace": [
     "./packages/core",
-    "./packages/fastify",
     "./packages/mongodb",
     "./packages/oak",
-    "./packages/utils"
+    "./packages/utils",
+    "./examples/the-expense"
   ],
   "nodeModulesDir": "none"
 }

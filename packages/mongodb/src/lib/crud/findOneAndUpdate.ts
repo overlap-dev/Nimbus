@@ -23,6 +23,20 @@ export type FindOneUpdate = <TData>(
     input: FindOneAndUpdate<TData>,
 ) => Promise<TData>;
 
+/**
+ * Finds a single document in a MongoDB collection, updates it,
+ * and returns the result as the specified output type.
+ *
+ * @param {FindOneAndUpdate} input - The input object.
+ * @param input.collection - The collection to find and update in.
+ * @param input.filter - The filter for the find operation.
+ * @param input.update - The update filter.
+ * @param input.mapDocument - The function to map the document to the output type.
+ * @param input.outputType - The output zod type.
+ * @param [input.options] - MongoDB find and update options.
+ *
+ * @returns {Promise<TData>} The found and updated document.
+ */
 export const findOneAndUpdate: FindOneUpdate = async ({
     collection,
     filter,

@@ -4,6 +4,13 @@ import {
     InvalidInputException,
 } from '@nimbus/core';
 
+/**
+ * Handles MongoDB errors and converts them
+ * to Nimbus exceptions based on the error code.
+ *
+ * @param {any} error - The error to handle.
+ * @returns {Exception} The Nimbus exception.
+ */
 export const handleMongoError = (error: any): Exception => {
     if (error.code && error.code === 121) {
         return new InvalidInputException(error.message, {

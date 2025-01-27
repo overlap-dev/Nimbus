@@ -19,6 +19,17 @@ export type UpdateMany = (
     input: UpdateManyInput,
 ) => Promise<UpdateResult<Document>>;
 
+/**
+ * Updates multiple documents in a MongoDB collection.
+ *
+ * @param {UpdateManyInput} input - The input object.
+ * @param input.collection - The collection to update in.
+ * @param input.filter - The filter for the update operation.
+ * @param input.update - The update object.
+ * @param [input.options] - The update options.
+ *
+ * @returns {Promise<UpdateResult<Document>} The result of the update operation.
+ */
 export const updateMany: UpdateMany = async ({
     collection,
     filter,

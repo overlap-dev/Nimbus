@@ -14,6 +14,18 @@ export type FindOne = <TData>(
     input: FindOneInput<TData>,
 ) => Promise<TData>;
 
+/**
+ * Finds a single document in a MongoDB collection and returns
+ * the result as the specified output type.
+ *
+ * @param {FindOneInput} input - The input object.
+ * @param input.collection - The collection to find documents in.
+ * @param input.filter - The filter for the find operation.
+ * @param input.mapDocument - The function to map the document to the output type.
+ * @param input.outputType - The output zod type.
+ *
+ * @returns {Promise<TData>} The found document.
+ */
 export const findOne: FindOne = async ({
     collection,
     filter,

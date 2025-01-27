@@ -32,51 +32,83 @@ export default defineConfig({
                     text: "Quickstart",
                     link: "/guide/quickstart",
                 },
+                {
+                    text: "Project Structure",
+                    link: "/guide/project-structure",
+                },
 
                 {
-                    text: "Guide",
+                    text: "Core",
+                    link: "/guide/core",
                     items: [
                         {
-                            text: "Project Structure",
-                            link: "/guide/project-structure",
-                        },
-                        {
-                            text: "Router",
-                            link: "/guide/router",
-                        },
-                        {
                             text: "Commands",
-                            link: "/guide/commands",
-                        },
-                        {
-                            text: "Events",
-                            link: "/guide/events",
+                            link: "/guide/core/commands",
                         },
                         {
                             text: "Queries",
-                            link: "/guide/queries",
+                            link: "/guide/core/queries",
                         },
                         {
-                            text: "Repositories",
-                            link: "/guide/repositories",
+                            text: "Events",
+                            link: "/guide/core/events",
+                        },
+                        {
+                            text: "Router",
+                            link: "/guide/core/router",
+                        },
+                        {
+                            text: "Event Bus",
+                            link: "/guide/core/event-bus",
+                        },
+                        {
+                            text: "Exceptions",
+                            link: "/guide/core/exceptions",
+                        },
+                        {
+                            text: "Logging",
+                            link: "/guide/core/logging",
                         },
                     ],
                 },
 
                 {
-                    text: "Packages",
+                    text: "Oak (HTTP)",
+                    link: "/guide/oak",
                     items: [
                         {
-                            text: "Oak",
-                            link: "/guide/project-structure",
+                            text: "Router",
+                            link: "/guide/oak/router",
                         },
                         {
-                            text: "MongoDB",
-                            link: "/guide/commands",
+                            text: "Middleware",
+                            link: "/guide/oak/middleware",
+                        },
+                    ],
+                },
+
+                {
+                    text: "MongoDB",
+                    link: "/guide/mongodb",
+                    items: [
+                        {
+                            text: "Repository",
+                            link: "/guide/mongodb/repository",
                         },
                         {
-                            text: "Utils",
-                            link: "/guide/queries",
+                            text: "CRUD+",
+                            link: "/guide/mongodb/crud",
+                        },
+                    ],
+                },
+
+                {
+                    text: "Utils",
+                    link: "/guide/utils",
+                    items: [
+                        {
+                            text: "getEnv",
+                            link: "/guide/utils/get-env",
                         },
                     ],
                 },

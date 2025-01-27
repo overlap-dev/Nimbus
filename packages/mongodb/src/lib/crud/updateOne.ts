@@ -19,6 +19,17 @@ export type UpdateOne = (
     input: UpdateOneInput,
 ) => Promise<UpdateResult<Document>>;
 
+/**
+ * Updates a single document in a MongoDB collection.
+ *
+ * @param {UpdateOneInput} input - The input object.
+ * @param input.collection - The collection to update in.
+ * @param input.filter - The filter for the update operation.
+ * @param input.update - The update object.
+ * @param [input.options] - The update options.
+ *
+ * @returns {Promise<UpdateResult<Document>} The result of the update operation.
+ */
 export const updateOne: UpdateOne = async ({
     collection,
     filter,

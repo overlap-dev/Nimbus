@@ -31,15 +31,31 @@ export type CreateRouterInput = {
 };
 
 /**
- * Creates a router that routes events, commands or queries to the appropriate handler.
+ * Creates a Nimbus router.
  *
- * @param CreateRouterInput - The input to create the router.
- * @returns Router
+ * @param {CreateRouterInput} input
+ * @param {RouteHandlerMap} input.handlerMap - The map of route handlers.
+ * @param {Function} input.inputLogFunc - Optional function to log input received by the router.
+ *
+ * @returns {Router} The Nimbus router.
  */
 export const createRouter = ({
     handlerMap,
     inputLogFunc,
 }: CreateRouterInput): Router => {
+    /**
+     * The Nimbus router.
+     *
+     * Takes any input, validates the input and routes it to the appropriate handler.
+     *
+     * @param {any} input - The input to the router.
+     *
+     * @returns {Promise<RouteHandlerResult>} The result of the route handler.
+     *
+     * @throws {NotFoundException} - If the route handler is not found.
+     * @throws {InvalidInputException} - If the input is invalid.
+     * @throws {GenericException} - If an error occurs while handling the input.
+     */
     const router: Router = (input) => {
         if (inputLogFunc) {
             inputLogFunc(input);

@@ -15,6 +15,19 @@ export type Aggregate = <TData>(
     input: AggregateInput<TData>,
 ) => Promise<TData[]>;
 
+/**
+ * Aggregates documents in a MongoDB collection and return
+ * the result as an array of the specified output type.
+ *
+ * @param {AggregateInput} input - The input object.
+ * @param input.collection - The collection to aggregate.
+ * @param input.aggregation - The aggregation pipeline.
+ * @param input.mapDocument - The function to map the document to the output type.
+ * @param input.outputType - The output zod type.
+ * @param [input.options] - MongoDB aggregation options.
+ *
+ * @returns {Promise<TData[]>} The aggregated documents.
+ */
 export const aggregate: Aggregate = async ({
     collection,
     aggregation,

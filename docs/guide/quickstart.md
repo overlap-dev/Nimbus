@@ -32,24 +32,3 @@ npx jsr add @nimbus/core @std/log
 bun add zod
 bunx jsr add @nimbus/core @std/log
 ```
-
-## Create the first Command
-
-To create the first command see the example below.
-You can find a full documentation about commands [here](/guide/commands).
-
-```typescript
-import { Command } from "@nimbus/core";
-import { z } from "zod";
-
-export const GreetMeCommand = Command(
-    z.literal("GREET_ME"),
-    z.object({
-        name: z.string(),
-    }),
-    z.object({
-        allowedActions: z.array(z.string()),
-    })
-);
-export type GreetMeCommand = z.infer<typeof GreetMeCommand>;
-```

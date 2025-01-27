@@ -1,2 +1,2 @@
-export * from './lib/createOakRouterAdapter.ts';
 export * from './lib/middleware/requestCorrelationId.ts';
+export * from './lib/router.ts';

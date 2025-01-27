@@ -1,23 +1,20 @@
 import { z, type ZodType } from 'zod';
-import { AuthContext } from '../authContext.ts';
 
 // TODO: fix slow type issue
 
-export const QueryMetadata = <TAuthPolicy extends ZodType>(
-    authPolicyType: TAuthPolicy,
+export const QueryMetadata = <TAuthContext extends ZodType>(
+    authContextType: TAuthContext,
 ) => {
     return z.object({
-        domain: z.string(),
-        version: z.number(),
         correlationId: z.string(),
-        authContext: AuthContext(authPolicyType).optional(),
+        authContext: authContextType.optional(),
     });
 };
 
-type QueryMetadataType<TAuthPolicy extends ZodType> = ReturnType<
-    typeof QueryMetadata<TAuthPolicy>
+type QueryMetadataType<TAuthContext extends ZodType> = ReturnType<
+    typeof QueryMetadata<TAuthContext>
 >;
 
-export type QueryMetadata<TAuthPolicy> = z.infer<
-    QueryMetadataType<ZodType<TAuthPolicy>>
+export type QueryMetadata<TAuthContext> = z.infer<
+    QueryMetadataType<ZodType<TAuthContext>>
 >;
