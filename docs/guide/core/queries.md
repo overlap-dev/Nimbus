@@ -84,4 +84,4 @@ export const getAccountHandler: RouteHandler<GetAccountQuery, Account> = async (
 
 ## Receive and Route Queries
 
-Learn more about how to receive and route queries in the [Query Bus](/guide/core/query-bus.md) guide.
+Learn more about how to receive and route queries in the [Query Bus](/guide/core/event-bus.md) guide.
