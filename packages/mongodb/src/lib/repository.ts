@@ -85,16 +85,16 @@ export type WithStringId<TSchema> = Omit<TSchema, '_id'> & {
 export class MongoDBRepository<
     TEntity extends WithStringId<Record<string, any>>,
 > {
-    protected _collection: Collection<Document>;
+    protected _getCollection: () => Promise<Collection<Document>>;
     protected _entityType: ZodType;
     protected _entityName: string;
 
     constructor(
-        collection: Collection<Document>,
+        getCollection: () => Promise<Collection<Document>>,
         entityType: ZodType,
         entityName?: string,
     ) {
-        this._collection = collection;
+        this._getCollection = getCollection;
         this._entityType = entityType;
         this._entityName = entityName ?? 'Document';
     }
@@ -123,8 +123,10 @@ export class MongoDBRepository<
         filter: Filter<Document>;
     }): Promise<TEntity> {
         try {
+            const collection = await this._getCollection();
+
             const res = await findOne({
-                collection: this._collection,
+                collection,
                 filter,
                 mapDocument: this._mapDocumentToEntity,
                 outputType: this._entityType,
@@ -152,7 +154,7 @@ export class MongoDBRepository<
     /**
      * Find multiple documents based on a given filter.
      */
-    public find({
+    public async find({
         filter,
         limit,
         skip,
@@ -167,8 +169,10 @@ export class MongoDBRepository<
         project?: Document;
         options?: FindOptions;
     }): Promise<TEntity[]> {
+        const collection = await this._getCollection();
+
         return find({
-            collection: this._collection,
+            collection,
             filter,
             limit,
             skip,
@@ -183,15 +187,17 @@ export class MongoDBRepository<
     /**
      * Count all documents matching a given filter.
      */
-    public countDocuments({
+    public async countDocuments({
         filter,
         options,
     }: {
         filter: Filter<Document>;
         options?: CountDocumentsOptions;
     }): Promise<number> {
+        const collection = await this._getCollection();
+
         return countDocuments({
-            collection: this._collection,
+            collection,
             filter,
             options,
         });
@@ -206,8 +212,10 @@ export class MongoDBRepository<
         item: TEntity;
         options?: InsertOneOptions;
     }): Promise<TEntity> {
+        const collection = await this._getCollection();
+
         await insertOne({
-            collection: this._collection,
+            collection,
             document: this._mapEntityToDocument(item),
         });
 
@@ -224,8 +232,10 @@ export class MongoDBRepository<
         items: TEntity[];
         options?: BulkWriteOptions;
     }): Promise<TEntity[]> {
+        const collection = await this._getCollection();
+
         await insertMany({
-            collection: this._collection,
+            collection,
             documents: items.map(this._mapEntityToDocument),
             options,
         });
@@ -243,8 +253,10 @@ export class MongoDBRepository<
         item: TEntity;
         options?: ReplaceOptions;
     }): Promise<TEntity> {
+        const collection = await this._getCollection();
+
         const res = await replaceOne({
-            collection: this._collection,
+            collection,
             filter: { _id: new ObjectId(item._id) },
             replacement: this._mapEntityToDocument(item),
             options,
@@ -277,6 +289,8 @@ export class MongoDBRepository<
         options?: BulkWriteOptions;
     }): Promise<TEntity[]> {
         if (items.length > 0) {
+            const collection = await this._getCollection();
+
             const operations = items.map((item) => ({
                 replaceOne: {
                     filter: { _id: new ObjectId(item._id) },
@@ -285,7 +299,7 @@ export class MongoDBRepository<
             }));
 
             await bulkWrite({
-                collection: this._collection,
+                collection,
                 operations: operations,
                 options,
             });
@@ -304,8 +318,10 @@ export class MongoDBRepository<
         item: TEntity;
         options?: DeleteOptions;
     }): Promise<TEntity> {
+        const collection = await this._getCollection();
+
         const res = await deleteOne({
-            collection: this._collection,
+            collection,
             filter: { _id: new ObjectId(item._id) },
             options,
         });
@@ -336,8 +352,10 @@ export class MongoDBRepository<
         items: TEntity[];
         options?: DeleteOptions;
     }): Promise<TEntity[]> {
+        const collection = await this._getCollection();
+
         await deleteMany({
-            collection: this._collection,
+            collection,
             filter: {
                 _id: { $in: items.map((item) => new ObjectId(item._id)) },
             },
