@@ -7,12 +7,18 @@ import type {
 } from 'mongodb';
 import { handleMongoError } from '../handleMongoError.ts';
 
+/**
+ * Type to define the input for the deleteOne function.
+ */
 export type DeleteOneInput = {
     collection: Collection<Document>;
     filter: Filter<Document>;
     options?: DeleteOptions;
 };
 
+/**
+ * Type to define the deleteOne function.
+ */
 export type DeleteOne = (
     input: DeleteOneInput,
 ) => Promise<DeleteResult>;

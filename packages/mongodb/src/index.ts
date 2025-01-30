@@ -14,5 +14,6 @@ export * from './lib/crud/updateMany.ts';
 export * from './lib/crud/updateOne.ts';
 export * from './lib/deployCollection.ts';
 export * from './lib/handleMongoError.ts';
+export * from './lib/mongoConnectionManager.ts';
 export * from './lib/mongoJSON.ts';
 export * from './lib/repository.ts';

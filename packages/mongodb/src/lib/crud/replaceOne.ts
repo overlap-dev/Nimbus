@@ -8,6 +8,9 @@ import type {
 } from 'mongodb';
 import { handleMongoError } from '../handleMongoError.ts';
 
+/**
+ * Type to define the input for the replaceOne function.
+ */
 export type ReplaceOneInput = {
     collection: Collection<Document>;
     filter: Filter<Document>;
@@ -15,6 +18,9 @@ export type ReplaceOneInput = {
     options?: ReplaceOptions;
 };
 
+/**
+ * Type to define the replaceOne function.
+ */
 export type ReplaceOne = (
     input: ReplaceOneInput,
 ) => Promise<Document | UpdateResult<Document>>;

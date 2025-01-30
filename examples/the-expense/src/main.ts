@@ -6,6 +6,7 @@ import 'jsr:@std/dotenv/load';
 import process from 'node:process';
 import { exampleAuthMiddleware } from './auth/shell/auth.middleware.ts';
 import { initEventBusSubscriptions } from './eventBus.ts';
+import { initMongoConnectionManager } from './mongodb.ts';
 import { router } from './router.ts';
 
 //
@@ -18,6 +19,12 @@ setupLog({
     format: process.env.NODE_ENV === 'development' ? 'pretty' : 'json',
 });
 
+// Initialize MongoDB Manager
+initMongoConnectionManager();
+
+// Initialize Event Bus Subscriptions
+initEventBusSubscriptions();
+
 // Oak HTTP Server APP
 const app = new Application();
 
@@ -28,8 +35,6 @@ app.addEventListener('listen', ({ hostname, port, secure }) => {
         }:${port}`,
     );
 });
-
-initEventBusSubscriptions();
 
 // CORS Middleware
 app.use(oakCors());

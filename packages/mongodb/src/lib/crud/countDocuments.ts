@@ -6,12 +6,18 @@ import type {
 } from 'mongodb';
 import { handleMongoError } from '../handleMongoError.ts';
 
+/**
+ * Type to define the input for the countDocuments function.
+ */
 export type CountDocumentsInput = {
     collection: Collection<Document>;
     filter: Filter<Document>;
     options?: CountDocumentsOptions;
 };
 
+/**
+ * Type to define the countDocuments function.
+ */
 export type CountDocuments = (
     input: CountDocumentsInput,
 ) => Promise<number>;

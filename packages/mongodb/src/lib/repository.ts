@@ -24,6 +24,10 @@ import { insertMany } from './crud/insertMany.ts';
 import { insertOne } from './crud/insertOne.ts';
 import { replaceOne } from './crud/replaceOne.ts';
 
+/**
+ * Type for entities that have a string id.
+ * Equivalent to the MongoDB WithId type but for the repository entity.
+ */
 export type WithStringId<TSchema> = Omit<TSchema, '_id'> & {
     _id: string;
 };

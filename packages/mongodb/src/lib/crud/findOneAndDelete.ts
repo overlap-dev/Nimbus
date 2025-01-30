@@ -9,7 +9,10 @@ import type {
 import type { ZodType } from 'zod';
 import { handleMongoError } from '../handleMongoError.ts';
 
-export type FindOneAndDelete<TData> = {
+/**
+ * Type to define the input for the findOneAndDelete function.
+ */
+export type FindOneAndDeleteInput<TData> = {
     collection: Collection<Document>;
     filter: Filter<Document>;
     mapDocument: (document: Document) => TData;
@@ -17,15 +20,18 @@ export type FindOneAndDelete<TData> = {
     options?: FindOneAndDeleteOptions;
 };
 
-export type FindOneDelete = <TData>(
-    input: FindOneAndDelete<TData>,
+/**
+ * Type to define the findOneAndDelete function.
+ */
+export type FindOneAndDelete = <TData>(
+    input: FindOneAndDeleteInput<TData>,
 ) => Promise<TData>;
 
 /**
  * Finds a single document in a MongoDB collection, deletes it,
  * and returns the result as the specified output type.
  *
- * @param {FindOneAndDelete} input - The input object.
+ * @param {FindOneAndDeleteInput} input - The input object.
  * @param input.collection - The collection to find and delete from.
  * @param input.filter - The filter for the find operation.
  * @param input.mapDocument - The function to map the document to the output type.
@@ -34,7 +40,7 @@ export type FindOneDelete = <TData>(
  *
  * @returns {Promise<TData>} The found and deleted document.
  */
-export const findOneAndDelete: FindOneDelete = async ({
+export const findOneAndDelete: FindOneAndDelete = async ({
     collection,
     filter,
     mapDocument,

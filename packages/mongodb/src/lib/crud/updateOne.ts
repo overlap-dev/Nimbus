@@ -8,6 +8,9 @@ import type {
 } from 'mongodb';
 import { handleMongoError } from '../handleMongoError.ts';
 
+/**
+ * Type to define the input for the updateOne function.
+ */
 export type UpdateOneInput = {
     collection: Collection<Document>;
     filter: Filter<Document>;
@@ -15,6 +18,9 @@ export type UpdateOneInput = {
     options?: UpdateOptions;
 };
 
+/**
+ * Type to define the updateOne function.
+ */
 export type UpdateOne = (
     input: UpdateOneInput,
 ) => Promise<UpdateResult<Document>>;

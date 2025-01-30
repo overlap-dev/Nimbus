@@ -6,12 +6,18 @@ import type {
     MongoClient,
 } from 'mongodb';
 
+/**
+ * Type to define a mongo collection.
+ */
 export type MongoCollectionDefinition = {
     name: string;
     options?: CreateCollectionOptions;
     indexes?: IndexDescription[];
 };
 
+/**
+ * Type to define the input for the deployMongoCollection function.
+ */
 export type DeployMongoCollectionInput = {
     mongoClient: MongoClient;
     dbName: string;
@@ -60,6 +66,13 @@ export const deployMongoCollection = async ({
     return 'OK';
 };
 
+/**
+ * Checks if a collection exists in a database.
+ *
+ * @param {Db} db - The database to check.
+ * @param {MongoCollectionDefinition} collectionDefinition - The collection definition
+ * @returns {Promise<boolean>} Whether the collection exists.
+ */
 const collectionExists = async (
     db: Db,
     { name }: MongoCollectionDefinition,
@@ -71,6 +84,12 @@ const collectionExists = async (
     return collections.findIndex((item) => item.name === name) > -1;
 };
 
+/**
+ * Creates a collection in a database.
+ *
+ * @param {Db} db - The database to create the collection in.
+ * @param {MongoCollectionDefinition} collectionDefinition - The collection definition
+ */
 const createCollection = async (
     db: Db,
     { name, options, indexes }: MongoCollectionDefinition,
@@ -86,6 +105,13 @@ const createCollection = async (
     }
 };
 
+/**
+ * Updates a collection in a database.
+ *
+ * @param {Db} db - The database to update the collection in.
+ * @param {boolean} allowUpdateIndexes - Whether to update indexes on existing collections
+ * @param {MongoCollectionDefinition} collectionDefinition - The collection definition
+ */
 const updateCollection = async (
     db: Db,
     allowUpdateIndexes: boolean,

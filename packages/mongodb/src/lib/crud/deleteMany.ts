@@ -7,12 +7,18 @@ import type {
 } from 'mongodb';
 import { handleMongoError } from '../handleMongoError.ts';
 
+/**
+ * Type to define the input for the deleteMany function.
+ */
 export type DeleteManyInput = {
     collection: Collection<Document>;
     filter: Filter<Document>;
     options?: DeleteOptions;
 };
 
+/**
+ * Type to define the deleteMany function.
+ */
 export type DeleteMany = (
     input: DeleteManyInput,
 ) => Promise<DeleteResult>;

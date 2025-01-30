@@ -7,12 +7,18 @@ import type {
 } from 'mongodb';
 import { handleMongoError } from '../handleMongoError.ts';
 
+/**
+ * Type to define the input for the insertMany function.
+ */
 export type InsertManyInput = {
     collection: Collection<Document>;
     documents: OptionalUnlessRequiredId<Document>[];
     options?: BulkWriteOptions;
 };
 
+/**
+ * Type to define the insertMany function.
+ */
 export type InsertMany = (
     input: InsertManyInput,
 ) => Promise<InsertManyResult<Document>>;

@@ -10,6 +10,9 @@ import type {
 import type { ZodType } from 'zod';
 import { handleMongoError } from '../handleMongoError.ts';
 
+/**
+ * Type to define the input for the find function.
+ */
 export type FindInput<TData> = {
     collection: Collection<Document>;
     filter: Filter<Document>;
@@ -22,6 +25,9 @@ export type FindInput<TData> = {
     options?: FindOptions;
 };
 
+/**
+ * Type to define the find function.
+ */
 export type Find = <TData>(
     input: FindInput<TData>,
 ) => Promise<TData[]>;
