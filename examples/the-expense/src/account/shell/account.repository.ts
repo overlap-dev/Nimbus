@@ -1,7 +1,7 @@
 import { MongoDBRepository } from '@nimbus/mongodb';
 import { getEnv } from '@nimbus/utils';
 import { Document, ObjectId } from 'mongodb';
-import { mongoClient } from '../../mongoClient.ts';
+import { mongoManager } from '../../mongodb.ts';
 import { Account } from '../core/account.type.ts';
 import { ACCOUNT_COLLECTION } from './account.collection.ts';
 
@@ -10,7 +10,12 @@ class AccountRepository extends MongoDBRepository<Account> {
         const env = getEnv({ variables: ['MONGO_DB'] });
 
         super(
-            mongoClient.db(env.MONGO_DB).collection(ACCOUNT_COLLECTION.name),
+            () => {
+                return mongoManager.getCollection(
+                    env.MONGO_DB,
+                    ACCOUNT_COLLECTION.name,
+                );
+            },
             Account,
             'Account',
         );

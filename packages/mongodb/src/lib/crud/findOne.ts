@@ -3,6 +3,9 @@ import type { Collection, Document, Filter, WithId } from 'mongodb';
 import type { ZodType } from 'zod';
 import { handleMongoError } from '../handleMongoError.ts';
 
+/**
+ * Type to define the input for the findOne function.
+ */
 export type FindOneInput<TData> = {
     collection: Collection<Document>;
     filter: Filter<Document>;
@@ -10,6 +13,9 @@ export type FindOneInput<TData> = {
     outputType: ZodType;
 };
 
+/**
+ * Type to define the findOne function.
+ */
 export type FindOne = <TData>(
     input: FindOneInput<TData>,
 ) => Promise<TData>;

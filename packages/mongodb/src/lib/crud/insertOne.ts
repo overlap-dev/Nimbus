@@ -7,12 +7,18 @@ import type {
 } from 'mongodb';
 import { handleMongoError } from '../handleMongoError.ts';
 
+/**
+ * Type to define the input for the insertOne function.
+ */
 export type InsertOneInput = {
     collection: Collection<Document>;
     document: OptionalUnlessRequiredId<Document>;
     options?: InsertOneOptions;
 };
 
+/**
+ * Type to define the insertOne function.
+ */
 export type InsertOne = (
     input: InsertOneInput,
 ) => Promise<InsertOneResult<Document>>;

@@ -10,7 +10,10 @@ import type {
 import type { ZodType } from 'zod';
 import { handleMongoError } from '../handleMongoError.ts';
 
-export type FindOneAndUpdate<TData> = {
+/**
+ * Type to define the input for the findOneAndUpdate function.
+ */
+export type FindOneAndUpdateInput<TData> = {
     collection: Collection<Document>;
     filter: Filter<Document>;
     update: UpdateFilter<Document>;
@@ -19,15 +22,18 @@ export type FindOneAndUpdate<TData> = {
     options?: FindOneAndUpdateOptions;
 };
 
-export type FindOneUpdate = <TData>(
-    input: FindOneAndUpdate<TData>,
+/**
+ * Type to define the findOneAndUpdate function.
+ */
+export type FindOneAndUpdate = <TData>(
+    input: FindOneAndUpdateInput<TData>,
 ) => Promise<TData>;
 
 /**
  * Finds a single document in a MongoDB collection, updates it,
  * and returns the result as the specified output type.
  *
- * @param {FindOneAndUpdate} input - The input object.
+ * @param {FindOneAndUpdateInput} input - The input object.
  * @param input.collection - The collection to find and update in.
  * @param input.filter - The filter for the find operation.
  * @param input.update - The update filter.
@@ -37,7 +43,7 @@ export type FindOneUpdate = <TData>(
  *
  * @returns {Promise<TData>} The found and updated document.
  */
-export const findOneAndUpdate: FindOneUpdate = async ({
+export const findOneAndUpdate: FindOneAndUpdate = async ({
     collection,
     filter,
     update,

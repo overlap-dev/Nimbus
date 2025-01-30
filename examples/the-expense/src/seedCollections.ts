@@ -2,7 +2,7 @@ import { deployMongoCollection } from '@nimbus/mongodb';
 import 'jsr:@std/dotenv/load';
 import process from 'node:process';
 import { ACCOUNT_COLLECTION } from './account/shell/account.collection.ts';
-import { mongoClient } from './mongoClient.ts';
+import { mongoClient } from './mongodb.ts';
 
 const { MONGO_DB } = process.env;
 

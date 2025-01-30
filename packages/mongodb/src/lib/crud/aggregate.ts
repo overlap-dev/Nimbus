@@ -3,6 +3,9 @@ import type { AggregateOptions, Collection, Document } from 'mongodb';
 import type { ZodType } from 'zod';
 import { handleMongoError } from '../handleMongoError.ts';
 
+/**
+ * Type to define the input for the aggregate function.
+ */
 export type AggregateInput<TData> = {
     collection: Collection<Document>;
     aggregation: Document[];
@@ -11,6 +14,9 @@ export type AggregateInput<TData> = {
     options?: AggregateOptions;
 };
 
+/**
+ * Type to define the aggregate function.
+ */
 export type Aggregate = <TData>(
     input: AggregateInput<TData>,
 ) => Promise<TData[]>;

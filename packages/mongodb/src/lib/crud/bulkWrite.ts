@@ -7,12 +7,18 @@ import type {
 } from 'mongodb';
 import { handleMongoError } from '../handleMongoError.ts';
 
+/**
+ * Type to define the input for the bulkWrite function.
+ */
 export type BulkWriteInput = {
     collection: Collection<Document>;
     operations: AnyBulkWriteOperation<Document>[];
     options?: BulkWriteOptions;
 };
 
+/**
+ * Type to define the bulkWrite function.
+ */
 export type BulkWrite = (
     input: BulkWriteInput,
 ) => Promise<BulkWriteResult>;

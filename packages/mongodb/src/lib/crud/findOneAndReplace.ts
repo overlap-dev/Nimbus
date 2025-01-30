@@ -10,7 +10,10 @@ import type {
 import type { ZodType } from 'zod';
 import { handleMongoError } from '../handleMongoError.ts';
 
-export type FindOneAndReplace<TData> = {
+/**
+ * Type to define the input for the findOneAndReplace function.
+ */
+export type FindOneAndReplaceInput<TData> = {
     collection: Collection<Document>;
     filter: Filter<Document>;
     replacement: WithoutId<Document>;
@@ -19,15 +22,18 @@ export type FindOneAndReplace<TData> = {
     options?: FindOneAndReplaceOptions;
 };
 
-export type FindOneReplace = <TData>(
-    input: FindOneAndReplace<TData>,
+/**
+ * Type to define the findOneAndReplace function.
+ */
+export type FindOneAndReplace = <TData>(
+    input: FindOneAndReplaceInput<TData>,
 ) => Promise<TData>;
 
 /**
  * Finds a single document in a MongoDB collection, replaces it,
  * and returns the result as the specified output type.
  *
- * @param {FindOneAndReplace} input - The input object.
+ * @param {FindOneAndReplaceInput} input - The input object.
  * @param input.collection - The collection to find and replace in.
  * @param input.filter - The filter for the find operation.
  * @param input.replacement - The replacement document.
@@ -37,7 +43,7 @@ export type FindOneReplace = <TData>(
  *
  * @returns {Promise<TData>} The found and replaced document.
  */
-export const findOneAndReplace: FindOneReplace = async ({
+export const findOneAndReplace: FindOneAndReplace = async ({
     collection,
     filter,
     replacement,
