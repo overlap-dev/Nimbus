@@ -2,11 +2,15 @@ import { deployMongoCollection } from '@nimbus/mongodb';
 import 'jsr:@std/dotenv/load';
 import process from 'node:process';
 import { ACCOUNT_COLLECTION } from './account/shell/account.collection.ts';
-import { mongoClient } from './mongodb.ts';
+import { initMongoConnectionManager, mongoManager } from './mongodb.ts';
 
 const { MONGO_DB } = process.env;
 
 try {
+    initMongoConnectionManager();
+
+    const mongoClient = await mongoManager.getClient();
+
     const result = await Promise.allSettled([
         deployMongoCollection({
             mongoClient: mongoClient,
