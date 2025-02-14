@@ -154,7 +154,9 @@ export class NimbusOakRouter extends OakRouter {
             }
         }
 
-        ctx.response.body = result.data;
+        if (result.data) {
+            ctx.response.body = result.data;
+        }
     }
 
     private _handleNimbusRouterError(
