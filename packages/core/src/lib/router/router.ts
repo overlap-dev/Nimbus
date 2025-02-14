@@ -3,12 +3,23 @@ import { GenericException } from '../exception/genericException.ts';
 import { InvalidInputException } from '../exception/invalidInputException.ts';
 import { NotFoundException } from '../exception/notFoundException.ts';
 
+/**
+ * The result of a route handler.
+ *
+ * @template TData - The type of the data returned by the route handler.
+ */
 export type RouteHandlerResult<TData = any> = {
     statusCode: number;
     headers?: Record<string, string>;
-    data: TData;
+    data?: TData;
 };
 
+/**
+ * A route handler.
+ *
+ * @template TInput - The type of the input to the route handler.
+ * @template TResultData - The type of the data returned by the route handler.
+ */
 export type RouteHandler<TInput = any, TResultData = any> = (
     input: TInput,
 ) => Promise<RouteHandlerResult<TResultData>>;
@@ -21,13 +32,25 @@ export type RouteHandlerMap = Record<
     }
 >;
 
-export type Router = (
-    input: any,
-) => Promise<RouteHandlerResult>;
+/**
+ * A Nimbus router.
+ *
+ * @template TInput - The type of the input to the router.
+ * @template TResultData - The type of the data returned by the router.
+ */
+export type Router<TInput = any, TResultData = any> = (
+    input: TInput,
+) => Promise<RouteHandlerResult<TResultData>>;
 
-export type CreateRouterInput = {
+/**
+ * The input for creating a Nimbus router.
+ *
+ * @template TInput - The type of the input to the router.
+ * @template TResultData - The type of the data returned by the router.
+ */
+export type CreateRouterInput<TInput = any, TResultData = any> = {
     handlerMap: RouteHandlerMap;
-    inputLogFunc?: (input: any) => void;
+    inputLogFunc?: (input: TInput) => void;
 };
 
 /**
