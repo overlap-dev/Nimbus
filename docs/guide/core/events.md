@@ -40,8 +40,7 @@ export type AccountAddedEvent = z.infer<typeof AccountAddedEvent>;
 ```
 
 ```typescript [Shell]
-import { RouteHandler } from "@nimbus/core";
-import * as log from "@std/log";
+import { getLogger, RouteHandler } from "@nimbus/core";
 import {
     AccountAddedData,
     AccountAddedEvent,
@@ -53,7 +52,9 @@ export const accountAddedHandler: RouteHandler<
 > = async (event) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    log.info({ msg: `New account was added: ${event.data.account.name}` });
+    getLogger().info({
+        message: `New account was added: ${event.data.account.name}`,
+    });
 
     // This is just an example.
     // Change the code to do what has to be done after an account got added.

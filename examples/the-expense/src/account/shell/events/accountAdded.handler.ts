@@ -1,5 +1,4 @@
-import { RouteHandler } from '@nimbus/core';
-import * as log from '@std/log';
+import { getLogger, RouteHandler } from '@nimbus/core';
 import {
     AccountAddedData,
     AccountAddedEvent,
@@ -13,7 +12,9 @@ export const accountAddedHandler: RouteHandler<
 ) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    log.info({ msg: `New account was added: ${event.data.account.name}` });
+    getLogger().info({
+        message: `New account was added: ${event.data.account.name}`,
+    });
 
     return {
         statusCode: 200,

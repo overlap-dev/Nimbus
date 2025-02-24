@@ -1,5 +1,4 @@
-import { GenericException } from '@nimbus/core';
-import { getLogger } from '@std/log';
+import { GenericException, getLogger } from '@nimbus/core';
 import process from 'node:process';
 
 type GetEnvInput = {
@@ -30,9 +29,12 @@ export const getEnv = ({
     }
 
     if (missingEnvVars.length > 0) {
-        getLogger('Nimbus').error({
+        getLogger().error({
+            category: 'Nimbus',
             message: 'Undefined environment variables',
-            undefinedVariables: missingEnvVars,
+            data: {
+                undefinedVariables: missingEnvVars,
+            },
         });
 
         throw new GenericException('Undefined environment variables', {

@@ -1,64 +1,53 @@
 # Logging
 
-For logging Nimbus uses the [`@std/log`](https://jsr.io/@std/log) library.
+Nimbus provides a simple function to setup the logger. You can pass in the log level and the formatter you want to use.
 
-## Default setup
-
-Nimbus provides a simple function to setup the logger. You can pass in the log level and the format you want to use.
-
-The `pretty` format is recommended for development environments only. In production you should use the `json` format.
+The `prettyLogFormatter` is recommended for development environments only. In production you should use the `jsonLogFormatter`.
 
 ::: code-group
 
 ```typescript [main.ts]
-import { setupLog } from "@nimbus/core";
+import {
+    jsonLogFormatter,
+    parseLogLevel,
+    prettyLogFormatter,
+    setupLogger,
+} from "@nimbus/core";
 
-setupLog({
-    logLevel: process.env.LOG_LEVEL,
-    format: process.env.NODE_ENV === "development" ? "pretty" : "json",
+setupLogger({
+    logLevel: parseLogLevel(process.env.LOG_LEVEL),
+    formatter:
+        process.env.NODE_ENV === "development"
+            ? prettyLogFormatter
+            : jsonLogFormatter,
+    useConsoleColors: process.env.NODE_ENV === "development",
 });
 ```
 
 ```typescript [logExample.ts]
-import * as log from "@std/log";
+import { getLogger } from "@nimbus/core";
 
-log.info({ msg: "Hello World!" });
+const logger = getLogger();
 
-log.warn({ msg: "Ding Dong!" });
+logger.info({ message: "Hello World!" });
 
-log.error({ msg: "Ohh no!", error: new Error("Something went wrong!") });
-
-log.critical({
-    msg: "It is over, run!",
-    error: new Error("Something is burning!"),
+logger.warn({
+    category: "MyCategory",
+    message: "Ding Dong!",
 });
-```
 
-:::
-
-## Advanced Setup
-
-In case you want to configure the logger in another way you can use the `setup` function from the `@std/log` library. And add `Nimbus` to the loggers object.
-
-View the [@std/log docs](https://jsr.io/@std/log) for all configuration options.
-
-::: code-group
-
-```typescript [main.ts]
-import * as log from "@std/log";
-
-log.setup({
-    handlers: {
-        default: new log.ConsoleHandler("INFO", {
-            formatter: log.formatters.jsonFormatter,
-        }),
+logger.error({
+    message: "Ohh no!",
+    data: {
+        error: new Error("Something went wrong!"),
     },
+});
 
-    loggers: {
-        Nimbus: {
-            level: "INFO",
-            handlers: ["default"],
-        },
+logger.critical({
+    category: "MyCategory",
+    message: "It is over, run!",
+    data: {
+        error: new Error("Something is burning!"),
     },
 });
 ```

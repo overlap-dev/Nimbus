@@ -27,7 +27,5 @@
   "test": {
     "include": ["src/"]
   },
-  "imports": {
-    "@std/log": "jsr:@std/log@^0.224.13"
-  }
+  "imports": {}
 }

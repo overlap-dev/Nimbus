@@ -2,10 +2,10 @@ import {
     createRouter,
     type Event,
     GenericException,
+    getLogger,
     type RouteHandler,
     type Router,
 } from '@nimbus/core';
-import * as log from '@std/log';
 import EventEmitter from 'node:events';
 import type { ZodType } from 'zod';
 
@@ -84,7 +84,10 @@ export class NimbusEventBus {
         onError?: (error: any, event: Event<string, any, any>) => void,
         options?: NimbusEventBusOptions,
     ): void {
-        log.info({ msg: `Subscribed to ${eventName} event` });
+        getLogger().info({
+            category: 'Nimbus',
+            message: `Subscribed to ${eventName} event`,
+        });
 
         const maxRetries = options?.maxRetries ?? this._maxRetries;
         const retryDelay = options?.retryDelay ?? this._retryDelay;
@@ -107,11 +110,15 @@ export class NimbusEventBus {
                     maxRetries,
                     retryDelay,
                 );
-            } catch (error) {
+            } catch (error: any) {
                 if (onError) {
                     onError(error, event);
                 } else {
-                    log.error(error);
+                    getLogger().error({
+                        category: 'Nimbus',
+                        message: error.message,
+                        data: { error },
+                    });
                 }
             }
         };
@@ -120,8 +127,10 @@ export class NimbusEventBus {
     }
 
     private _logInput(input: any) {
-        log.getLogger('Nimbus').info({
-            msg: `:: ${input?.metadata?.correlationId} - [Event] ${input?.name}`,
+        getLogger().info({
+            category: 'Nimbus',
+            message:
+                `${input?.metadata?.correlationId} - [Event] ${input?.name}`,
         });
     }
 
