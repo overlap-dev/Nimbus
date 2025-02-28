@@ -38,6 +38,9 @@ export class NimbusOakRouter extends OakRouter {
         const inputLogFunc = (input: any) => {
             getLogger().info({
                 category: 'Nimbus',
+                ...(input?.metadata?.correlationId && {
+                    correlationId: input?.metadata?.correlationId,
+                }),
                 message:
                     `${input?.metadata?.correlationId} - [Command] ${input?.name}`,
             });
@@ -95,6 +98,9 @@ export class NimbusOakRouter extends OakRouter {
         const inputLogFunc = (input: any) => {
             getLogger().info({
                 category: 'Nimbus',
+                ...(input?.metadata?.correlationId && {
+                    correlationId: input?.metadata?.correlationId,
+                }),
                 message:
                     `${input?.metadata?.correlationId} - [Query] ${input?.name}`,
             });

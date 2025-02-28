@@ -12,6 +12,7 @@ export type LogInput = {
     category?: string;
     data?: Record<string, unknown>;
     error?: Error | Exception;
+    correlationId?: string;
 };
 
 /**
@@ -24,6 +25,7 @@ export type LogRecord = {
     message: string;
     data?: Record<string, unknown>;
     error?: Error | Exception;
+    correlationId?: string;
 };
 
 /**
@@ -72,6 +74,26 @@ export class Logger {
      * Log a message at the debug level.
      *
      * @param {LogInput} logInput - The log input
+     * @param {string} logInput.message - The message
+     * @param {string} logInput.category - An optional category
+     * @param {string} logInput.correlationId - An optional correlation ID
+     * @param {Record<string, unknown>} logInput.data - An optional data object
+     * @param {Error | Exception} logInput.error - An optional error
+     *
+     * @example
+     * ```ts
+     * import { getLogger } from "@nimbus/core";
+     *
+     * getLogger().debug({
+     *     message: 'Hello World!',
+     *     category: 'MyCategory',
+     *     correlationId: '1234567890',
+     *     data: {
+     *         foo: 'bar',
+     *     },
+     *     error: new Error('Something went wrong!'),
+     * });
+     * ```
      */
     public debug = (logInput: LogInput) => {
         if (numericLogLevel['debug'] >= numericLogLevel[this._logLevel]) {
@@ -83,6 +105,26 @@ export class Logger {
      * Log a message at the info level.
      *
      * @param {LogInput} logInput - The log input
+     * @param {string} logInput.message - The message
+     * @param {string} logInput.category - An optional category
+     * @param {string} logInput.correlationId - An optional correlation ID
+     * @param {Record<string, unknown>} logInput.data - An optional data object
+     * @param {Error | Exception} logInput.error - An optional error
+     *
+     * @example
+     * ```ts
+     * import { getLogger } from "@nimbus/core";
+     *
+     * getLogger().info({
+     *     message: 'Hello World!',
+     *     category: 'MyCategory',
+     *     correlationId: '1234567890',
+     *     data: {
+     *         foo: 'bar',
+     *     },
+     *     error: new Error('Something went wrong!'),
+     * });
+     * ```
      */
     public info = (logInput: LogInput) => {
         if (numericLogLevel['info'] >= numericLogLevel[this._logLevel]) {
@@ -94,6 +136,26 @@ export class Logger {
      * Log a message at the warn level.
      *
      * @param {LogInput} logInput - The log input
+     * @param {string} logInput.message - The message
+     * @param {string} logInput.category - An optional category
+     * @param {string} logInput.correlationId - An optional correlation ID
+     * @param {Record<string, unknown>} logInput.data - An optional data object
+     * @param {Error | Exception} logInput.error - An optional error
+     *
+     * @example
+     * ```ts
+     * import { getLogger } from "@nimbus/core";
+     *
+     * getLogger().warn({
+     *     message: 'Hello World!',
+     *     category: 'MyCategory',
+     *     correlationId: '1234567890',
+     *     data: {
+     *         foo: 'bar',
+     *     },
+     *     error: new Error('Something went wrong!'),
+     * });
+     * ```
      */
     public warn = (logInput: LogInput) => {
         if (numericLogLevel['warn'] >= numericLogLevel[this._logLevel]) {
@@ -105,6 +167,26 @@ export class Logger {
      * Log a message at the error level.
      *
      * @param {LogInput} logInput - The log input
+     * @param {string} logInput.message - The message
+     * @param {string} logInput.category - An optional category
+     * @param {string} logInput.correlationId - An optional correlation ID
+     * @param {Record<string, unknown>} logInput.data - An optional data object
+     * @param {Error | Exception} logInput.error - An optional error
+     *
+     * @example
+     * ```ts
+     * import { getLogger } from "@nimbus/core";
+     *
+     * getLogger().error({
+     *     message: 'Hello World!',
+     *     category: 'MyCategory',
+     *     correlationId: '1234567890',
+     *     data: {
+     *         foo: 'bar',
+     *     },
+     *     error: new Error('Something went wrong!'),
+     * });
+     * ```
      */
     public error = (logInput: LogInput) => {
         if (numericLogLevel['error'] >= numericLogLevel[this._logLevel]) {
@@ -116,6 +198,26 @@ export class Logger {
      * Log a message at the critical level.
      *
      * @param {LogInput} logInput - The log input
+     * @param {string} logInput.message - The message
+     * @param {string} logInput.category - An optional category
+     * @param {string} logInput.correlationId - An optional correlation ID
+     * @param {Record<string, unknown>} logInput.data - An optional data object
+     * @param {Error | Exception} logInput.error - An optional error
+     *
+     * @example
+     * ```ts
+     * import { getLogger } from "@nimbus/core";
+     *
+     * getLogger().critical({
+     *     message: 'Hello World!',
+     *     category: 'MyCategory',
+     *     correlationId: '1234567890',
+     *     data: {
+     *         foo: 'bar',
+     *     },
+     *     error: new Error('Something went wrong!'),
+     * });
+     * ```
      */
     public critical = (logInput: LogInput) => {
         if (numericLogLevel['critical'] >= numericLogLevel[this._logLevel]) {
@@ -142,6 +244,8 @@ export class Logger {
             message: logInput.message,
             ...(logInput.data && { data: logInput.data }),
             ...(logInput.error && { error: logInput.error }),
+            ...(logInput.correlationId &&
+                { correlationId: logInput.correlationId }),
         };
     };
 
@@ -224,6 +328,25 @@ export class Logger {
  * Configure the Logger.
  *
  * @param {LogOptions} options - The options for the Logger
+ *
+ * @example
+ * ```ts
+ * import {
+ *     jsonLogFormatter,
+ *     parseLogLevel,
+ *     prettyLogFormatter,
+ *     setupLogger,
+ * } from "@nimbus/core";
+ *
+ * setupLogger({
+ *     logLevel: parseLogLevel(process.env.LOG_LEVEL),
+ *     formatter:
+ *         process.env.NODE_ENV === "development"
+ *             ? prettyLogFormatter
+ *             : jsonLogFormatter,
+ *     useConsoleColors: process.env.NODE_ENV === "development",
+ * });
+ * ```
  */
 export const setupLogger = (options: LogOptions): void => {
     Logger.configure(options);
@@ -233,6 +356,13 @@ export const setupLogger = (options: LogOptions): void => {
  * Get the Logger instance.
  *
  * @returns {Logger} The Logger instance
+ *
+ * @example
+ * ```ts
+ * import { getLogger } from "@nimbus/core";
+ *
+ * const logger = getLogger();
+ * ```
  */
 export const getLogger = (): Logger => {
     return Logger.getInstance();

@@ -1,6 +1,7 @@
 {
   "tasks": {
     "dev": "deno run -A --watch src/main.ts",
+    "dev:otel": "sh start-with-otel.sh",
     "test": "deno test -A",
     "database:seed": "deno run -A src/seedCollections.ts"
   },

@@ -21,10 +21,10 @@ import { router } from './router.ts';
 //
 setupLogger({
     logLevel: parseLogLevel(process.env.LOG_LEVEL),
-    formatter: process.env.NODE_ENV === 'development'
+    formatter: process.env.LOG_FORMAT === 'pretty'
         ? prettyLogFormatter
         : jsonLogFormatter,
-    useConsoleColors: process.env.NODE_ENV === 'development',
+    useConsoleColors: process.env.LOG_FORMAT === 'pretty',
 });
 
 // Initialize MongoDB Manager

@@ -62,6 +62,7 @@ To create a new log you can use the `info`, `warn`, `error` or `critical` method
 The log input is an object that can contain the following properties:
 
 -   `message` - The message to log.
+-   `correlationId` - An optional correlation ID to keep track of commands, queries, and events that are related to each other.
 -   `category` - An optional category of the log, useful for grouping logs together.
 -   `data` - Optional additional data to log, can be an object with any properties.
 -   `error` - Optional error object to log.
@@ -77,6 +78,7 @@ const logger = getLogger();
 
 logger.debug({
     message: "Hello World!",
+    correlationId: "1234567890",
     data: { foo: "bar" },
 });
 
