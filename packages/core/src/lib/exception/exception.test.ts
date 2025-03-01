@@ -9,8 +9,6 @@ Deno.test('Create new Exception', () => {
 
     const exception = new Exception(name, message, details, statusCode);
 
-    console.log(exception.message);
-
     assertInstanceOf(exception, Exception);
     assertEquals(exception.name, name);
     assertEquals(exception.message, message);

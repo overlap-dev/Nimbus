@@ -153,7 +153,7 @@ export class NimbusEventBus {
                     getLogger().error({
                         category: 'Nimbus',
                         message: error.message,
-                        data: { error },
+                        error,
                     });
                 }
             }

@@ -249,12 +249,12 @@ export class MongoConnectionManager {
                     message:
                         'MongoConnectionManger :: Closed inactive connection',
                 });
-            } catch (error) {
+            } catch (error: any) {
                 getLogger().error({
                     category: 'Nimbus',
                     message:
                         'MongoConnectionManger :: Error closing inactive connection',
-                    data: { error },
+                    error,
                 });
             }
         }

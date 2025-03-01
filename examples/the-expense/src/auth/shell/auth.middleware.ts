@@ -38,10 +38,10 @@ export const exampleAuthMiddleware = async (
             }
 
             await next();
-        } catch (error) {
+        } catch (error: any) {
             getLogger().error({
                 message: 'Failed to authenticate user',
-                data: { error },
+                error,
             });
 
             ctx.response.status = 401;

@@ -6,7 +6,7 @@ export OTEL_EXPORTER_OTLP_ENDPOINT="https://otlp-gateway-prod-eu-west-2.grafana.
 if [ -f "./.otel_token" ]; then
   export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic $(cat ./.otel_token)"
 else
-  echo "Error: .otel_token file not found. Please create this file with your OTLP headers."
+  echo "Error: .otel_token file not found."
   exit 1
 fi
 
