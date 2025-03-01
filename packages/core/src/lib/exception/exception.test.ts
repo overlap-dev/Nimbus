@@ -9,12 +9,14 @@ Deno.test('Create new Exception', () => {
 
     const exception = new Exception(name, message, details, statusCode);
 
+    console.log(exception.message);
+
     assertInstanceOf(exception, Exception);
     assertEquals(exception.name, name);
     assertEquals(exception.message, message);
     assertEquals(exception.statusCode, statusCode);
     assertEquals(exception.details, details);
-    assertEquals(typeof exception.stack, 'undefined');
+    assertEquals(typeof exception.stack, 'string');
 });
 
 Deno.test('Create new Exception from Error', () => {

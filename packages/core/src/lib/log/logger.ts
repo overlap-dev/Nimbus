@@ -35,9 +35,9 @@ export type LogRecord = {
 export class Logger {
     private static _instance: Logger;
 
-    private _logLevel: LogLevel;
-    private _formatter: LogFormatter;
-    private _useConsoleColors: boolean;
+    private readonly _logLevel: LogLevel;
+    private readonly _formatter: LogFormatter;
+    private readonly _useConsoleColors: boolean;
 
     constructor(options: LogOptions) {
         this._logLevel = options.logLevel ?? defaultLogOptions.logLevel;
@@ -95,11 +95,11 @@ export class Logger {
      * });
      * ```
      */
-    public debug = (logInput: LogInput) => {
+    public debug(logInput: LogInput): void {
         if (numericLogLevel['debug'] >= numericLogLevel[this._logLevel]) {
             this._log(logInput, 'debug', console.debug);
         }
-    };
+    }
 
     /**
      * Log a message at the info level.
@@ -126,11 +126,11 @@ export class Logger {
      * });
      * ```
      */
-    public info = (logInput: LogInput) => {
+    public info(logInput: LogInput): void {
         if (numericLogLevel['info'] >= numericLogLevel[this._logLevel]) {
             this._log(logInput, 'info', console.info);
         }
-    };
+    }
 
     /**
      * Log a message at the warn level.
@@ -157,11 +157,11 @@ export class Logger {
      * });
      * ```
      */
-    public warn = (logInput: LogInput) => {
+    public warn(logInput: LogInput): void {
         if (numericLogLevel['warn'] >= numericLogLevel[this._logLevel]) {
             this._log(logInput, 'warn', console.warn);
         }
-    };
+    }
 
     /**
      * Log a message at the error level.
@@ -188,11 +188,11 @@ export class Logger {
      * });
      * ```
      */
-    public error = (logInput: LogInput) => {
+    public error(logInput: LogInput): void {
         if (numericLogLevel['error'] >= numericLogLevel[this._logLevel]) {
             this._log(logInput, 'error', console.error);
         }
-    };
+    }
 
     /**
      * Log a message at the critical level.
@@ -219,11 +219,11 @@ export class Logger {
      * });
      * ```
      */
-    public critical = (logInput: LogInput) => {
+    public critical(logInput: LogInput): void {
         if (numericLogLevel['critical'] >= numericLogLevel[this._logLevel]) {
             this._log(logInput, 'critical', console.error);
         }
-    };
+    }
 
     /**
      * Produce a log record.
@@ -233,10 +233,10 @@ export class Logger {
      *
      * @returns {LogRecord} The log record
      */
-    private _produceLogRecord = (
+    private _produceLogRecord(
         logInput: LogInput,
         level: LogLevel,
-    ): LogRecord => {
+    ): LogRecord {
         return {
             timestamp: new Date(),
             level,
@@ -247,7 +247,7 @@ export class Logger {
             ...(logInput.correlationId &&
                 { correlationId: logInput.correlationId }),
         };
-    };
+    }
 
     /**
      * Format a log record.
@@ -256,9 +256,11 @@ export class Logger {
      *
      * @returns {string} The formatted log record
      */
-    private _formatLogRecord = (logRecord: LogRecord): string | string[] => {
+    private _formatLogRecord(
+        logRecord: LogRecord,
+    ): string | string[] {
         return this._formatter(logRecord);
-    };
+    }
 
     /**
      * Colorize a string.
@@ -268,7 +270,10 @@ export class Logger {
      *
      * @returns {string} The colorized string
      */
-    private _colorizeString = (string: string, logLevel: LogLevel): string => {
+    private _colorizeString(
+        string: string,
+        logLevel: LogLevel,
+    ): string {
         switch (logLevel) {
             case 'info':
                 string = blue(string);
@@ -287,7 +292,7 @@ export class Logger {
         }
 
         return string;
-    };
+    }
 
     /**
      * Log a message.
@@ -296,11 +301,11 @@ export class Logger {
      * @param {LogLevel} logLevel - The log level
      * @param {Function} logFunction - The log function
      */
-    private _log = (
+    private _log(
         logInput: LogInput,
         logLevel: LogLevel,
         logFunction: (...data: any[]) => void,
-    ) => {
+    ): void {
         const logRecord = this._produceLogRecord(logInput, logLevel);
         const formattedLogRecord = this._formatLogRecord(logRecord);
 
@@ -321,7 +326,7 @@ export class Logger {
                 logFunction(formattedLogRecord);
             }
         }
-    };
+    }
 }
 
 /**

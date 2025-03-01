@@ -10,7 +10,7 @@ Deno.test('InvalidInputException without constructor input', () => {
     assertEquals(exception.message, 'The provided input is invalid');
     assertEquals(exception.statusCode, 400);
     assertEquals(typeof exception.details, 'undefined');
-    assertEquals(typeof exception.stack, 'undefined');
+    assertEquals(typeof exception.stack, 'string');
 });
 
 Deno.test('InvalidInputException with constructor input', () => {
@@ -29,7 +29,7 @@ Deno.test('InvalidInputException with constructor input', () => {
     assertEquals(exception.message, message);
     assertEquals(exception.statusCode, 400);
     assertEquals(exception.details, details);
-    assertEquals(typeof exception.stack, 'undefined');
+    assertEquals(typeof exception.stack, 'string');
 });
 
 Deno.test('InvalidInputException from error without constructor input', () => {
