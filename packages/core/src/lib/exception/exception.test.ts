@@ -14,7 +14,7 @@ Deno.test('Create new Exception', () => {
     assertEquals(exception.message, message);
     assertEquals(exception.statusCode, statusCode);
     assertEquals(exception.details, details);
-    assertEquals(typeof exception.stack, 'undefined');
+    assertEquals(typeof exception.stack, 'string');
 });
 
 Deno.test('Create new Exception from Error', () => {

@@ -9,7 +9,7 @@ Deno.test('NotFoundException without constructor input', () => {
     assertEquals(exception.message, 'Not found');
     assertEquals(exception.statusCode, 404);
     assertEquals(typeof exception.details, 'undefined');
-    assertEquals(typeof exception.stack, 'undefined');
+    assertEquals(typeof exception.stack, 'string');
 });
 
 Deno.test('NotFoundException with constructor input', () => {
@@ -25,7 +25,7 @@ Deno.test('NotFoundException with constructor input', () => {
     assertEquals(exception.message, message);
     assertEquals(exception.statusCode, 404);
     assertEquals(exception.details, details);
-    assertEquals(typeof exception.stack, 'undefined');
+    assertEquals(typeof exception.stack, 'string');
 });
 
 Deno.test('NotFoundException from error without constructor input', () => {

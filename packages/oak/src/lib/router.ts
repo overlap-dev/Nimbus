@@ -1,11 +1,11 @@
 import {
     createRouter,
+    getLogger,
     type RouteHandler,
     type RouteHandlerResult,
 } from '@nimbus/core';
 import type { Context } from '@oak/oak/context';
 import { Router as OakRouter, type RouterOptions } from '@oak/oak/router';
-import * as log from '@std/log';
 import { ulid } from '@std/ulid';
 import type { ZodType } from 'zod';
 
@@ -36,8 +36,13 @@ export class NimbusOakRouter extends OakRouter {
         onError?: (error: any, ctx: Context) => void,
     ) {
         const inputLogFunc = (input: any) => {
-            log.getLogger('Nimbus').info({
-                msg: `:: ${input?.metadata?.correlationId} - [Command] ${input?.name}`,
+            getLogger().info({
+                category: 'Nimbus',
+                ...(input?.metadata?.correlationId && {
+                    correlationId: input?.metadata?.correlationId,
+                }),
+                message:
+                    `${input?.metadata?.correlationId} - [Command] ${input?.name}`,
             });
         };
 
@@ -91,8 +96,13 @@ export class NimbusOakRouter extends OakRouter {
         onError?: (error: any, ctx: Context) => void,
     ) {
         const inputLogFunc = (input: any) => {
-            log.getLogger('Nimbus').info({
-                msg: `:: ${input?.metadata?.correlationId} - [Query] ${input?.name}`,
+            getLogger().info({
+                category: 'Nimbus',
+                ...(input?.metadata?.correlationId && {
+                    correlationId: input?.metadata?.correlationId,
+                }),
+                message:
+                    `${input?.metadata?.correlationId} - [Query] ${input?.name}`,
             });
         };
 
@@ -167,7 +177,11 @@ export class NimbusOakRouter extends OakRouter {
         if (onError) {
             onError(error, ctx);
         } else {
-            log.getLogger('Nimbus').error(error);
+            getLogger().error({
+                category: 'Nimbus',
+                message: error.message,
+                error,
+            });
 
             const statusCode = error.statusCode ?? 500;
             ctx.response.status = statusCode;

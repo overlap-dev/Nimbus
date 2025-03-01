@@ -1,6 +1,7 @@
 {
   "tasks": {
     "dev": "deno run -A --watch src/main.ts",
+    "dev:otel": "sh start-with-otel.sh",
     "test": "deno test -A",
     "database:seed": "deno run -A src/seedCollections.ts"
   },
@@ -28,7 +29,6 @@
   },
   "imports": {
     "@oak/oak": "jsr:@oak/oak@^17.1.4",
-    "@std/log": "jsr:@std/log@^0.224.13",
     "@tajpouria/cors": "jsr:@tajpouria/cors@^1.2.1",
     "mongodb": "npm:mongodb@^6.12.0",
     "zod": "npm:zod@^3.24.1"

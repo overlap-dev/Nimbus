@@ -1,4 +1,4 @@
-import * as log from '@std/log';
+import { getLogger } from '@nimbus/core';
 import type {
     CreateCollectionOptions,
     Db,
@@ -47,19 +47,25 @@ export const deployMongoCollection = async ({
     const db = mongoClient.db(dbName);
     const collectionName = collectionDefinition.name;
 
-    log.info(
-        `Deploying collection "${collectionName}" on database "${dbName}" ...`,
-    );
+    getLogger().info({
+        category: 'Nimbus',
+        message:
+            `Deploying collection "${collectionName}" on database "${dbName}" ...`,
+    });
 
     if (await collectionExists(db, collectionDefinition)) {
-        log.info(
-            `Collection "${collectionName}" exists. Updating collection ...`,
-        );
+        getLogger().info({
+            category: 'Nimbus',
+            message:
+                `Collection "${collectionName}" exists. Updating collection ...`,
+        });
         await updateCollection(db, allowUpdateIndexes, collectionDefinition);
     } else {
-        log.info(
-            `Collection "${collectionName}" does not exist. Creating collection ...`,
-        );
+        getLogger().info({
+            category: 'Nimbus',
+            message:
+                `Collection "${collectionName}" does not exist. Creating collection ...`,
+        });
         await createCollection(db, collectionDefinition);
     }
 
@@ -95,13 +101,18 @@ const createCollection = async (
     { name, options, indexes }: MongoCollectionDefinition,
 ) => {
     await db.createCollection(name, options);
-    log.info(`Collection "${name}" created.`);
+    getLogger().info({
+        category: 'Nimbus',
+        message: `Collection "${name}" created.`,
+    });
 
     if (indexes?.length) {
         await db.collection(name).createIndexes(indexes);
-        log.info(
-            `Added ${indexes.length} indexes for collection "${name}".`,
-        );
+        getLogger().info({
+            category: 'Nimbus',
+            message:
+                `Added ${indexes.length} indexes for collection "${name}".`,
+        });
     }
 };
 
@@ -118,7 +129,10 @@ const updateCollection = async (
     { name, options, indexes }: MongoCollectionDefinition,
 ) => {
     await db.command({ collMod: name, ...options });
-    log.info(`Collection "${name}" updated.`);
+    getLogger().info({
+        category: 'Nimbus',
+        message: `Collection "${name}" updated.`,
+    });
 
     if (allowUpdateIndexes) {
         const indexesWithNames = (indexes ?? []).map((index) => {
@@ -155,9 +169,11 @@ const updateCollection = async (
 
         if (indexesToAdd.length) {
             await db.collection(name).createIndexes(indexesToAdd);
-            log.info(
-                `Added ${indexesToAdd.length} indexes for collection "${name}".`,
-            );
+            getLogger().info({
+                category: 'Nimbus',
+                message:
+                    `Added ${indexesToAdd.length} indexes for collection "${name}".`,
+            });
         }
 
         if (indexesToDelete.length) {
@@ -167,9 +183,11 @@ const updateCollection = async (
                     return db.collection(name).dropIndex(index);
                 }),
             );
-            log.info(
-                `Deleted ${indexesToDelete.length} indexes for collection "${name}".`,
-            );
+            getLogger().info({
+                category: 'Nimbus',
+                message:
+                    `Deleted ${indexesToDelete.length} indexes for collection "${name}".`,
+            });
         }
     }
 };

@@ -61,6 +61,37 @@ export type CreateRouterInput<TInput = any, TResultData = any> = {
  * @param {Function} input.inputLogFunc - Optional function to log input received by the router.
  *
  * @returns {Router} The Nimbus router.
+ *
+ * @example
+ * ```ts
+ * import { createRouter } from "@nimbus/core";
+ *
+ * import { getAccountHandler } from "./queries/getAccount.handler.ts";
+ * import { GetAccountQuery } from "../core/queries/getAccount.ts";
+ *
+ * import { addAccountHandler } from "./commands/addAccount.handler.ts";
+ * import { AddAccountCommand } from "../core/command/addAccount.ts";
+ *
+ * import { accountAddedHandler } from "./events/accountAdded.handler.ts";
+ * import { AccountAddedEvent } from "../core/events/accountAdded.ts";
+ *
+ * const accountRouter = createRouter({
+ *     handlerMap: {
+ *         GET_ACCOUNT: {
+ *             handler: getAccountHandler,
+ *             inputType: GetAccountQuery,
+ *         },
+ *         ADD_ACCOUNT: {
+ *             handler: addAccountHandler,
+ *             inputType: AddAccountCommand,
+ *         },
+ *         ACCOUNT_ADDED: {
+ *             handler: accountAddedHandler,
+ *             inputType: AccountAddedEvent,
+ *         },
+ *     },
+ * });
+ * ```
  */
 export const createRouter = ({
     handlerMap,

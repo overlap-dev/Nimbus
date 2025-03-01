@@ -1,7 +1,6 @@
-import { AuthContext } from '@nimbus/core';
+import { AuthContext, getLogger } from '@nimbus/core';
 import type { Context } from '@oak/oak/context';
 import type { Next } from '@oak/oak/middleware';
-import * as log from '@std/log';
 
 /**
  * ! NOT FOR PRODUCTION USE
@@ -39,8 +38,11 @@ export const exampleAuthMiddleware = async (
             }
 
             await next();
-        } catch (error) {
-            log.error(error);
+        } catch (error: any) {
+            getLogger().error({
+                message: 'Failed to authenticate user',
+                error,
+            });
 
             ctx.response.status = 401;
             ctx.response.body = {

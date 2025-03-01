@@ -1,4 +1,4 @@
-import { getLogger } from '@std/log';
+import { getLogger } from '@nimbus/core';
 import {
     type Collection,
     type Db,
@@ -83,15 +83,19 @@ export class MongoConnectionManager {
             await client.connect();
             await client.db('admin').command({ ping: 1 });
 
-            getLogger('Nimbus').info({
-                message: ':: MongoConnectionManger :: Successfully connected',
+            getLogger().info({
+                category: 'Nimbus',
+                message: 'MongoConnectionManger :: Successfully connected',
             });
 
             return client;
         } catch (error) {
-            getLogger('Nimbus').critical({
-                message: ':: MongoConnectionManger :: Connection failed',
-                error,
+            getLogger().critical({
+                category: 'Nimbus',
+                message: 'MongoConnectionManger :: Connection failed',
+                data: {
+                    error,
+                },
             });
 
             throw error;
@@ -110,9 +114,12 @@ export class MongoConnectionManager {
             await this._client.db('admin').command({ ping: 1 });
             return true;
         } catch (error) {
-            getLogger('Nimbus').warn({
-                message: ':: MongoConnectionManger :: Connection test failed',
-                error,
+            getLogger().warn({
+                category: 'Nimbus',
+                message: 'MongoConnectionManger :: Connection test failed',
+                data: {
+                    error,
+                },
             });
 
             return false;
@@ -237,14 +244,16 @@ export class MongoConnectionManager {
                 await this._client.close();
                 this._client = null;
 
-                getLogger('Nimbus').info({
+                getLogger().info({
+                    category: 'Nimbus',
                     message:
-                        ':: MongoConnectionManger :: Closed inactive connection',
+                        'MongoConnectionManger :: Closed inactive connection',
                 });
-            } catch (error) {
-                getLogger('Nimbus').error({
+            } catch (error: any) {
+                getLogger().error({
+                    category: 'Nimbus',
                     message:
-                        ':: MongoConnectionManger :: Error closing inactive connection',
+                        'MongoConnectionManger :: Error closing inactive connection',
                     error,
                 });
             }

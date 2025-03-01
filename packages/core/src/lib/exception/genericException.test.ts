@@ -9,7 +9,7 @@ Deno.test('GenericException without constructor input', () => {
     assertEquals(exception.message, 'An error occurred');
     assertEquals(exception.statusCode, 500);
     assertEquals(typeof exception.details, 'undefined');
-    assertEquals(typeof exception.stack, 'undefined');
+    assertEquals(typeof exception.stack, 'string');
 });
 
 Deno.test('GenericException with constructor input', () => {
@@ -25,7 +25,7 @@ Deno.test('GenericException with constructor input', () => {
     assertEquals(exception.message, message);
     assertEquals(exception.statusCode, 500);
     assertEquals(exception.details, details);
-    assertEquals(typeof exception.stack, 'undefined');
+    assertEquals(typeof exception.stack, 'string');
 });
 
 Deno.test('GenericException from error without constructor input', () => {

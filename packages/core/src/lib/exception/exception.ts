@@ -24,6 +24,8 @@ export class Exception {
         if (statusCode) {
             this.statusCode = statusCode;
         }
+
+        Error.captureStackTrace(this, this.constructor);
     }
 
     public fromError(error: Error): Exception {

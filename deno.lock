@@ -11,13 +11,11 @@
     "jsr:@std/dotenv@*": "0.225.3",
     "jsr:@std/encoding@1": "1.0.6",
     "jsr:@std/encoding@^1.0.5": "1.0.6",
-    "jsr:@std/fmt@^1.0.4": "1.0.4",
-    "jsr:@std/fs@^1.0.9": "1.0.9",
+    "jsr:@std/fmt@^1.0.4": "1.0.5",
+    "jsr:@std/fmt@^1.0.5": "1.0.5",
     "jsr:@std/http@1": "1.0.12",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/io@0.224": "0.224.9",
-    "jsr:@std/io@0.225": "0.225.0",
-    "jsr:@std/log@~0.224.13": "0.224.13",
     "jsr:@std/media-types@1": "1.1.0",
     "jsr:@std/path@1": "1.0.8",
     "jsr:@std/text@^1.0.10": "1.0.10",
@@ -49,7 +47,7 @@
         "jsr:@std/bytes@1",
         "jsr:@std/crypto",
         "jsr:@std/http",
-        "jsr:@std/io@0.224",
+        "jsr:@std/io",
         "jsr:@std/media-types",
         "jsr:@std/path",
         "npm:path-to-regexp@6.2.1"
@@ -88,8 +86,8 @@
     "@std/fmt@1.0.4": {
       "integrity": "e14fe5bedee26f80877e6705a97a79c7eed599e81bb1669127ef9e8bc1e29a74"
     },
-    "@std/fs@1.0.9": {
-      "integrity": "3eef7e3ed3d317b29432c7dcb3b20122820dbc574263f721cb0248ad91bad890"
+    "@std/fmt@1.0.5": {
+      "integrity": "0cfab43364bc36650d83c425cd6d99910fc20c4576631149f0f987eddede1a4d"
     },
     "@std/http@1.0.12": {
       "integrity": "85246d8bfe9c8e2538518725b158bdc31f616e0869255f4a8d9e3de919cab2aa",
@@ -104,17 +102,6 @@
       "integrity": "4414664b6926f665102e73c969cfda06d2c4c59bd5d0c603fd4f1b1c840d6ee3",
       "dependencies": [
         "jsr:@std/bytes@^1.0.2"
-      ]
-    },
-    "@std/io@0.225.0": {
-      "integrity": "c1db7c5e5a231629b32d64b9a53139445b2ca640d828c26bf23e1c55f8c079b3"
-    },
-    "@std/log@0.224.13": {
-      "integrity": "f04d82f676c9eb4306194ca166d296d9f1456fe4b7edf2a404a0d55c94d31df7",
-      "dependencies": [
-        "jsr:@std/fmt",
-        "jsr:@std/fs",
-        "jsr:@std/io@0.225"
       ]
     },
     "@std/media-types@1.1.0": {
@@ -258,7 +245,6 @@
       "examples/the-expense": {
         "dependencies": [
           "jsr:@oak/oak@^17.1.4",
-          "jsr:@std/log@~0.224.13",
           "jsr:@tajpouria/cors@^1.2.1",
           "npm:mongodb@^6.12.0",
           "npm:zod@^3.24.1"
@@ -267,14 +253,13 @@
       "packages/core": {
         "dependencies": [
           "jsr:@std/assert@^1.0.10",
-          "jsr:@std/log@~0.224.13",
+          "jsr:@std/fmt@^1.0.5",
           "npm:zod@^3.24.1"
         ]
       },
       "packages/mongodb": {
         "dependencies": [
           "jsr:@std/assert@^1.0.10",
-          "jsr:@std/log@~0.224.13",
           "jsr:@std/text@^1.0.10",
           "npm:mongodb@^6.12.0",
           "npm:zod@^3.24.1"
@@ -283,14 +268,8 @@
       "packages/oak": {
         "dependencies": [
           "jsr:@oak/oak@^17.1.4",
-          "jsr:@std/log@~0.224.13",
           "jsr:@std/ulid@1",
           "npm:zod@^3.24.1"
-        ]
-      },
-      "packages/utils": {
-        "dependencies": [
-          "jsr:@std/log@~0.224.13"
         ]
       }
     }

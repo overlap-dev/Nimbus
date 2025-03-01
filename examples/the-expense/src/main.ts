@@ -1,4 +1,9 @@
-import { setupLog } from '@nimbus/core';
+import {
+    jsonLogFormatter,
+    parseLogLevel,
+    prettyLogFormatter,
+    setupLogger,
+} from '@nimbus/core';
 import { requestCorrelationId } from '@nimbus/oak';
 import { Application } from '@oak/oak/application';
 import { oakCors } from '@tajpouria/cors';
@@ -14,9 +19,12 @@ import { router } from './router.ts';
 //
 // See https://nimbus.overlap.at/guide/logging.html for more information about logging of Nimbus.
 //
-setupLog({
-    logLevel: process.env.LOG_LEVEL,
-    format: process.env.NODE_ENV === 'development' ? 'pretty' : 'json',
+setupLogger({
+    logLevel: parseLogLevel(process.env.LOG_LEVEL),
+    formatter: process.env.LOG_FORMAT === 'pretty'
+        ? prettyLogFormatter
+        : jsonLogFormatter,
+    useConsoleColors: process.env.LOG_FORMAT === 'pretty',
 });
 
 // Initialize MongoDB Manager

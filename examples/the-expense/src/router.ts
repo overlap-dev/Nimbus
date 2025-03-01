@@ -1,25 +1,28 @@
+import { getLogger } from '@nimbus/core';
 import { NimbusOakRouter } from '@nimbus/oak';
-import * as log from '@std/log';
 import { accountRouter } from './account/shell/account.router.ts';
 import { mongoManager } from './mongodb.ts';
 
 export const router = new NimbusOakRouter();
 
 router.get('/health', async (ctx) => {
+    const logger = getLogger();
     const now = new Date().toISOString();
 
     const mongoHealth = await mongoManager.healthCheck();
 
-    log.info({
+    logger.info({
         message: 'Health check',
-        time: now,
-        database: { ...mongoHealth },
-        ...(ctx.state.correlationId
-            ? { correlationId: ctx.state.correlationId }
-            : {}),
-        ...(ctx.state.authContext
-            ? { authContext: ctx.state.authContext }
-            : {}),
+        data: {
+            time: now,
+            database: { ...mongoHealth },
+            ...(ctx.state.correlationId
+                ? { correlationId: ctx.state.correlationId }
+                : {}),
+            ...(ctx.state.authContext
+                ? { authContext: ctx.state.authContext }
+                : {}),
+        },
     });
 
     ctx.response.body = {

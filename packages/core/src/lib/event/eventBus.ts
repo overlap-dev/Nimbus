@@ -2,10 +2,10 @@ import {
     createRouter,
     type Event,
     GenericException,
+    getLogger,
     type RouteHandler,
     type Router,
 } from '@nimbus/core';
-import * as log from '@std/log';
 import EventEmitter from 'node:events';
 import type { ZodType } from 'zod';
 
@@ -48,6 +48,21 @@ export class NimbusEventBus {
     private _maxRetries: number;
     private _retryDelay: number;
 
+    /**
+     * Create a new NimbusEventBus instance.
+     *
+     * @param {NimbusEventBusOptions} [options] - The options for the event bus.
+     * @param {number} [options.maxRetries] - The maximum number of retries for handling the event in case of an error.
+     * @param {number} [options.retryDelay] - The delay between retries in milliseconds.
+     *
+     * @example
+     * ```ts
+     * const eventBus = new NimbusEventBus({
+     *     maxRetries: 3,
+     *     retryDelay: 3000,
+     * });
+     * ```
+     */
     constructor(options?: NimbusEventBusOptions) {
         this._eventEmitter = new EventEmitter();
 
@@ -59,6 +74,18 @@ export class NimbusEventBus {
      * Publish an event to the event bus.
      *
      * @param event - The event to send to the event bus.
+     *
+     * @example
+     * ```ts
+     * eventBus.putEvent<AccountAddedEvent>({
+     *     name: 'ACCOUNT_ADDED',
+     *     data: { account: account },
+     *     metadata: {
+     *         correlationId: command.metadata.correlationId,
+     *         authContext: command.metadata.authContext,
+     *     },
+     * });
+     * ```
      */
     public putEvent<TEvent extends Event<string, any, any>>(
         event: TEvent,
@@ -76,6 +103,15 @@ export class NimbusEventBus {
      * @param {NimbusEventBusOptions} [options] - The options for the event bus.
      * @param {number} [options.maxRetries] - The maximum number of retries for handling the event in case of an error.
      * @param {number} [options.retryDelay] - The delay between retries in milliseconds.
+     *
+     * @example
+     * ```ts
+     * eventBus.subscribeEvent(
+     *     'ACCOUNT_ADDED',
+     *     AccountAddedEvent,
+     *     accountAddedHandler,
+     * );
+     * ```
      */
     public subscribeEvent(
         eventName: string,
@@ -84,7 +120,10 @@ export class NimbusEventBus {
         onError?: (error: any, event: Event<string, any, any>) => void,
         options?: NimbusEventBusOptions,
     ): void {
-        log.info({ msg: `Subscribed to ${eventName} event` });
+        getLogger().info({
+            category: 'Nimbus',
+            message: `Subscribed to ${eventName} event`,
+        });
 
         const maxRetries = options?.maxRetries ?? this._maxRetries;
         const retryDelay = options?.retryDelay ?? this._retryDelay;
@@ -107,11 +146,15 @@ export class NimbusEventBus {
                     maxRetries,
                     retryDelay,
                 );
-            } catch (error) {
+            } catch (error: any) {
                 if (onError) {
                     onError(error, event);
                 } else {
-                    log.error(error);
+                    getLogger().error({
+                        category: 'Nimbus',
+                        message: error.message,
+                        error,
+                    });
                 }
             }
         };
@@ -120,8 +163,13 @@ export class NimbusEventBus {
     }
 
     private _logInput(input: any) {
-        log.getLogger('Nimbus').info({
-            msg: `:: ${input?.metadata?.correlationId} - [Event] ${input?.name}`,
+        getLogger().info({
+            category: 'Nimbus',
+            ...(input?.metadata?.correlationId && {
+                correlationId: input?.metadata?.correlationId,
+            }),
+            message:
+                `${input?.metadata?.correlationId} - [Event] ${input?.name}`,
         });
     }
 
