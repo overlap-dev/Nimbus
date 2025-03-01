@@ -319,12 +319,10 @@ export class Logger {
             } else {
                 logFunction(...formattedLogRecord);
             }
+        } else if (this._useConsoleColors) {
+            logFunction(this._colorizeString(formattedLogRecord, logLevel));
         } else {
-            if (this._useConsoleColors) {
-                logFunction(this._colorizeString(formattedLogRecord, logLevel));
-            } else {
-                logFunction(formattedLogRecord);
-            }
+            logFunction(formattedLogRecord);
         }
     }
 }
