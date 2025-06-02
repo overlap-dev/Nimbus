@@ -1,6 +1,6 @@
 import {
+    type CloudEvent,
     createRouter,
-    type Event,
     GenericException,
     getLogger,
     type RouteHandler,
@@ -87,10 +87,10 @@ export class NimbusEventBus {
      * });
      * ```
      */
-    public putEvent<TEvent extends Event<string, any, any>>(
+    public putEvent<TEvent extends CloudEvent<string, any>>(
         event: TEvent,
     ): void {
-        this._eventEmitter.emit(event.name, event);
+        this._eventEmitter.emit(event.type, event);
     }
 
     /**
@@ -117,7 +117,7 @@ export class NimbusEventBus {
         eventName: string,
         eventType: ZodType,
         handler: RouteHandler,
-        onError?: (error: any, event: Event<string, any, any>) => void,
+        onError?: (error: any, event: CloudEvent<string, any>) => void,
         options?: NimbusEventBusOptions,
     ): void {
         getLogger().info({
@@ -138,7 +138,7 @@ export class NimbusEventBus {
             inputLogFunc: this._logInput,
         });
 
-        const handleEvent = async (event: Event<string, any, any>) => {
+        const handleEvent = async (event: CloudEvent<string, any>) => {
             try {
                 await this._processEvent(
                     nimbusRouter,
@@ -165,17 +165,16 @@ export class NimbusEventBus {
     private _logInput(input: any) {
         getLogger().info({
             category: 'Nimbus',
-            ...(input?.metadata?.correlationId && {
-                correlationId: input?.metadata?.correlationId,
+            ...(input?.data?.correlationId && {
+                correlationId: input?.data?.correlationId,
             }),
-            message:
-                `${input?.metadata?.correlationId} - [Event] ${input?.name}`,
+            message: `[Event] ${input?.type} from ${input?.source}`,
         });
     }
 
     private async _processEvent(
         nimbusRouter: Router,
-        event: Event<string, any, any>,
+        event: CloudEvent<string, any>,
         maxRetries: number,
         retryDelay: number,
     ) {
@@ -190,7 +189,7 @@ export class NimbusEventBus {
 
                 if (attempt >= maxRetries) {
                     const exception = new GenericException(
-                        `Failed to handle event: ${event.name}`,
+                        `Failed to handle event: ${event.type} from ${event.source}`,
                         {
                             retryAttempts: maxRetries,
                             retryDelay: retryDelay,
