@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { CommandMetadata } from '../command/commandMetadata.ts';
-import { Command } from '../command/index.ts';
+import { CloudEvent } from '../cloudEvent/index.ts';
+import { MessageEnvelope } from '../messageEnvelope.ts';
 import type { RouteHandler, RouteHandlerMap } from './router.ts';
 
 /**
@@ -17,11 +17,12 @@ export type TestCommandData = z.infer<typeof TestCommandData>;
 
 /**
  * Zod schema for the TestCommand.
+ *
+ * TODO: We should still declare the Query and Command as its own type using CloudEvent and MessageEnvelope
  */
-export const TestCommand = Command(
-    z.literal('TEST_COMMAND'),
-    TestCommandData,
-    CommandMetadata(z.record(z.string(), z.string())),
+export const TestCommand = CloudEvent(
+    z.literal('test.command'),
+    MessageEnvelope(TestCommandData, z.object({})),
 );
 
 /**
@@ -41,7 +42,7 @@ export const testCommandHandler: RouteHandler<
         headers: {
             'Content-Type': 'application/json',
         },
-        data: event.data,
+        data: event.data.payload,
     });
 };
 
@@ -49,7 +50,7 @@ export const testCommandHandler: RouteHandler<
  * The handler map for the TestCommand.
  */
 export const commandHandlerMap: RouteHandlerMap = {
-    TEST_COMMAND: {
+    'test.command': {
         handler: testCommandHandler,
         inputType: TestCommand,
     },

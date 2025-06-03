@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { EventMetadata } from '../../index.ts';
-import { Event } from '../event/index.ts';
+import { CloudEvent } from '../cloudEvent/index.ts';
 import { NotFoundException } from '../exception/notFoundException.ts';
 import type { RouteHandler, RouteHandlerMap } from './router.ts';
 
@@ -20,10 +19,9 @@ export type TestEventData = z.infer<typeof TestEventData>;
 /**
  * Zod schema for the TestEvent.
  */
-export const TestEvent = Event(
-    z.literal('TEST_EVENT'),
+export const TestEvent = CloudEvent(
+    z.literal('test.event'),
     TestEventData,
-    EventMetadata(z.record(z.string(), z.string())),
 );
 
 /**
@@ -54,7 +52,7 @@ export const testEventHandler: RouteHandler<TestEvent, TestEventData> = (
  * The handler map for the TestEvent.
  */
 export const eventHandlerMap: RouteHandlerMap = {
-    TEST_EVENT: {
+    'test.event': {
         handler: testEventHandler,
         inputType: TestEvent,
     },

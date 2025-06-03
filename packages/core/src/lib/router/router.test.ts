@@ -5,9 +5,9 @@ import {
     NotFoundException,
 } from '../exception/index.ts';
 import { createRouter } from './router.ts';
-import { commandHandlerMap } from './testCommand.ts';
-import { eventHandlerMap } from './testEvent.ts';
-import { queryHandlerMap } from './testQuery.ts';
+import { commandHandlerMap, type TestCommand } from './testCommand.ts';
+import { eventHandlerMap, type TestEvent } from './testEvent.ts';
+import { queryHandlerMap, type TestQuery } from './testQuery.ts';
 
 Deno.test('Router handles input with an unknown handler name', async () => {
     const router = createRouter({
@@ -15,18 +15,19 @@ Deno.test('Router handles input with an unknown handler name', async () => {
     });
 
     const input = {
-        name: 'UNKNOWN_EVENT',
-        metadata: {
+        specversion: '1.0',
+        id: '123',
+        source: 'https://nimbus.overlap.at/api/test',
+        type: 'UNKNOWN_EVENT',
+        data: {
+            payload: {
+                testException: false,
+                aNumber: 1,
+            },
             correlationId: '123',
             authContext: {
                 sub: 'admin@host.tld',
-                groups: ['admin'],
-                policy: { allowAnything: true },
             },
-        },
-        data: {
-            testException: false,
-            aNumber: 1,
         },
     };
 
@@ -44,16 +45,19 @@ Deno.test('Router handles valid command input', async () => {
         handlerMap: commandHandlerMap,
     });
 
-    const input = {
-        name: 'TEST_COMMAND',
-        metadata: {
+    const input: TestCommand = {
+        specversion: '1.0',
+        id: '123',
+        source: 'https://nimbus.overlap.at/api/test',
+        type: 'test.command',
+        data: {
+            payload: {
+                aNumber: 1,
+            },
             correlationId: '123',
             authContext: {
                 sub: 'admin@host.tld',
             },
-        },
-        data: {
-            aNumber: 1,
         },
     };
 
@@ -78,10 +82,13 @@ Deno.test('Router handles valid query input', async () => {
         handlerMap: queryHandlerMap,
     });
 
-    const input = {
-        name: 'TEST_QUERY',
-        params: {},
-        metadata: {
+    const input: TestQuery = {
+        specversion: '1.0',
+        id: '123',
+        source: 'https://nimbus.overlap.at/api/test',
+        type: 'test.query',
+        data: {
+            payload: {},
             correlationId: '123',
             authContext: {
                 sub: 'admin@host.tld',
@@ -110,14 +117,11 @@ Deno.test('Router handles valid event input', async () => {
         handlerMap: eventHandlerMap,
     });
 
-    const input = {
-        name: 'TEST_EVENT',
-        metadata: {
-            correlationId: '123',
-            authContext: {
-                sub: 'admin@host.tld',
-            },
-        },
+    const input: TestEvent = {
+        specversion: '1.0',
+        id: '123',
+        source: 'https://nimbus.overlap.at/api/test',
+        type: 'test.event',
         data: {
             testException: false,
             aNumber: 1,
@@ -147,13 +151,10 @@ Deno.test('Router handles invalid event input', async () => {
     });
 
     const invalidInput = {
-        name: 'TEST_EVENT',
-        metadata: {
-            correlationId: '123',
-            authContext: {
-                sub: 'admin@host.tld',
-            },
-        },
+        specversion: '1.0',
+        id: '123',
+        source: 'https://nimbus.overlap.at/api/test',
+        type: 'test.event',
         data: {
             testException: false,
             aNumber: '123', // This should trigger a validation error
@@ -188,14 +189,11 @@ Deno.test('Router handles valid event input but handler returns an exception', a
         handlerMap: eventHandlerMap,
     });
 
-    const input = {
-        name: 'TEST_EVENT',
-        metadata: {
-            correlationId: '123',
-            authContext: {
-                sub: 'admin@host.tld',
-            },
-        },
+    const input: TestEvent = {
+        specversion: '1.0',
+        id: '123',
+        source: 'https://nimbus.overlap.at/api/test',
+        type: 'test.event',
         data: {
             testException: true,
             aNumber: 1,

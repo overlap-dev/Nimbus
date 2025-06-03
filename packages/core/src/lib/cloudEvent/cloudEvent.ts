@@ -1,8 +1,8 @@
 import { z, type ZodType } from 'zod';
-import { absoluteUri } from './absoluteUri.ts';
-import { mediaType } from './mediaType.ts';
-import { timeRFC3339 } from './timeRfc3339.ts';
-import { uriReference } from './uriReference.ts';
+import { absoluteUri } from '../cloudEvent/absoluteUri.ts';
+import { mediaType } from '../cloudEvent/mediaType.ts';
+import { uriReference } from '../cloudEvent/uriReference.ts';
+import { timeRFC3339 } from './timeRFC3339.ts';
 
 // TODO: fix slow type issue
 

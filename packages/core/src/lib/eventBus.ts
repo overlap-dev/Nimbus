@@ -26,19 +26,19 @@ export type NimbusEventBusOptions = {
  * });
  *
  * eventBus.subscribeEvent(
- *     'ACCOUNT_ADDED',
+ *     'account.added',
  *     AccountAddedEvent,
  *     accountAddedHandler,
  * );
  *
  * eventBus.putEvent<AccountAddedEvent>({
- *     name: 'ACCOUNT_ADDED',
+ *     specversion: '1.0',
+ *     id: '123',
+ *     source: 'https://nimbus.overlap.at/api/account/add',
+ *     type: 'account.added',
  *     data: {
- *         account: account,
- *     },
- *     metadata: {
  *         correlationId: command.metadata.correlationId,
- *         authContext: command.metadata.authContext,
+ *         payload: { account: account },
  *     },
  * });
  * ```
@@ -78,11 +78,13 @@ export class NimbusEventBus {
      * @example
      * ```ts
      * eventBus.putEvent<AccountAddedEvent>({
-     *     name: 'ACCOUNT_ADDED',
-     *     data: { account: account },
-     *     metadata: {
+     *     specversion: '1.0',
+     *     id: '123',
+     *     source: 'https://nimbus.overlap.at/api/account/add',
+     *     type: 'account.added',
+     *     data: {
      *         correlationId: command.metadata.correlationId,
-     *         authContext: command.metadata.authContext,
+     *         payload: { account: account },
      *     },
      * });
      * ```
@@ -96,8 +98,8 @@ export class NimbusEventBus {
     /**
      * Subscribe to an event.
      *
-     * @param {string} eventName - The name of the event to subscribe to.
-     * @param {ZodType} eventType - The ZodType of the event to subscribe to.
+     * @param {string} eventType - The type of event to subscribe to.
+     * @param {ZodType} eventSchema - The schema used for validation of the event to subscribe to.
      * @param {RouteHandler} handler - The handler to call when the event got published.
      * @param {Function} [onError] - The function to call when the event could not be handled after the maximum number of retries.
      * @param {NimbusEventBusOptions} [options] - The options for the event bus.
@@ -107,22 +109,22 @@ export class NimbusEventBus {
      * @example
      * ```ts
      * eventBus.subscribeEvent(
-     *     'ACCOUNT_ADDED',
+     *     'account.added',
      *     AccountAddedEvent,
      *     accountAddedHandler,
      * );
      * ```
      */
     public subscribeEvent(
-        eventName: string,
-        eventType: ZodType,
+        eventType: string,
+        eventSchema: ZodType,
         handler: RouteHandler,
         onError?: (error: any, event: CloudEvent<string, any>) => void,
         options?: NimbusEventBusOptions,
     ): void {
         getLogger().info({
             category: 'Nimbus',
-            message: `Subscribed to ${eventName} event`,
+            message: `Subscribed to ${eventType} event`,
         });
 
         const maxRetries = options?.maxRetries ?? this._maxRetries;
@@ -130,9 +132,9 @@ export class NimbusEventBus {
 
         const nimbusRouter = createRouter({
             handlerMap: {
-                [eventName]: {
+                [eventType]: {
                     handler,
-                    inputType: eventType,
+                    inputType: eventSchema,
                 },
             },
             inputLogFunc: this._logInput,
@@ -159,7 +161,7 @@ export class NimbusEventBus {
             }
         };
 
-        this._eventEmitter.on(eventName, handleEvent);
+        this._eventEmitter.on(eventType, handleEvent);
     }
 
     private _logInput(input: any) {

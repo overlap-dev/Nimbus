@@ -1,15 +1,16 @@
 import { z } from 'zod';
-import { Query } from '../query/index.ts';
-import { QueryMetadata } from '../query/queryMetadata.ts';
+import { CloudEvent } from '../cloudEvent/index.ts';
+import { MessageEnvelope } from '../messageEnvelope.ts';
 import type { RouteHandler, RouteHandlerMap } from './router.ts';
 
 /**
  * Zod schema for the TestQuery.
+ *
+ * TODO: We should still declare the Query and Command as its own type using CloudEvent and MessageEnvelope
  */
-export const TestQuery = Query(
-    z.literal('TEST_QUERY'),
-    z.object({}),
-    QueryMetadata(z.record(z.string(), z.string())),
+export const TestQuery = CloudEvent(
+    z.literal('test.query'),
+    MessageEnvelope(z.object({}), z.object({})),
 );
 
 /**
@@ -36,7 +37,7 @@ export const testQueryHandler: RouteHandler<TestQuery, any> = () => {
  * The handler map for the TestQuery.
  */
 export const queryHandlerMap: RouteHandlerMap = {
-    TEST_QUERY: {
+    'test.query': {
         handler: testQueryHandler,
         inputType: TestQuery,
     },

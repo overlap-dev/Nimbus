@@ -115,16 +115,16 @@ export const createRouter = ({
             inputLogFunc(input);
         }
 
-        if (!handlerMap[input.name]) {
+        if (!handlerMap[input.type]) {
             throw new NotFoundException(
                 'Route handler not found',
                 {
-                    reason: `Could not find a handler for "${input.name}"`,
+                    reason: `Could not find a handler for "${input.type}"`,
                 },
             );
         }
 
-        const { handler, inputType } = handlerMap[input.name];
+        const { handler, inputType } = handlerMap[input.type];
 
         try {
             const validInput = inputType.parse(input);
