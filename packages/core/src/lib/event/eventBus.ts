@@ -92,8 +92,7 @@ export class NimbusEventBus {
     public putEvent<TEvent extends CloudEvent<string, any>>(
         event: TEvent,
     ): void {
-        // TODO: validate the event size.
-        // Based on the CloudEvent spec the limit for events is 64KB.
+        this._validateEventSize(event);
 
         this._eventEmitter.emit(event.type, event);
     }
@@ -211,6 +210,32 @@ export class NimbusEventBus {
 
                 await new Promise((resolve) => setTimeout(resolve, retryDelay));
             }
+        }
+    }
+
+    /**
+     * Validate the size of the event.
+     *
+     * To comply with the CloudEvent spec a transmitted event
+     * can not have a maximum size of 64KB.
+     *
+     * @param event - The event to validate.
+     */
+    private _validateEventSize(event: CloudEvent<string, any>): void {
+        const eventJson = JSON.stringify(event);
+        const eventSizeBytes = new TextEncoder().encode(eventJson).length;
+        const maxSizeBytes = 64 * 1024; // 64KB
+
+        if (eventSizeBytes > maxSizeBytes) {
+            throw new GenericException(
+                `Event size exceeds the limit of 64KB`,
+                {
+                    eventType: event.type,
+                    eventSource: event.source,
+                    eventSizeBytes,
+                    maxSizeBytes,
+                },
+            );
         }
     }
 }
