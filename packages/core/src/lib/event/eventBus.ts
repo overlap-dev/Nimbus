@@ -1,5 +1,4 @@
 import {
-    type CloudEvent,
     createRouter,
     GenericException,
     getLogger,
@@ -8,6 +7,7 @@ import {
 } from '@nimbus/core';
 import EventEmitter from 'node:events';
 import type { ZodType } from 'zod';
+import type { CloudEvent } from '../cloudEvent/cloudEvent.ts';
 
 export type NimbusEventBusOptions = {
     maxRetries?: number;
@@ -34,7 +34,7 @@ export type NimbusEventBusOptions = {
  * eventBus.putEvent<AccountAddedEvent>({
  *     specversion: '1.0',
  *     id: '123',
- *     source: 'https://nimbus.overlap.at/api/account/add',
+ *     source: 'https://nimbus.overlap.at/account/add-account',
  *     type: 'account.added',
  *     data: {
  *         correlationId: command.metadata.correlationId,
@@ -92,6 +92,9 @@ export class NimbusEventBus {
     public putEvent<TEvent extends CloudEvent<string, any>>(
         event: TEvent,
     ): void {
+        // TODO: validate the event size.
+        // Based on the CloudEvent spec the limit for events is 64KB.
+
         this._eventEmitter.emit(event.type, event);
     }
 
@@ -170,7 +173,8 @@ export class NimbusEventBus {
             ...(input?.data?.correlationId && {
                 correlationId: input?.data?.correlationId,
             }),
-            message: `[Event] ${input?.type} from ${input?.source}`,
+            message:
+                `${input?.data?.correlationId} - [Event] ${input?.type} from ${input?.source}`,
         });
     }
 

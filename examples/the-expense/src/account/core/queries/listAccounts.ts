@@ -1,14 +1,9 @@
-import {
-    AuthContext,
-    InvalidInputException,
-    Query,
-    QueryMetadata,
-} from '@nimbus/core';
+import { AuthContext, InvalidInputException, Query } from '@nimbus/core';
 import { z } from 'zod';
 import { Account } from '../account.type.ts';
 
 export const ListAccountsQuery = Query(
-    z.literal('LIST_ACCOUNTS'),
+    z.literal('account.list'),
     z.object({
         limit: z.string().optional(),
         skip: z.string().optional(),
@@ -16,7 +11,7 @@ export const ListAccountsQuery = Query(
         sortBy: z.string().optional(),
         sortDir: z.enum(['asc', 'desc']).optional(),
     }),
-    QueryMetadata(AuthContext),
+    AuthContext,
 );
 export type ListAccountsQuery = z.infer<typeof ListAccountsQuery>;
 

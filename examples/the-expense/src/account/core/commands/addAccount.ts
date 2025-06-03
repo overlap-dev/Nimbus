@@ -1,9 +1,4 @@
-import {
-    AuthContext,
-    Command,
-    CommandMetadata,
-    InvalidInputException,
-} from '@nimbus/core';
+import { AuthContext, Command, InvalidInputException } from '@nimbus/core';
 import { ObjectId } from 'mongodb';
 import { z } from 'zod';
 import { Account } from '../account.type.ts';
@@ -14,9 +9,9 @@ export const AddAccountData = z.object({
 export type AddAccountData = z.infer<typeof AddAccountData>;
 
 export const AddAccountCommand = Command(
-    z.literal('ADD_ACCOUNT'),
+    z.literal('account.add'),
     AddAccountData,
-    CommandMetadata(AuthContext),
+    AuthContext,
 );
 export type AddAccountCommand = z.infer<typeof AddAccountCommand>;
 

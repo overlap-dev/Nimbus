@@ -3,10 +3,7 @@ import { z } from 'zod';
 import { Account } from '../account.type.ts';
 
 export const AccountAddedData = z.object({
-    correlationId: z.string(),
-    payload: z.object({
-        account: Account,
-    }),
+    account: Account,
 });
 export type AccountAddedData = z.infer<typeof AccountAddedData>;
 

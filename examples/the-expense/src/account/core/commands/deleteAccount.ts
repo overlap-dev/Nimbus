@@ -1,9 +1,4 @@
-import {
-    AuthContext,
-    Command,
-    CommandMetadata,
-    InvalidInputException,
-} from '@nimbus/core';
+import { AuthContext, Command, InvalidInputException } from '@nimbus/core';
 import { z } from 'zod';
 import { Account } from '../account.type.ts';
 
@@ -13,9 +8,9 @@ export const DeleteAccountData = z.object({
 export type DeleteAccountData = z.infer<typeof DeleteAccountData>;
 
 export const DeleteAccountCommand = Command(
-    z.literal('DELETE_ACCOUNT'),
+    z.literal('account.delete'),
     DeleteAccountData,
-    CommandMetadata(AuthContext),
+    AuthContext,
 );
 export type DeleteAccountCommand = z.infer<typeof DeleteAccountCommand>;
 

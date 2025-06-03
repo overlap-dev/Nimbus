@@ -9,10 +9,10 @@ export const getAccountHandler: RouteHandler<
     Account
 > = async (query) => {
     let account = await accountRepository.findOne({
-        filter: { _id: new ObjectId(query.params.id) },
+        filter: { _id: new ObjectId(query.data.payload.id) },
     });
 
-    account = getAccount(account, query.metadata.authContext);
+    account = getAccount(account, query.data.authContext);
 
     return {
         statusCode: 200,

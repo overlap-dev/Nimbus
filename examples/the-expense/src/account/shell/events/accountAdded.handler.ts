@@ -13,11 +13,11 @@ export const accountAddedHandler: RouteHandler<
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     getLogger().info({
-        message: `New account was added: ${event.data.account.name}`,
+        message: `New account was added: ${event.data.payload.account.name}`,
     });
 
     return {
         statusCode: 200,
-        data: event.data,
+        data: event.data.payload,
     };
 };

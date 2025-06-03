@@ -12,9 +12,10 @@ export const listAccountsHandler: RouteHandler<
     ListAccountsQuery,
     WithPagination<Account>
 > = async (query) => {
-    const limit = parseInt(query.params.limit ?? '24');
-    const skip = parseInt(query.params.skip ?? '0');
-    const filter = MongoJSON.parse(query.params.filter ?? '{}');
+    const params = query.data.payload;
+    const limit = parseInt(params.limit ?? '24');
+    const skip = parseInt(params.skip ?? '0');
+    const filter = MongoJSON.parse(params.filter ?? '{}');
 
     let [accounts, total] = await Promise.all([
         accountRepository.find({
@@ -22,7 +23,7 @@ export const listAccountsHandler: RouteHandler<
             limit,
             skip,
             sort: {
-                [query.params.sortBy ?? 'createdAt']: query.params.sortDir ??
+                [params.sortBy ?? 'createdAt']: params.sortDir ??
                     'asc',
             },
         }),
@@ -32,7 +33,7 @@ export const listAccountsHandler: RouteHandler<
         }),
     ]);
 
-    accounts = listAccounts(accounts, query.metadata.authContext);
+    accounts = listAccounts(accounts, query.data.authContext);
 
     return {
         statusCode: 200,

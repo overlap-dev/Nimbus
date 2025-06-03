@@ -1,4 +1,5 @@
 import { InvalidInputException, type RouteHandler } from '@nimbus/core';
+import { ulid } from '@std/ulid';
 import { eventBus } from '../../../eventBus.ts';
 import { Account } from '../../core/account.type.ts';
 import {
@@ -12,8 +13,8 @@ export const addAccountHandler: RouteHandler<any, Account> = async (
     command: AddAccountCommand,
 ) => {
     let account = addAccount(
-        command.data,
-        command.metadata.authContext,
+        command.data.payload,
+        command.data.authContext,
     );
 
     try {
@@ -33,13 +34,15 @@ export const addAccountHandler: RouteHandler<any, Account> = async (
     }
 
     eventBus.putEvent<AccountAddedEvent>({
-        name: 'ACCOUNT_ADDED',
+        specversion: '1.0',
+        id: ulid(),
+        source: command.source,
+        type: 'account.added',
         data: {
-            account: account,
-        },
-        metadata: {
-            correlationId: command.metadata.correlationId,
-            authContext: command.metadata.authContext,
+            correlationId: command.data.correlationId,
+            payload: {
+                account: account,
+            },
         },
     });
 

@@ -11,11 +11,11 @@ export const deleteAccountHandler: RouteHandler<any> = async (
 ) => {
     let account = await accountRepository.findOne({
         filter: {
-            _id: new ObjectId(command.data._id),
+            _id: new ObjectId(command.data.payload._id),
         },
     });
 
-    account = deleteAccount(account, command.metadata.authContext);
+    account = deleteAccount(account, command.data.authContext);
 
     await accountRepository.deleteOne({ item: account });
 

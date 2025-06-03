@@ -2,13 +2,6 @@ import { z, type ZodType } from 'zod';
 
 // TODO: fix slow type issue
 
-// TODO: rework router, eventBus and logging implementations
-// to work with CloudEvents and MessageEnvelope.
-//
-// Also Update the docs and examples to include the concept of messages (CloudEvents)
-// which are then used for commands, queries and events.
-// Include examples for good naming conventions for source and type of the cloudEvents.
-
 /**
  * Zod schema for the MessageEnvelope.
  *

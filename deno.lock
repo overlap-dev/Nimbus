@@ -1,5 +1,5 @@
 {
-  "version": "4",
+  "version": "5",
   "specifiers": {
     "jsr:@oak/commons@1": "1.0.0",
     "jsr:@oak/oak@^17.1.4": "17.1.4",
@@ -143,7 +143,8 @@
       ]
     },
     "bson@6.10.1": {
-      "integrity": "sha512-P92xmHDQjSKPLHqFxefqMxASNq/aWJMEZugpCjf+AF/pgcUpMMQCg7t7+ewko0/u8AapvF3luf/FoehddEK+sA=="
+      "integrity": "sha512-P92xmHDQjSKPLHqFxefqMxASNq/aWJMEZugpCjf+AF/pgcUpMMQCg7t7+ewko0/u8AapvF3luf/FoehddEK+sA==",
+      "deprecated": true
     },
     "memory-pager@1.5.0": {
       "integrity": "sha512-ZS4Bp4r/Zoeq6+NLJpP+0Zzm0pR8whtGPf1XExKLJBAczGMnSi3It14OiNCStjQjM6NU1okjQGSxgEZN8eBYKg=="
@@ -161,6 +162,15 @@
         "@mongodb-js/saslprep",
         "bson",
         "mongodb-connection-string-url"
+      ],
+      "optionalPeers": [
+        "@aws-sdk/credential-providers@^3.188.0",
+        "@mongodb-js/zstd@^1.1.0 || ^2.0.0",
+        "gcp-metadata@^5.2.0",
+        "kerberos@^2.0.1",
+        "mongodb-client-encryption@>=6.0.0 <7",
+        "snappy@^7.2.2",
+        "socks@^2.7.1"
       ]
     },
     "path-to-regexp@6.2.1": {
@@ -245,6 +255,7 @@
       "examples/the-expense": {
         "dependencies": [
           "jsr:@oak/oak@^17.1.4",
+          "jsr:@std/ulid@1",
           "jsr:@tajpouria/cors@^1.2.1",
           "npm:mongodb@^6.12.0",
           "npm:zod@^3.24.1"

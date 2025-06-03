@@ -12,28 +12,28 @@ export const accountRouter = new NimbusOakRouter();
 
 accountRouter.query(
     '/',
-    'LIST_ACCOUNTS',
+    'account.list',
     ListAccountsQuery,
     listAccountsHandler,
 );
 
 accountRouter.query(
     '/:id',
-    'GET_ACCOUNT',
+    'account.get',
     GetAccountQuery,
     getAccountHandler,
 );
 
 accountRouter.command(
     '/add-account',
-    'ADD_ACCOUNT',
+    'account.add',
     AddAccountCommand,
     addAccountHandler,
 );
 
 accountRouter.command(
     '/delete-account',
-    'DELETE_ACCOUNT',
+    'account.delete',
     DeleteAccountCommand,
     deleteAccountHandler,
 );
