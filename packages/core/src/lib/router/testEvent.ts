@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CloudEvent } from '../cloudEvent/index.ts';
+import { CloudEvent } from '../cloudEvent/cloudEvent.ts';
 import { NotFoundException } from '../exception/notFoundException.ts';
 import type { RouteHandler, RouteHandlerMap } from './router.ts';
 
