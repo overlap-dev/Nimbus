@@ -27,12 +27,10 @@ export const timeRFC3339 = z.string().refine((value) => {
     }
 
     // Additional validation using Date constructor to catch invalid dates
+    // Check if the date is valid (this catches cases like February 30th)
     try {
         const date = new Date(value);
-        // Check if the date is valid and the ISO string matches our input
-        // (this catches cases like February 30th)
-        return !isNaN(date.getTime()) &&
-            date.toISOString().startsWith(value.substring(0, 19));
+        return !isNaN(date.getTime());
     } catch {
         return false;
     }

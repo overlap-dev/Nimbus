@@ -24,7 +24,7 @@ export const mediaType = z.string().refine((value) => {
     // subtype = extension-token
     // parameter = attribute "=" value
     const mediaTypeRegex =
-        /^([a-zA-Z][a-zA-Z0-9][a-zA-Z0-9\!#\$&\-\^_]*|[xX]-[a-zA-Z0-9][a-zA-Z0-9\!#\$&\-\^_]*)\/([a-zA-Z0-9][a-zA-Z0-9\!#\$&\-\^_]*|[xX]-[a-zA-Z0-9][a-zA-Z0-9\!#\$&\-\^_]*)(\s*;\s*[a-zA-Z0-9][a-zA-Z0-9\!#\$&\-\^_]*\s*=\s*([a-zA-Z0-9\!#\$&\-\^_]+|"[^"]*"))*$/;
+        /^([a-zA-Z][a-zA-Z0-9][a-zA-Z0-9!#$&\-^_]*|[xX]-[a-zA-Z0-9][a-zA-Z0-9!#$&\-^_]*)\/([a-zA-Z0-9][a-zA-Z0-9!#$&\-^_]*|[xX]-[a-zA-Z0-9][a-zA-Z0-9!#$&\-^_]*)(\s*;\s*[a-zA-Z0-9][a-zA-Z0-9!#$&\-^_]*\s*=\s*([a-zA-Z0-9!#$&\-^_]+|"[^"]*"))*$/;
 
     if (!mediaTypeRegex.test(value)) {
         return false;

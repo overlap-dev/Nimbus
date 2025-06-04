@@ -3,7 +3,7 @@ import { GenericException } from '../exception/genericException.ts';
 import type { Event } from './event.ts';
 import { NimbusEventBus } from './eventBus.ts';
 
-Deno.test('EventBus rejects event that exceeds the 64KB size limit', async () => {
+Deno.test('EventBus rejects event that exceeds the 64KB size limit', () => {
     const eventBus = new NimbusEventBus({
         maxRetries: 3,
     });
@@ -23,7 +23,7 @@ Deno.test('EventBus rejects event that exceeds the 64KB size limit', async () =>
 
     let exception: any;
     try {
-        await eventBus.putEvent(event);
+        eventBus.putEvent(event);
     } catch (ex: any) {
         exception = ex;
     }

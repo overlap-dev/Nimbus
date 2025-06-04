@@ -48,7 +48,7 @@ export class NimbusOakRouter extends OakRouter {
 
         super.post(path, async (ctx: Context) => {
             try {
-                const correlationId = ctx.state.correlationId || ulid();
+                const correlationId = ctx.state.correlationId ?? ulid();
                 const requestBody = await ctx.request.body.json();
 
                 const nimbusRouter = createRouter({
@@ -111,7 +111,7 @@ export class NimbusOakRouter extends OakRouter {
 
         super.get(path, async (ctx: Context) => {
             try {
-                const correlationId = ctx.state.correlationId || ulid();
+                const correlationId = ctx.state.correlationId ?? ulid();
                 const pathParams = (ctx as any).params;
 
                 const queryParams: Record<string, string> = {};
