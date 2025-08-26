@@ -1,66 +1,66 @@
-import { AuthContext, Command, InvalidInputException } from '@nimbus/core';
-import { ulid } from '@std/ulid';
+import {
+    AuthContext,
+    Command,
+    createEvent,
+    InvalidInputException,
+} from '@nimbus/core';
+import { getEnv } from '@nimbus/utils';
 import { z } from 'zod';
-import { Unit } from '../../../../shared/types/unit.ts';
-import type { Recipe } from '../domain/recipe.ts';
+import { EventStore } from '../../../../shared/ports/eventStore.ts';
+import { Recipe } from '../domain/recipe.ts';
 import { RecipeAddedEvent } from '../events/recipeAdded.ts';
-import { RecipeEventOutputPort } from '../ports/recipeEventOutputPort.ts';
-import { RecipeRepository } from '../ports/recipeRepository.ts';
+import { RecipeEventBus } from '../ports/recipeEventBus.ts';
 
 export const AddRecipeCommand = Command(
     z.literal('recipe.add'),
-    z.object({
-        name: z.string(),
-        instructions: z.array(z.string()),
-        ingredients: z.array(z.object({
-            name: z.string(),
-            quantity: z.number(),
-            unit: Unit,
-        })),
-    }),
+    Recipe,
     AuthContext,
 );
 export type AddRecipeCommand = z.infer<typeof AddRecipeCommand>;
 
 export const addRecipe = async (
     command: AddRecipeCommand,
-    repository: RecipeRepository,
-    eventBus: RecipeEventOutputPort,
+    eventStore: EventStore,
+    eventBus: RecipeEventBus,
 ): Promise<Recipe> => {
-    const count = await repository.count({
-        filter: {
-            name: command.data.payload.name,
-        },
+    const { EVENT_SOURCE, EVENT_TYPE_PREFIX } = getEnv({
+        variables: ['EVENT_SOURCE', 'EVENT_TYPE_PREFIX'],
     });
 
-    if (count > 0) {
+    const recipeAddedEvent = createEvent<RecipeAddedEvent>({
+        source: EVENT_SOURCE,
+        subject: `/recipes/${command.data.payload.slug}`,
+        type: `${EVENT_TYPE_PREFIX}.recipe-added`,
+        data: command.data.payload,
+        datacontenttype: 'application/json',
+    });
+
+    const replayedEvents = await eventStore.readEvents(
+        recipeAddedEvent.subject,
+    );
+
+    if (replayedEvents.length > 0) {
         throw new InvalidInputException('Recipe already exists', {
             errorCode: 'DUPLICATE_RECIPE',
             reason:
-                'A recipe with this name already exists. The name for each recipe must be unique, please choose a different name.',
+                'A recipe with this slug already exists. The slug for each recipe must be unique, please choose a different slug.',
         });
     }
 
-    const recipe = await repository.insert({
-        id: repository.generateId(),
-        name: command.data.payload.name,
-        instructions: command.data.payload.instructions,
-        ingredients: command.data.payload.ingredients,
-    });
-
-    eventBus.putEvent<RecipeAddedEvent>({
-        specversion: '1.0',
-        id: ulid(),
-        source: command.source,
-        type: 'recipe.added',
-        data: {
-            correlationId: command.data.correlationId,
-            payload: {
-                id: recipe.id,
-                name: recipe.name,
-            },
+    const writtenEvents = await eventStore.writeEvents([
+        {
+            source: recipeAddedEvent.source,
+            subject: recipeAddedEvent.subject,
+            type: recipeAddedEvent.type,
+            data: recipeAddedEvent.data,
         },
-    });
+    ]);
 
-    return recipe;
+    console.log('writtenEvents', writtenEvents);
+
+    eventBus.putEvent<RecipeAddedEvent>(recipeAddedEvent);
+    // TODO: Next work on the readModels and the projectors which update the readModels based on the events.
+    // On application startup we need to replay all events to rebuild the readModels.
+
+    return command.data.payload;
 };

@@ -286,6 +286,7 @@
         "dependencies": [
           "jsr:@std/assert@^1.0.10",
           "jsr:@std/fmt@^1.0.5",
+          "jsr:@std/ulid@1",
           "npm:zod@^3.24.1"
         ]
       },

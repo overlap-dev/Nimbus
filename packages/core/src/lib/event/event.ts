@@ -1,3 +1,4 @@
+import { ulid } from '@std/ulid';
 import { z, type ZodType } from 'zod';
 import { CloudEvent } from '../cloudEvent/cloudEvent.ts';
 import { MessageEnvelope } from '../messageEnvelope.ts';
@@ -17,7 +18,9 @@ export const Event = <
     return CloudEvent(
         typeType,
         MessageEnvelope(dataType, z.never()),
-    );
+    ).extend({
+        subject: z.string().min(1),
+    });
 };
 
 /**
@@ -34,3 +37,39 @@ type EventType<
 export type Event<TType, TData> = z.infer<
     EventType<ZodType<TType>, ZodType<TData>>
 >;
+
+/**
+ * Input type for the createEvent function.
+ */
+export type CreateEventInput = {
+    source: string;
+    type: string;
+    subject: string;
+    data: any;
+    datacontenttype?: string;
+    dataschema?: string;
+};
+
+/**
+ * Create a new event.
+ */
+export const createEvent = <TEvent extends CloudEvent<string, any>>({
+    source,
+    type,
+    subject,
+    data,
+    datacontenttype,
+    dataschema,
+}: CreateEventInput): TEvent => {
+    return {
+        specversion: '1.0',
+        id: ulid(),
+        source: source,
+        type: type,
+        data: data,
+        subject: subject,
+        time: new Date().toISOString(),
+        ...(datacontenttype && { datacontenttype }),
+        ...(dataschema && { dataschema }),
+    } as TEvent;
+};

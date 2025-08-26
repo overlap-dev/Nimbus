@@ -9,7 +9,7 @@ export interface RecipeRepository {
 
     delete: (id: string) => Promise<void>;
 
-    getById: (id: string) => Promise<Recipe>;
+    getBySlug: (id: string) => Promise<Recipe>;
 
     list: (
         options?: {

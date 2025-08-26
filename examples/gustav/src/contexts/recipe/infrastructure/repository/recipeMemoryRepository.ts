@@ -12,12 +12,12 @@ const makeMemoryRepository = (): RecipeRepository => {
         },
 
         insert: async (recipe) => {
-            store.set(recipe.id, recipe);
+            store.set(recipe.slug, recipe);
             return recipe;
         },
 
         update: async (recipe) => {
-            const existingRecipe = store.get(recipe.id);
+            const existingRecipe = store.get(recipe.slug);
 
             if (!existingRecipe) {
                 throw new NotFoundException('Recipe not found', {
@@ -25,12 +25,12 @@ const makeMemoryRepository = (): RecipeRepository => {
                 });
             }
 
-            store.set(recipe.id, recipe);
+            store.set(recipe.slug, recipe);
             return recipe;
         },
 
-        delete: async (id) => {
-            const recipe = store.get(id);
+        delete: async (slug) => {
+            const recipe = store.get(slug);
 
             if (!recipe) {
                 throw new NotFoundException('Recipe not found', {
@@ -38,11 +38,11 @@ const makeMemoryRepository = (): RecipeRepository => {
                 });
             }
 
-            store.delete(id);
+            store.delete(slug);
         },
 
-        getById: async (id) => {
-            const recipe = store.get(id);
+        getBySlug: async (slug) => {
+            const recipe = store.get(slug);
 
             if (!recipe) {
                 throw new NotFoundException('Recipe not found', {
