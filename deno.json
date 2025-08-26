@@ -7,6 +7,7 @@
     "./packages/mongodb",
     "./packages/oak",
     "./packages/utils",
+    "./examples/gustav",
     "./examples/the-expense"
   ],
   "nodeModulesDir": "none"

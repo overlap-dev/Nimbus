@@ -22,6 +22,7 @@
     "jsr:@std/ulid@1": "1.0.0",
     "jsr:@tajpouria/cors@^1.2.1": "1.2.1",
     "npm:@types/node@*": "22.5.4",
+    "npm:effect@^3.17.9": "3.17.9",
     "npm:mongodb@^6.12.0": "6.12.0",
     "npm:path-to-regexp@6.2.1": "6.2.1",
     "npm:path-to-regexp@^6.3.0": "6.3.0",
@@ -127,6 +128,9 @@
         "sparse-bitfield"
       ]
     },
+    "@standard-schema/spec@1.0.0": {
+      "integrity": "sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA=="
+    },
     "@types/node@22.5.4": {
       "integrity": "sha512-FDuKUJQm/ju9fT/SeX/6+gBzoPzlVCzfzmGkwKvRHQVxi4BntVbyIwf6a4Xn62mrvndLiml6z/UBXIdEVjQLXg==",
       "dependencies": [
@@ -146,6 +150,19 @@
       "integrity": "sha512-P92xmHDQjSKPLHqFxefqMxASNq/aWJMEZugpCjf+AF/pgcUpMMQCg7t7+ewko0/u8AapvF3luf/FoehddEK+sA==",
       "deprecated": true
     },
+    "effect@3.17.9": {
+      "integrity": "sha512-Nkkn9n1zhy30Dq0MpQatDCH7nfYnOIiebkOHNxmmvoVnEDKCto+2ZwDDWFGzcN/ojwfqjRXWGC9Lo91K5kwZCg==",
+      "dependencies": [
+        "@standard-schema/spec",
+        "fast-check"
+      ]
+    },
+    "fast-check@3.23.2": {
+      "integrity": "sha512-h5+1OzzfCC3Ef7VbtKdcv7zsstUQwUDlYpUTvjeUsJAssPgLn7QzbboPtL5ro04Mq0rPOsMzl7q5hIbRs2wD1A==",
+      "dependencies": [
+        "pure-rand"
+      ]
+    },
     "memory-pager@1.5.0": {
       "integrity": "sha512-ZS4Bp4r/Zoeq6+NLJpP+0Zzm0pR8whtGPf1XExKLJBAczGMnSi3It14OiNCStjQjM6NU1okjQGSxgEZN8eBYKg=="
     },
@@ -162,15 +179,6 @@
         "@mongodb-js/saslprep",
         "bson",
         "mongodb-connection-string-url"
-      ],
-      "optionalPeers": [
-        "@aws-sdk/credential-providers@^3.188.0",
-        "@mongodb-js/zstd@^1.1.0 || ^2.0.0",
-        "gcp-metadata@^5.2.0",
-        "kerberos@^2.0.1",
-        "mongodb-client-encryption@>=6.0.0 <7",
-        "snappy@^7.2.2",
-        "socks@^2.7.1"
       ]
     },
     "path-to-regexp@6.2.1": {
@@ -181,6 +189,9 @@
     },
     "punycode@2.3.1": {
       "integrity": "sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg=="
+    },
+    "pure-rand@6.1.0": {
+      "integrity": "sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA=="
     },
     "sparse-bitfield@3.0.3": {
       "integrity": "sha512-kvzhi7vqKTfkh0PZU+2D2PIllw2ymqJKujUcyPMd9Y75Nv4nPbGJZXNhxsgdQab2BmlDct1YnfQCguEvHr7VsQ==",
@@ -252,6 +263,16 @@
   },
   "workspace": {
     "members": {
+      "examples/gustav": {
+        "dependencies": [
+          "jsr:@oak/oak@^17.1.4",
+          "jsr:@std/ulid@1",
+          "jsr:@tajpouria/cors@^1.2.1",
+          "npm:effect@^3.17.9",
+          "npm:mongodb@^6.12.0",
+          "npm:zod@^3.24.1"
+        ]
+      },
       "examples/the-expense": {
         "dependencies": [
           "jsr:@oak/oak@^17.1.4",
