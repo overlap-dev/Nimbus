@@ -4,6 +4,7 @@
   },
   "workspace": [
     "./packages/core",
+    "./packages/client",
     "./packages/mongodb",
     "./packages/oak",
     "./packages/utils",
