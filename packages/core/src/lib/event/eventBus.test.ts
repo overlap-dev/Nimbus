@@ -1,6 +1,6 @@
-import { assertInstanceOf } from '@std/assert';
+import { assertEquals, assertInstanceOf } from '@std/assert';
 import { GenericException } from '../exception/genericException.ts';
-import type { Event } from './event.ts';
+import type { Event } from '../message/event.ts';
 import { NimbusEventBus } from './eventBus.ts';
 
 Deno.test('EventBus rejects event that exceeds the 64KB size limit', () => {
@@ -8,16 +8,16 @@ Deno.test('EventBus rejects event that exceeds the 64KB size limit', () => {
         maxRetries: 3,
     });
 
-    const event: Event<string, any> = {
+    const event: Event = {
         specversion: '1.0',
         id: '123',
-        source: 'https://nimbus.overlap.at/api/test',
-        type: 'oversized.event',
+        correlationid: '456',
+        time: '2025-01-01T00:00:00Z',
+        source: 'https://nimbus.overlap.at',
+        type: 'at.overlap.nimbus.test-event',
+        subject: '/test',
         data: {
-            correlationId: '123',
-            payload: {
-                bigData: 'x'.repeat(65 * 1024),
-            },
+            bigData: 'x'.repeat(65 * 1024),
         },
     };
 
@@ -29,4 +29,5 @@ Deno.test('EventBus rejects event that exceeds the 64KB size limit', () => {
     }
 
     assertInstanceOf(exception, GenericException);
+    assertEquals(exception.message, 'Event size exceeds the limit of 64KB');
 });

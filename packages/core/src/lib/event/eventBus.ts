@@ -1,14 +1,24 @@
-import {
-    createRouter,
-    GenericException,
-    getLogger,
-    type RouteHandler,
-    type Router,
-} from '@nimbus/core';
 import EventEmitter from 'node:events';
-import type { ZodType } from 'zod';
-import type { CloudEvent } from '../cloudEvent/cloudEvent.ts';
+import { GenericException } from '../exception/genericException.ts';
+import { getLogger } from '../log/logger.ts';
+import type { Event } from '../message/event.ts';
+import type { RouteHandler, Router } from '../router/router.ts';
+import { createRouter } from '../router/router.ts';
 
+/**
+ * The input type for subscribing to an event.
+ */
+export type SubscribeEventInput = {
+    type: string;
+    handler: RouteHandler;
+    allowUnsafeInput?: boolean;
+    onError?: (error: any, event: Event) => void;
+    options?: NimbusEventBusOptions;
+};
+
+/**
+ * The type for the NimbusEventBus options.
+ */
 export type NimbusEventBusOptions = {
     maxRetries?: number;
     retryDelay?: number;
@@ -25,21 +35,23 @@ export type NimbusEventBusOptions = {
  *     retryDelay: 3000,
  * });
  *
- * eventBus.subscribeEvent(
- *     'account.added',
- *     AccountAddedEvent,
- *     accountAddedHandler,
- * );
+ * eventBus.subscribeEvent({
+ *     type: 'at.overlap.nimbus.account-added',
+ *     handler: accountAddedHandler,
+ * });
  *
  * eventBus.putEvent<AccountAddedEvent>({
  *     specversion: '1.0',
  *     id: '123',
- *     source: 'https://nimbus.overlap.at/account/add-account',
- *     type: 'account.added',
+ *     correlationid: '456',
+ *     time: '2025-01-01T00:00:00Z',
+ *     source: 'https://nimbus.overlap.at',
+ *     type: 'at.overlap.nimbus.account-added',
  *     data: {
- *         correlationId: command.metadata.correlationId,
- *         payload: { account: account },
+ *         accountId: '123',
  *     },
+ *     datacontenttype: 'application/json',
+ *     dataschema: 'https://nimbus.overlap.at/schemas/events/account-added/v1',
  * });
  * ```
  */
@@ -80,18 +92,19 @@ export class NimbusEventBus {
      * eventBus.putEvent<AccountAddedEvent>({
      *     specversion: '1.0',
      *     id: '123',
-     *     source: 'https://nimbus.overlap.at/api/account/add',
-     *     type: 'account.added',
+     *     correlationid: '456',
+     *     time: '2025-01-01T00:00:00Z',
+     *     source: 'https://nimbus.overlap.at',
+     *     type: 'at.overlap.nimbus.account-added',
      *     data: {
-     *         correlationId: command.metadata.correlationId,
-     *         payload: { account: account },
+     *         accountId: '123',
      *     },
+     *     datacontenttype: 'application/json',
+     *     dataschema: 'https://nimbus.overlap.at/schemas/events/account-added/v1',
      * });
      * ```
      */
-    public putEvent<TEvent extends CloudEvent<string, any>>(
-        event: TEvent,
-    ): void {
+    public putEvent(event: Event): void {
         this._validateEventSize(event);
 
         this._eventEmitter.emit(event.type, event);
@@ -101,7 +114,6 @@ export class NimbusEventBus {
      * Subscribe to an event.
      *
      * @param {string} eventType - The type of event to subscribe to.
-     * @param {ZodType} eventSchema - The schema used for validation of the event to subscribe to.
      * @param {RouteHandler} handler - The handler to call when the event got published.
      * @param {Function} [onError] - The function to call when the event could not be handled after the maximum number of retries.
      * @param {NimbusEventBusOptions} [options] - The options for the event bus.
@@ -110,39 +122,40 @@ export class NimbusEventBus {
      *
      * @example
      * ```ts
-     * eventBus.subscribeEvent(
-     *     'account.added',
-     *     AccountAddedEvent,
-     *     accountAddedHandler,
-     * );
+     * eventBus.subscribeEvent({
+     *     type: 'at.overlap.nimbus.account-added',
+     *     handler: accountAddedHandler,
+     *     allowUnsafeInput: true, // Disables input validation (not recommended)
+     * });
      * ```
      */
-    public subscribeEvent(
-        eventType: string,
-        eventSchema: ZodType,
-        handler: RouteHandler,
-        onError?: (error: any, event: CloudEvent<string, any>) => void,
-        options?: NimbusEventBusOptions,
-    ): void {
+    public subscribeEvent({
+        type,
+        handler,
+        allowUnsafeInput,
+        onError,
+        options,
+    }: SubscribeEventInput): void {
         getLogger().info({
             category: 'Nimbus',
-            message: `Subscribed to ${eventType} event`,
+            message: `Subscribed to ${type} event`,
         });
 
         const maxRetries = options?.maxRetries ?? this._maxRetries;
         const retryDelay = options?.retryDelay ?? this._retryDelay;
 
         const nimbusRouter = createRouter({
+            type: 'event',
             handlerMap: {
-                [eventType]: {
+                [type]: {
                     handler,
-                    inputType: eventSchema,
+                    ...(allowUnsafeInput && { allowUnsafeInput }),
                 },
             },
             inputLogFunc: this._logInput,
         });
 
-        const handleEvent = async (event: CloudEvent<string, any>) => {
+        const handleEvent = async (event: Event) => {
             try {
                 await this._processEvent(
                     nimbusRouter,
@@ -163,7 +176,7 @@ export class NimbusEventBus {
             }
         };
 
-        this._eventEmitter.on(eventType, handleEvent);
+        this._eventEmitter.on(type, handleEvent);
     }
 
     private _logInput(input: any) {
@@ -179,7 +192,7 @@ export class NimbusEventBus {
 
     private async _processEvent(
         nimbusRouter: Router,
-        event: CloudEvent<string, any>,
+        event: Event,
         maxRetries: number,
         retryDelay: number,
     ) {
@@ -217,11 +230,11 @@ export class NimbusEventBus {
      * Validate the size of the event.
      *
      * To comply with the CloudEvent spec a transmitted event
-     * can not have a maximum size of 64KB.
+     * can only have a maximum size of 64KB.
      *
      * @param event - The event to validate.
      */
-    private _validateEventSize(event: CloudEvent<string, any>): void {
+    private _validateEventSize(event: Event): void {
         const eventJson = JSON.stringify(event);
         const eventSizeBytes = new TextEncoder().encode(eventJson).length;
         const maxSizeBytes = 64 * 1024; // 64KB
