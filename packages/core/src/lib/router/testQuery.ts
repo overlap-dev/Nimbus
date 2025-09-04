@@ -1,25 +1,32 @@
-import { z } from 'zod';
-import { Query } from '../query/query.ts';
+import type { Query } from '../message/query.ts';
 import type { RouteHandler, RouteHandlerMap } from './router.ts';
 
 /**
- * Zod schema for the TestQuery.
+ * The type for the testQuery data
  */
-export const TestQuery = Query(
-    z.literal('test.query'),
-    z.object({}),
-    z.object({}),
-);
+export type TestQueryData = {
+    filter: string;
+};
 
 /**
- * The type of the TestQuery.
+ * A test query
  */
-export type TestQuery = z.infer<typeof TestQuery>;
+export const testQuery: Query<TestQueryData> = {
+    specversion: '1.0',
+    id: '123',
+    time: '2025-01-01T00:00:00Z',
+    source: 'https://nimbus.overlap.at',
+    type: 'at.overlap.nimbus.test-query',
+    data: {
+        filter: '42',
+    },
+    datacontenttype: 'application/json',
+};
 
 /**
  * The handler for the TestQuery.
  */
-export const testQueryHandler: RouteHandler<TestQuery, any> = () => {
+export const testQueryHandler: RouteHandler<Query<TestQueryData>> = () => {
     return Promise.resolve({
         statusCode: 200,
         headers: {
@@ -34,9 +41,9 @@ export const testQueryHandler: RouteHandler<TestQuery, any> = () => {
 /**
  * The handler map for the TestQuery.
  */
-export const queryHandlerMap: RouteHandlerMap = {
-    'test.query': {
+export const queryHandlerMap: RouteHandlerMap<Query<any>> = {
+    'at.overlap.nimbus.test-query': {
         handler: testQueryHandler,
-        inputType: TestQuery,
+        allowUnsafeInput: true,
     },
 };

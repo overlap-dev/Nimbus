@@ -1,38 +1,34 @@
-import { z } from 'zod';
-import { Command } from '../command/command.ts';
+import type { Command } from '../message/command.ts';
 import type { RouteHandler, RouteHandlerMap } from './router.ts';
 
 /**
- * Zod schema for the TestCommandData.
+ * The type for the testCommand data
  */
-export const TestCommandData = z.object({
-    aNumber: z.number(),
-});
+export type TestCommandData = {
+    aNumber: number;
+};
 
 /**
- * The type of the TestCommandData.
+ * A test command
  */
-export type TestCommandData = z.infer<typeof TestCommandData>;
-
-/**
- * Zod schema for the TestCommand.
- */
-export const TestCommand = Command(
-    z.literal('test.command'),
-    TestCommandData,
-    z.object({}),
-);
-
-/**
- * The type of the TestCommand.
- */
-export type TestCommand = z.infer<typeof TestCommand>;
+export const testCommand: Command<TestCommandData> = {
+    specversion: '1.0',
+    id: '123',
+    correlationid: '456',
+    time: '2025-01-01T00:00:00Z',
+    source: 'https://nimbus.overlap.at',
+    type: 'at.overlap.nimbus.test-command',
+    data: {
+        aNumber: 42,
+    },
+    datacontenttype: 'application/json',
+};
 
 /**
  * The handler for the TestCommand.
  */
 export const testCommandHandler: RouteHandler<
-    TestCommand,
+    Command<TestCommandData>,
     TestCommandData
 > = (event) => {
     return Promise.resolve({
@@ -40,16 +36,16 @@ export const testCommandHandler: RouteHandler<
         headers: {
             'Content-Type': 'application/json',
         },
-        data: event.data.payload,
+        data: event.data,
     });
 };
 
 /**
  * The handler map for the TestCommand.
  */
-export const commandHandlerMap: RouteHandlerMap = {
-    'test.command': {
+export const commandHandlerMap: RouteHandlerMap<Command<any>> = {
+    'at.overlap.nimbus.test-command': {
         handler: testCommandHandler,
-        inputType: TestCommand,
+        allowUnsafeInput: true,
     },
 };
