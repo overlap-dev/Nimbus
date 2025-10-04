@@ -7,152 +7,132 @@ import type { Message } from '../message/message.ts';
 import { type Query, querySchema } from '../message/query.ts';
 import { getValidator } from '../validator/validator.ts';
 
-// TODO: we want to rework the router concept.  Do We ???
-// Nimbus should be framework agnostic and other Frameworks like Oak, Fastify, Elysia should used for routing.
-// So we want to provide a higher order handler function that can take some options and a logic function.
-// This higher order handler function will do the message validation, logging and tracing etc. and will execute the logic function.
-// This way the full handler can be used in any other frameworks routing or event/message bus system.
-
 /**
- * The result type of a route handler.
+ * The message handler type - transport-agnostic, just returns domain data.
  *
- * @template TData - The type of the data returned by the route handler.
+ * @template TInput - The type of the input message.
+ * @template TOutput - The type of the data returned by the handler.
  */
-export type RouteHandlerResult<TData = unknown> = {
-    statusCode: number;
-    headers?: Record<string, string>;
-    data?: TData;
-};
-
-/**
- * The route handler type.
- *
- * @template TInput - The type of the input to the route handler.
- * @template TOutputData - The type of the data returned by the route handler.
- */
-export type RouteHandler<
+export type MessageHandler<
     TInput extends Message = Message,
-    TOutputData = unknown,
+    TOutput = unknown,
 > = (
     input: TInput,
-) => Promise<RouteHandlerResult<TOutputData>>;
+) => Promise<TOutput>;
 
 /**
- * The RouteHandlerMap type.
- *
- * @template TInput - The type of the input to the route handler.
- * @template TOutputData - The type of the data returned by the route handler.
+ * Options for registering a message handler.
  */
-export type RouteHandlerMap<TInput extends Message> = Record<
-    string,
-    {
-        handler: RouteHandler<TInput, any>;
-        allowUnsafeInput?: boolean;
-    }
->;
-
-/**
- * The router type.
- *
- * @template TOutputData - The type of the data returned by the router.
- */
-export type Router<TOutputData = unknown> = (
-    input: unknown,
-) => Promise<RouteHandlerResult<TOutputData>>;
-
-/**
- * The input type for creating a Nimbus router.
- *
- * @template TInput - The type of the input to the router.
- * @template TResultData - The type of the data returned by the router.
- */
-export type CreateRouterInput<TInput extends Message> = {
-    type: 'command' | 'query' | 'event';
-    handlerMap: RouteHandlerMap<TInput>;
-    inputLogFunc?: (input: unknown) => void;
+export type RegisterHandlerOptions = {
+    allowUnsafeInput?: boolean;
 };
 
 /**
- * Creates a Nimbus router.
- *
- * @param {CreateRouterInput} input
- * @param {'command' | 'query' | 'event'} type - The type of input messages the router handles
- * @param {RouteHandlerMap} input.handlerMap - The map of route handlers.
- * @param {Function} input.inputLogFunc - Function to log input received by the router (optional).
- *
- * @returns {Router} The Nimbus router.
+ * Options for creating a MessageRouter.
+ */
+export type MessageRouterOptions = {
+    logInput?: (input: unknown) => void;
+    logOutput?: (output: unknown) => void;
+};
+
+/**
+ * Internal handler registration.
+ */
+type HandlerRegistration = {
+    handler: MessageHandler<any, any>;
+    allowUnsafeInput: boolean;
+};
+
+/**
+ * The MessageRouter routes messages to their handlers.
  *
  * @example
  * ```ts
- * import { createRouter } from "@nimbus/core";
+ * import { MessageRouter } from "@nimbus/core";
  *
- * const commandRouter = createRouter({
- *     type: 'command',
- *     handlerMap: {
- *         'at.overlap.nimbus.get-account': {
- *             handler: getAccountHandler
- *         },
- *     },
- * });
+ * const commandRouter = new MessageRouter('command');
  *
- * const queryRouter = createRouter({
- *     type: 'query',
- *     handlerMap: {
- *         'at.overlap.nimbus.get-account': {
- *             handler: getAccountHandler,
- *             allowUnsafeInput: true, // Disables input validation (not recommended)
- *         },
- *     },
- * });
+ * commandRouter.register(
+ *     'at.overlap.nimbus.add-recipe',
+ *     addRecipeHandler,
+ * );
  *
- * const eventRouter = createRouter({
- *     type: 'event',
- *     handlerMap: {
- *         'at.overlap.nimbus.account-added': {
- *             handler: accountAddedHandler,
- *         },
- *     },
- *     inputLogFunc: (input) => {
- *         getLogger().info({
- *             category: 'Events',
- *             message: `Received event: ${input.type}`,
- *         });
- *     },
- * });
+ * const result = await commandRouter.route(someCommand);
  * ```
  */
-export const createRouter = <TInput extends Message = Message>({
-    type,
-    handlerMap,
-    inputLogFunc,
-}: CreateRouterInput<TInput>): Router => {
-    const validator = getValidator();
+export class MessageRouter {
+    private readonly _type: 'command' | 'query' | 'event';
+    private readonly _handlers: Map<string, HandlerRegistration>;
+    private readonly _logInput?: (input: unknown) => void;
+    private readonly _logOutput?: (output: unknown) => void;
+
+    constructor(
+        type: 'command' | 'query' | 'event',
+        options?: MessageRouterOptions,
+    ) {
+        this._type = type;
+        this._handlers = new Map();
+        this._logInput = options?.logInput;
+        this._logOutput = options?.logOutput;
+    }
 
     /**
-     * The Nimbus router takes unknown input,
-     * validates the input and routes it to the appropriate handler.
+     * Register a message handler for a specific message type.
      *
-     * @param {unknown} input - The input to the router.
+     * @param {string} messageType - The message type (e.g., 'at.overlap.nimbus.add-recipe')
+     * @param {MessageHandler} handler - The handler function
+     * @param {RegisterHandlerOptions} options - Optional configuration
      *
-     * @returns {Promise<RouteHandlerResult>} The result of the route handler.
-     *
-     * @throws {NotFoundException} - If the route handler is not found.
-     * @throws {InvalidInputException} - If the input is invalid.
-     * @throws {GenericException} - If an error occurs while handling the input.
+     * @example
+     * ```ts
+     * router.register(
+     *     'at.overlap.nimbus.add-recipe',
+     *     addRecipeHandler,
+     *     { allowUnsafeInput: true }
+     * );
+     * ```
      */
-    const router: Router = (
-        input: unknown,
-    ): Promise<RouteHandlerResult> => {
-        if (inputLogFunc) {
-            inputLogFunc(input);
+    public register<TInput extends Message = Message, TOutput = unknown>(
+        messageType: string,
+        handler: MessageHandler<TInput, TOutput>,
+        options?: RegisterHandlerOptions,
+    ): void {
+        this._handlers.set(messageType, {
+            handler,
+            allowUnsafeInput: options?.allowUnsafeInput ?? false,
+        });
+
+        getLogger().debug({
+            category: 'Nimbus',
+            message: `Registered ${this._type} handler for: ${messageType}`,
+        });
+    }
+
+    /**
+     * Route a message to its handler.
+     *
+     * @param {unknown} input - The raw input to route
+     *
+     * @returns {Promise<unknown>} The result from the handler
+     *
+     * @throws {NotFoundException} - If no handler is registered for the message type
+     * @throws {InvalidInputException} - If the message is invalid
+     * @throws {GenericException} - If an error occurs during routing
+     */
+    public async route(input: unknown): Promise<unknown> {
+        if (this._logInput) {
+            this._logInput(input);
         }
 
+        const validator = getValidator();
+
+        // Validate message envelope
         let parseResult;
-        if (type === 'command') {
+        if (this._type === 'command') {
             parseResult = validator.validate<Command>(commandSchema.$id, input);
-        } else if (type === 'query') {
+        } else if (this._type === 'query') {
             parseResult = validator.validate<Query>(querySchema.$id, input);
-        } else if (type === 'event') {
+        } else if (this._type === 'event') {
             parseResult = validator.validate<Event>(eventSchema.$id, input);
         } else {
             throw new GenericException(
@@ -170,9 +150,11 @@ export const createRouter = <TInput extends Message = Message>({
 
         const message = parseResult.data;
 
-        if (!handlerMap[message.type]) {
+        // Find handler
+        const registration = this._handlers.get(message.type);
+        if (!registration) {
             throw new NotFoundException(
-                'Route handler not found',
+                'Message handler not found',
                 {
                     reason:
                         `Could not find a handler for message type: "${message.type}"`,
@@ -180,11 +162,12 @@ export const createRouter = <TInput extends Message = Message>({
             );
         }
 
-        const { handler, allowUnsafeInput } = handlerMap[message.type];
+        const { handler, allowUnsafeInput } = registration;
 
-        let validMessage: TInput;
+        // Validate message data if dataschema is provided
+        let validMessage: Message;
         if (message.dataschema) {
-            const { data, error } = validator.validate<TInput>(
+            const { data, error } = validator.validate<Message>(
                 message.dataschema,
                 message,
             );
@@ -206,18 +189,22 @@ export const createRouter = <TInput extends Message = Message>({
                     {
                         errorCode: 'MISSING_DATASCHEMA',
                         reason: `The dataschema is missing on the message
-                            and "allowUnsafeInput" is not enabled to the message type.
+                            and "allowUnsafeInput" is not enabled for the message type.
                             It is recommended to always provide a dataschema
                             for input validation. Otherwise set "allowUnsafeInput"
-                            to true for the route handler.`,
+                            to true when registering the handler.`,
                     },
                 );
             }
-            validMessage = message as TInput;
+            validMessage = message;
         }
 
-        return handler(validMessage);
-    };
+        const result = await handler(validMessage);
 
-    return router;
-};
+        if (this._logOutput) {
+            this._logOutput(result);
+        }
+
+        return result;
+    }
+}

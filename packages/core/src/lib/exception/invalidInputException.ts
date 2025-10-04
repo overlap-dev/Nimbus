@@ -1,4 +1,3 @@
-import type { ZodError } from 'zod';
 import { Exception } from './exception.ts';
 
 /**
@@ -21,12 +20,19 @@ export class InvalidInputException extends Exception {
      * @param {ZodError} error - The Zod error.
      *
      * @returns {InvalidInputException} The InvalidInputException.
+     *
+     * @deprecated We do not want to depend on Zod anymore.
      */
-    public fromZodError(error: ZodError): InvalidInputException {
-        this.stack = error.stack;
-        this.details = {
-            issues: error.issues,
-        };
+    public fromZodError(error: any): InvalidInputException {
+        if (error.stack) {
+            this.stack = error.stack;
+        }
+
+        if (error.issues) {
+            this.details = {
+                issues: error.issues,
+            };
+        }
 
         return this;
     }

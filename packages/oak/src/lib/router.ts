@@ -1,18 +1,101 @@
-import {
-    type Command,
-    createRouter,
-    getLogger,
-    type Query,
-    type RouteHandler,
-    type RouteHandlerResult,
-} from '@nimbus/core';
+import { getLogger, type MessageRouter } from '@nimbus/core';
 import type { Context } from '@oak/oak/context';
 import { Router as OakRouter, type RouterOptions } from '@oak/oak/router';
 
 /**
- * The NimbusOakRouter extends the Oak Router
- * to directly route commands and queries coming
- * in from HTTP requests to a Nimbus router.
+ * Options for handling errors in Oak routes.
+ */
+export type OakErrorHandlerOptions = {
+    onError?: (error: any, ctx: Context) => void;
+};
+
+/**
+ * Helper to create an Oak middleware that handles a Nimbus MessageRouter.
+ * This bridges the MessageRouter (transport-agnostic) to Oak's HTTP context.
+ *
+ * @param {MessageRouter} router - The Nimbus MessageRouter instance
+ * @param {OakErrorHandlerOptions} options - Optional options for error handling
+ *
+ * @returns {Function} The Oak middleware function
+ */
+export function createOakMessageHandler(
+    router: MessageRouter,
+    options?: OakErrorHandlerOptions,
+): (ctx: Context) => Promise<void> {
+    return async (ctx: Context) => {
+        try {
+            const requestBody = await ctx.request.body.json();
+            const result = await router.route(requestBody);
+
+            // Default HTTP response
+            ctx.response.status = 200;
+            ctx.response.body = result as any;
+        } catch (error: any) {
+            handleOakError(error, ctx, options?.onError);
+        }
+    };
+}
+
+/**
+ * Default error handler for Oak routes that maps Nimbus exceptions to HTTP responses.
+ *
+ * @param {any} error - The error to handle.
+ * @param {Context} ctx - The Oak context.
+ * @param {Function} customHandler - Optional custom error handler.
+ *
+ * @returns {void}
+ */
+export function handleOakError(
+    error: any,
+    ctx: Context,
+    customHandler?: (error: any, ctx: Context) => void,
+): void {
+    if (customHandler) {
+        customHandler(error, ctx);
+        return;
+    }
+
+    getLogger().error({
+        category: 'Nimbus',
+        message: error.message,
+        error,
+    });
+
+    const statusCode = error.statusCode ?? 500;
+    ctx.response.status = statusCode;
+
+    if (statusCode < 500) {
+        ctx.response.body = {
+            statusCode,
+            ...(error.details ? { code: error.name } : {}),
+            ...(error.message ? { message: error.message } : {}),
+            ...(error.details ? { details: error.details } : {}),
+        };
+    } else {
+        ctx.response.body = {
+            message: 'Internal server error',
+        };
+    }
+}
+
+/**
+ * The NimbusOakRouter extends the Oak Router to provide
+ * convenient methods for registering Nimbus message handlers.
+ *
+ * @example
+ * ```ts
+ * import { NimbusOakRouter } from "@nimbus/oak";
+ *
+ * const router = new NimbusOakRouter();
+ * const commandRouter = new MessageRouter('command');
+ *
+ * commandRouter.register('at.overlap.nimbus.add-recipe', addRecipeHandler);
+ *
+ * router.command({
+ *     path: '/command',
+ *     router: commandRouter,
+ * });
+ * ```
  */
 export class NimbusOakRouter extends OakRouter {
     constructor(opts: RouterOptions = {}) {
@@ -20,182 +103,62 @@ export class NimbusOakRouter extends OakRouter {
     }
 
     /**
-     * Routes a POST request to a Nimbus command router.
+     * Routes POST requests to a Nimbus command router.
      *
      * @param {string} path - Oak request path
-     * @param {string} commandType - Type of the command
-     * @param {RouteHandler} handler - Nimbus Route Handler function
-     * @param {AnySchema} commandSchema - JSON Schema of the command
+     * @param {MessageRouter} router - The Nimbus MessageRouter instance
      * @param {Function} onError - Optional function to customize error handling
+     *
+     * @example
+     * ```ts
+     * const commandRouter = new MessageRouter('command');
+     * commandRouter.register('at.overlap.nimbus.add-recipe', addRecipeHandler);
+     *
+     * oakRouter.command({
+     *     path: '/command',
+     *     router: commandRouter,
+     * });
+     * ```
      */
-    command<TInput extends Command = Command, TOutput = unknown>({
+    command({
         path,
-        type,
-        handler,
-        allowUnsafeInput,
+        router,
         onError,
     }: {
         path: string;
-        type: string;
-        handler: RouteHandler<TInput, TOutput>;
-        allowUnsafeInput?: boolean;
+        router: MessageRouter;
         onError?: (error: any, ctx: Context) => void;
     }) {
-        const inputLogFunc = (input: any) => {
-            getLogger().info({
-                category: 'Nimbus',
-                ...(input?.data?.correlationId && {
-                    correlationId: input.data.correlationId,
-                }),
-                message:
-                    `${input?.data?.correlationId} - [Command] ${input?.type} from ${input?.source}`,
-            });
-        };
-
-        super.post(path, async (ctx: Context) => {
-            try {
-                const requestBody = await ctx.request.body.json();
-
-                const nimbusRouter = createRouter({
-                    type: 'command',
-                    handlerMap: {
-                        [type]: {
-                            handler,
-                            allowUnsafeInput: allowUnsafeInput ?? false,
-                        },
-                    },
-                    inputLogFunc,
-                });
-
-                // TODO: How do we implement the authentication context?
-                // data: {
-                //     ...(ctx.state.authContext && {
-                //         authContext: ctx.state.authContext,
-                //     }),
-                // },
-
-                const result = await nimbusRouter(requestBody);
-
-                this._handleNimbusRouterSuccess(result, ctx);
-            } catch (error: any) {
-                this._handleNimbusRouterError(error, ctx, onError);
-            }
-        });
+        super.post(path, createOakMessageHandler(router, { onError }));
     }
 
     /**
-     * Routes a GET request to a Nimbus query router.
+     * Routes POST requests to a Nimbus query router.
      *
      * @param {string} path - Oak request path
-     * @param {string} queryType - Type of the query
-     * @param {boolean} allowUnsafeInput - Allow unsafe input
-     * @param {RouteHandler} handler - Nimbus Route Handler function
+     * @param {MessageRouter} router - The Nimbus MessageRouter instance
      * @param {Function} onError - Optional function to customize error handling
+     *
+     * @example
+     * ```ts
+     * const queryRouter = new MessageRouter('query');
+     * queryRouter.register('at.overlap.nimbus.get-recipe', getRecipeHandler);
+     *
+     * oakRouter.query({
+     *     path: '/query',
+     *     router: queryRouter,
+     * });
+     * ```
      */
-    query<TInput extends Query = Query, TOutput = unknown>({
+    query({
         path,
-        type,
-        allowUnsafeInput,
-        handler,
+        router,
         onError,
     }: {
         path: string;
-        type: string;
-        handler: RouteHandler<TInput, TOutput>;
-        allowUnsafeInput?: boolean;
+        router: MessageRouter;
         onError?: (error: any, ctx: Context) => void;
     }) {
-        const inputLogFunc = (input: any) => {
-            getLogger().info({
-                category: 'Nimbus',
-                ...(input?.data?.correlationId && {
-                    correlationId: input.data.correlationId,
-                }),
-                message:
-                    `${input?.data?.correlationId} - [Query] ${input?.type} from ${input?.source}`,
-            });
-        };
-
-        super.post(path, async (ctx: Context) => {
-            try {
-                const requestBody = await ctx.request.body.json();
-
-                const nimbusRouter = createRouter({
-                    type: 'query',
-                    handlerMap: {
-                        [type]: {
-                            handler,
-                            allowUnsafeInput: allowUnsafeInput ?? false,
-                        },
-                    },
-                    inputLogFunc,
-                });
-
-                // TODO: How do we implement the authentication context?
-                // data: {
-                //     ...(ctx.state.authContext && {
-                //         authContext: ctx.state.authContext,
-                //     }),
-                // },
-
-                const result = await nimbusRouter(requestBody);
-
-                this._handleNimbusRouterSuccess(result, ctx);
-            } catch (error: any) {
-                this._handleNimbusRouterError(error, ctx, onError);
-            }
-        });
-    }
-
-    private _handleNimbusRouterSuccess(
-        result: RouteHandlerResult<any>,
-        ctx: Context,
-    ) {
-        ctx.response.status = result.statusCode;
-
-        if (result.headers) {
-            for (const header of Object.keys(result.headers)) {
-                ctx.response.headers.set(
-                    header,
-                    result.headers[header],
-                );
-            }
-        }
-
-        if (result.data) {
-            ctx.response.body = result.data;
-        }
-    }
-
-    private _handleNimbusRouterError(
-        error: any,
-        ctx: Context,
-        onError?: (error: any, ctx: Context) => void,
-    ) {
-        if (onError) {
-            onError(error, ctx);
-        } else {
-            getLogger().error({
-                category: 'Nimbus',
-                message: error.message,
-                error,
-            });
-
-            const statusCode = error.statusCode ?? 500;
-            ctx.response.status = statusCode;
-
-            if (statusCode < 500) {
-                ctx.response.body = {
-                    statusCode,
-                    ...(error.details ? { code: error.name } : {}),
-                    ...(error.message ? { message: error.message } : {}),
-                    ...(error.details ? { details: error.details } : {}),
-                };
-            } else {
-                ctx.response.body = {
-                    message: 'Internal server error',
-                };
-            }
-        }
+        super.post(path, createOakMessageHandler(router, { onError }));
     }
 }

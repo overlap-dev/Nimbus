@@ -2,15 +2,15 @@ import EventEmitter from 'node:events';
 import { GenericException } from '../exception/genericException.ts';
 import { getLogger } from '../log/logger.ts';
 import type { Event } from '../message/event.ts';
-import type { RouteHandler, Router } from '../router/router.ts';
-import { createRouter } from '../router/router.ts';
+import type { MessageHandler } from '../router/router.ts';
+import { MessageRouter } from '../router/router.ts';
 
 /**
  * The input type for subscribing to an event.
  */
 export type SubscribeEventInput = {
     type: string;
-    handler: RouteHandler;
+    handler: MessageHandler<Event, any>;
     allowUnsafeInput?: boolean;
     onError?: (error: any, event: Event) => void;
     options?: NimbusEventBusOptions;
@@ -47,6 +47,7 @@ export type NimbusEventBusOptions = {
  *     time: '2025-01-01T00:00:00Z',
  *     source: 'https://nimbus.overlap.at',
  *     type: 'at.overlap.nimbus.account-added',
+ *     subject: '/accounts/123',
  *     data: {
  *         accountId: '123',
  *     },
@@ -96,6 +97,7 @@ export class NimbusEventBus {
      *     time: '2025-01-01T00:00:00Z',
      *     source: 'https://nimbus.overlap.at',
      *     type: 'at.overlap.nimbus.account-added',
+     *     subject: '/accounts/123',
      *     data: {
      *         accountId: '123',
      *     },
@@ -114,7 +116,7 @@ export class NimbusEventBus {
      * Subscribe to an event.
      *
      * @param {string} eventType - The type of event to subscribe to.
-     * @param {RouteHandler} handler - The handler to call when the event got published.
+     * @param {MessageHandler} handler - The handler to call when the event got published.
      * @param {Function} [onError] - The function to call when the event could not be handled after the maximum number of retries.
      * @param {NimbusEventBusOptions} [options] - The options for the event bus.
      * @param {number} [options.maxRetries] - The maximum number of retries for handling the event in case of an error.
@@ -144,15 +146,12 @@ export class NimbusEventBus {
         const maxRetries = options?.maxRetries ?? this._maxRetries;
         const retryDelay = options?.retryDelay ?? this._retryDelay;
 
-        const nimbusRouter = createRouter({
-            type: 'event',
-            handlerMap: {
-                [type]: {
-                    handler,
-                    ...(allowUnsafeInput && { allowUnsafeInput }),
-                },
-            },
-            inputLogFunc: this._logInput,
+        const nimbusRouter = new MessageRouter('event', {
+            logInput: this._logInput,
+        });
+
+        nimbusRouter.register(type, handler, {
+            allowUnsafeInput: allowUnsafeInput ?? false,
         });
 
         const handleEvent = async (event: Event) => {
@@ -191,7 +190,7 @@ export class NimbusEventBus {
     }
 
     private async _processEvent(
-        nimbusRouter: Router,
+        nimbusRouter: MessageRouter,
         event: Event,
         maxRetries: number,
         retryDelay: number,
@@ -200,7 +199,7 @@ export class NimbusEventBus {
 
         while (attempt < maxRetries) {
             try {
-                await nimbusRouter(event);
+                await nimbusRouter.route(event);
                 break;
             } catch (error: any) {
                 attempt++;

@@ -13,7 +13,9 @@
   "homepage": "https://nimbus.overlap.at",
   "exports": "./src/index.ts",
   "fmt": {
-    "include": ["src/"],
+    "include": [
+      "src/"
+    ],
     "useTabs": false,
     "lineWidth": 80,
     "indentWidth": 4,
@@ -22,13 +24,20 @@
     "proseWrap": "always"
   },
   "lint": {
-    "include": ["src/"],
+    "include": [
+      "src/"
+    ],
     "rules": {
-      "exclude": ["no-explicit-any", "no-slow-types"]
+      "exclude": [
+        "no-explicit-any",
+        "no-slow-types"
+      ]
     }
   },
   "test": {
-    "include": ["src/"]
+    "include": [
+      "src/"
+    ]
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@^1.0.10",

@@ -10,8 +10,6 @@ import { querySchema } from '../message/query.ts';
 import _addFormats from 'ajv-formats';
 const addFormats = _addFormats as unknown as typeof _addFormats.default;
 
-// TODO: check out https://github.com/standard-schema/standard-schema?tab=readme-ov-file to have it more agnostic like the elysia lib https://elysiajs.com/essential/validation.html
-
 export type ValidatorOptions = {
     ajv?: Ajv;
 };

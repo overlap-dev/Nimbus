@@ -351,7 +351,7 @@
       },
       "packages/oak": {
         "dependencies": [
-          "jsr:@oak/oak@^17.1.4",
+          "jsr:@oak/oak@^17.1.6",
           "jsr:@std/ulid@1",
           "npm:ajv@^8.17.1",
           "npm:zod@^3.24.1"

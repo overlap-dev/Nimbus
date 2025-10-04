@@ -1,9 +1,77 @@
 import type { SchemaObject } from 'ajv';
 import { GenericException } from '../exception/genericException.ts';
+import type { Command } from '../message/command.ts';
 import { type Event, eventSchema } from '../message/event.ts';
-import type { RouteHandler, RouteHandlerMap } from './router.ts';
+import type { Query } from '../message/query.ts';
+import type { MessageHandler } from './router.ts';
 
-type TestEventData = {
+// =============================================================================
+// Command Fixtures
+// =============================================================================
+
+export type TestCommandData = {
+    aNumber: number;
+};
+
+export const testCommand: Command<TestCommandData> = {
+    specversion: '1.0',
+    id: '123',
+    correlationid: '456',
+    time: '2025-01-01T00:00:00Z',
+    source: 'https://nimbus.overlap.at',
+    type: 'at.overlap.nimbus.test-command',
+    data: {
+        aNumber: 42,
+    },
+    datacontenttype: 'application/json',
+};
+
+export const testCommandHandler: MessageHandler<
+    Command<TestCommandData>,
+    TestCommandData
+> = async (command) => {
+    return command.data;
+};
+
+// =============================================================================
+// Query Fixtures
+// =============================================================================
+
+export type TestQueryData = {
+    filter: string;
+};
+
+export type TestQueryResult = {
+    foo: string;
+};
+
+export const testQuery: Query<TestQueryData> = {
+    specversion: '1.0',
+    id: '123',
+    correlationid: '456',
+    time: '2025-01-01T00:00:00Z',
+    source: 'https://nimbus.overlap.at',
+    type: 'at.overlap.nimbus.test-query',
+    data: {
+        filter: '42',
+    },
+    datacontenttype: 'application/json',
+};
+
+export const testQueryHandler: MessageHandler<
+    Query<TestQueryData>,
+    TestQueryResult
+> = async () => {
+    return {
+        foo: 'bar',
+    };
+};
+
+// =============================================================================
+// Event Fixtures
+// =============================================================================
+
+export type TestEventData = {
     testException: boolean;
     aNumber: number;
 };
@@ -27,9 +95,6 @@ export const testEventSchema: SchemaObject = {
     },
 };
 
-/**
- * A test event without an exception
- */
 export const testEvent: Event<TestEventData> = {
     specversion: '1.0',
     id: '123',
@@ -46,9 +111,6 @@ export const testEvent: Event<TestEventData> = {
     dataschema: 'https://api.nimbus.overlap.at/schemas/event/test/v1',
 };
 
-/**
- * A test event without an exception
- */
 export const testEventWithException: Event<TestEventData> = {
     specversion: '1.0',
     id: '123',
@@ -65,9 +127,6 @@ export const testEventWithException: Event<TestEventData> = {
     dataschema: 'https://api.nimbus.overlap.at/schemas/event/test/v1',
 };
 
-/**
- * A test event without an exception
- */
 export const testEventWithInvalidData: Event<any> = {
     specversion: '1.0',
     id: '123',
@@ -84,30 +143,13 @@ export const testEventWithInvalidData: Event<any> = {
     dataschema: 'https://api.nimbus.overlap.at/schemas/event/test/v1',
 };
 
-/**
- * The handler for the TestEvent.
- */
-export const testEventHandler: RouteHandler<Event<TestEventData>> = (
-    event,
-) => {
+export const testEventHandler: MessageHandler<
+    Event<TestEventData>,
+    TestEventData
+> = async (event) => {
     if (event.data?.testException) {
-        throw new GenericException();
+        throw new GenericException('Test exception thrown');
     }
 
-    return Promise.resolve({
-        statusCode: 200,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        data: event.data,
-    });
-};
-
-/**
- * The handler map for the TestEvent.
- */
-export const eventHandlerMap: RouteHandlerMap<Event<any>> = {
-    'at.overlap.nimbus.test-event': {
-        handler: testEventHandler,
-    },
+    return event.data;
 };

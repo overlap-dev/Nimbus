@@ -1,11 +1,10 @@
-import { getLogger, Query, RouteHandlerResult } from '@nimbus/core';
-import { Context } from '@oak/oak/context';
-import { Router as OakRouter } from '@oak/oak/router';
+import { getLogger, Query } from '@nimbus/core';
+import { handleOakError, NimbusOakRouter } from '@nimbus/oak';
 import { mongoManager } from '../mongodb.ts';
 import { commandRouter } from './commandRouter.ts';
 import { queryRouter } from './queryRouter.ts';
 
-export const router = new OakRouter();
+export const router = new NimbusOakRouter();
 
 router.get('/health', async (ctx) => {
     const logger = getLogger();
@@ -40,25 +39,13 @@ router.get('/health', async (ctx) => {
     };
 });
 
-router.post('/command', async (ctx) => {
-    try {
-        const requestBody = await ctx.request.body.json();
-
-        // TODO: How do we implement the authentication context?
-        // data: {
-        //     ...(ctx.state.authContext && {
-        //         authContext: ctx.state.authContext,
-        //     }),
-        // },
-
-        const result = await commandRouter(requestBody);
-
-        _handleNimbusRouterSuccess(result, ctx);
-    } catch (error: any) {
-        _handleNimbusRouterError(error, ctx);
-    }
+// Command endpoint - uses the Oak adapter to bridge MessageRouter to HTTP
+router.command({
+    path: '/command',
+    router: commandRouter,
 });
 
+// Query endpoint - uses the Oak adapter to bridge MessageRouter to HTTP
 router.get('/query', async (ctx) => {
     try {
         const queryParams: Record<string, string> = {};
@@ -93,62 +80,11 @@ router.get('/query', async (ctx) => {
         //     }),
         // },
 
-        const result = await queryRouter(queryObject);
+        const result = await queryRouter.route(queryObject);
 
-        _handleNimbusRouterSuccess(result, ctx);
+        ctx.response.status = 200;
+        ctx.response.body = result as any;
     } catch (error: any) {
-        _handleNimbusRouterError(error, ctx);
+        handleOakError(error, ctx);
     }
 });
-
-const _handleNimbusRouterSuccess = (
-    result: RouteHandlerResult<any>,
-    ctx: Context,
-) => {
-    ctx.response.status = result.statusCode;
-
-    if (result.headers) {
-        for (const header of Object.keys(result.headers)) {
-            ctx.response.headers.set(
-                header,
-                result.headers[header],
-            );
-        }
-    }
-
-    if (result.data) {
-        ctx.response.body = result.data;
-    }
-};
-
-const _handleNimbusRouterError = (
-    error: any,
-    ctx: Context,
-    onError?: (error: any, ctx: Context) => void,
-) => {
-    if (onError) {
-        onError(error, ctx);
-    } else {
-        getLogger().error({
-            category: 'Nimbus',
-            message: error.message,
-            error,
-        });
-
-        const statusCode = error.statusCode ?? 500;
-        ctx.response.status = statusCode;
-
-        if (statusCode < 500) {
-            ctx.response.body = {
-                statusCode,
-                ...(error.details ? { code: error.name } : {}),
-                ...(error.message ? { message: error.message } : {}),
-                ...(error.details ? { details: error.details } : {}),
-            };
-        } else {
-            ctx.response.body = {
-                message: 'Internal server error',
-            };
-        }
-    }
-};
