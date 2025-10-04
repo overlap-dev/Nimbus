@@ -11,11 +11,13 @@ const makeMemoryRepository = (): RecipeRepository => {
             return ulid();
         },
 
+        // deno-lint-ignore require-await
         insert: async (recipe) => {
             store.set(recipe.slug, recipe);
             return recipe;
         },
 
+        // deno-lint-ignore require-await
         update: async (recipe) => {
             const existingRecipe = store.get(recipe.slug);
 
@@ -29,6 +31,7 @@ const makeMemoryRepository = (): RecipeRepository => {
             return recipe;
         },
 
+        // deno-lint-ignore require-await
         delete: async (slug) => {
             const recipe = store.get(slug);
 
@@ -41,6 +44,7 @@ const makeMemoryRepository = (): RecipeRepository => {
             store.delete(slug);
         },
 
+        // deno-lint-ignore require-await
         getBySlug: async (slug) => {
             const recipe = store.get(slug);
 
@@ -53,6 +57,7 @@ const makeMemoryRepository = (): RecipeRepository => {
             return recipe;
         },
 
+        // deno-lint-ignore require-await
         list: async (options) => {
             const limit = options?.limit ?? 10;
             const offset = options?.offset ?? 0;
@@ -67,6 +72,7 @@ const makeMemoryRepository = (): RecipeRepository => {
                 .slice(offset, offset + limit);
         },
 
+        // deno-lint-ignore require-await
         count: async (options) => {
             const filter = options?.filter ?? {};
 

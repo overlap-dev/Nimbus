@@ -4,15 +4,13 @@ import {
     prettyLogFormatter,
     setupLogger,
 } from '@nimbus/core';
-import { requestCorrelationId } from '@nimbus/oak';
 import { Application } from '@oak/oak/application';
+import '@std/dotenv/load';
 import { oakCors } from '@tajpouria/cors';
-import 'jsr:@std/dotenv/load';
 import process from 'node:process';
 import { exampleAuthMiddleware } from './contexts/iam/infrastructure/http/auth.middleware.ts';
-import { initEventBusSubscriptions } from './eventBus.ts';
-import { initMongoConnectionManager } from './mongodb.ts';
-import { router } from './router.ts';
+import { initMongoConnectionManager } from './shared/mongodb.ts';
+import { router } from './shared/routing/httpRouter.ts';
 
 //
 // Setup logging with basic options provided by Nimbus
@@ -30,9 +28,6 @@ setupLogger({
 // Initialize MongoDB Manager
 initMongoConnectionManager();
 
-// Initialize Event Bus Subscriptions
-initEventBusSubscriptions();
-
 // Oak HTTP Server APP
 const app = new Application();
 
@@ -47,9 +42,6 @@ app.addEventListener('listen', ({ hostname, port, secure }) => {
 // CORS Middleware
 app.use(oakCors());
 
-// Correlation ID Middleware
-app.use(requestCorrelationId);
-
 // Auth Middleware
 app.use(exampleAuthMiddleware);
 
@@ -58,4 +50,4 @@ app.use(router.routes());
 app.use(router.allowedMethods());
 
 // Get the server started
-app.listen({ port: 3100 });
+app.listen({ hostname: '0.0.0.0', port: 3100 });

@@ -1,21 +1,23 @@
-import { Event, getLogger } from '@nimbus/core';
-import { z } from 'zod';
-import { RecipeSlug } from '../domain/recipe.ts';
+import { type Event, getLogger } from '@nimbus/core';
+import { Recipe } from '../domain/recipe.ts';
+import { RecipeRepository } from '../ports/recipeRepository.ts';
 
-export const RecipeAddedEvent = Event(
-    z.literal('recipe.added'),
-    z.object({
-        slug: RecipeSlug,
-        name: z.string(),
-    }),
-);
-export type RecipeAddedEvent = z.infer<typeof RecipeAddedEvent>;
+export const RecipeAddedCommandType = 'at.overlap.nimbus.recipe-added' as const;
 
-export const recipeAdded = (
+export type RecipeAddedEvent = Event<Recipe> & {
+    type: typeof RecipeAddedCommandType;
+};
+
+export const recipeAdded = async (
     event: RecipeAddedEvent,
+    repository: RecipeRepository,
 ) => {
     getLogger().info({
         message: 'recipeAdded Handler',
-        data: event,
+        data: event.data,
     });
+
+    const recipe = await repository.insert(event.data);
+
+    return recipe;
 };

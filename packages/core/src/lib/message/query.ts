@@ -9,6 +9,7 @@
  *
  * @property {string} specversion - The version of the CloudEvents specification which the query uses.
  * @property {string} id - A globally unique identifier of the query.
+ * @property {string} correlationid - A globally unique identifier that indicates a correlation to previous and subsequent messages to this query.
  * @property {string} time - The time when the query was created.
  * @property {string} source - A URI reference that identifies the system that is constructing the query.
  * @property {string} type - The type must follow the CloudEvents naming convention, which uses a reversed domain name as a namespace, followed by a domain-specific name.
@@ -35,6 +36,7 @@
 export type Query<TData = unknown> = {
     specversion: '1.0';
     id: string;
+    correlationid: string;
     time: string;
     source: string;
     type: string;
@@ -49,6 +51,7 @@ export const querySchema = {
     required: [
         'specversion',
         'id',
+        'correlationid',
         'time',
         'source',
         'type',
@@ -59,6 +62,10 @@ export const querySchema = {
             const: '1.0',
         },
         id: {
+            type: 'string',
+            minLength: 1,
+        },
+        correlationid: {
             type: 'string',
             minLength: 1,
         },

@@ -7,6 +7,12 @@ import type { Message } from '../message/message.ts';
 import { type Query, querySchema } from '../message/query.ts';
 import { getValidator } from '../validator/validator.ts';
 
+// TODO: we want to rework the router concept.  Do We ???
+// Nimbus should be framework agnostic and other Frameworks like Oak, Fastify, Elysia should used for routing.
+// So we want to provide a higher order handler function that can take some options and a logic function.
+// This higher order handler function will do the message validation, logging and tracing etc. and will execute the logic function.
+// This way the full handler can be used in any other frameworks routing or event/message bus system.
+
 /**
  * The result type of a route handler.
  *
@@ -24,7 +30,10 @@ export type RouteHandlerResult<TData = unknown> = {
  * @template TInput - The type of the input to the route handler.
  * @template TOutputData - The type of the data returned by the route handler.
  */
-export type RouteHandler<TInput = Message, TOutputData = unknown> = (
+export type RouteHandler<
+    TInput extends Message = Message,
+    TOutputData = unknown,
+> = (
     input: TInput,
 ) => Promise<RouteHandlerResult<TOutputData>>;
 
@@ -34,7 +43,7 @@ export type RouteHandler<TInput = Message, TOutputData = unknown> = (
  * @template TInput - The type of the input to the route handler.
  * @template TOutputData - The type of the data returned by the route handler.
  */
-export type RouteHandlerMap<TInput = Message> = Record<
+export type RouteHandlerMap<TInput extends Message> = Record<
     string,
     {
         handler: RouteHandler<TInput, any>;
@@ -57,7 +66,7 @@ export type Router<TOutputData = unknown> = (
  * @template TInput - The type of the input to the router.
  * @template TResultData - The type of the data returned by the router.
  */
-export type CreateRouterInput<TInput = Message> = {
+export type CreateRouterInput<TInput extends Message> = {
     type: 'command' | 'query' | 'event';
     handlerMap: RouteHandlerMap<TInput>;
     inputLogFunc?: (input: unknown) => void;
@@ -112,7 +121,7 @@ export type CreateRouterInput<TInput = Message> = {
  * });
  * ```
  */
-export const createRouter = <TInput = Message>({
+export const createRouter = <TInput extends Message = Message>({
     type,
     handlerMap,
     inputLogFunc,

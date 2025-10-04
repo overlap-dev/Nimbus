@@ -1,6 +1,5 @@
-import { CloudEvent, GenericException } from '@nimbus/core';
+import { GenericException } from '@nimbus/core';
 import { getEnv } from '@nimbus/utils';
-import { z } from 'zod';
 import { EventStore, EventStoreReadOptions } from '../ports/eventStore.ts';
 
 // TODO: this implementation should be moved to @nimbus/eventsourcingdb
@@ -54,11 +53,7 @@ const makeEventSourcingDBEventStore = (): EventStore => {
                     });
                 }
 
-                const writtenEvents = items.map((item: any) =>
-                    CloudEvent(z.string(), z.any()).parse(item)
-                );
-
-                return writtenEvents;
+                return items;
             } else {
                 throw new GenericException('Failed to parse events', {
                     reason: 'Response was not an array of events',
@@ -128,9 +123,7 @@ const makeEventSourcingDBEventStore = (): EventStore => {
             }
 
             // Parse all items to Nimbus objects and ensure type safety.
-            const events = items.map((item) =>
-                CloudEvent(z.string(), z.any()).parse(item.payload)
-            );
+            const events = items.map((item) => item.payload);
 
             return events;
         },

@@ -1,6 +1,5 @@
 import { RouteHandler } from '@nimbus/core';
-import { eventBus } from '../../../../eventBus.ts';
-import { eventSourcingDBEventStore } from '../../../../shared/adapters/eventsourcingdbEventStore.ts';
+import { eventSourcingDBEventStore } from '../../../../shared/adapters/eventSourcingDBEventStore.ts';
 import { addRecipe, AddRecipeCommand } from '../../core/commands/addRecipe.ts';
 import { Recipe } from '../../core/domain/recipe.ts';
 
@@ -11,7 +10,6 @@ export const addRecipeHandler: RouteHandler<
     const result = await addRecipe(
         command,
         eventSourcingDBEventStore,
-        eventBus,
     );
 
     return {

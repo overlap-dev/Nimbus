@@ -1,0 +1,5 @@
+.env
+.env.*
+.otel_token
+*.pem
+*.key

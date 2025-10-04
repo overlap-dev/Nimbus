@@ -1,39 +1,39 @@
-import {
-    AuthContext,
-    Command,
-    createEvent,
-    InvalidInputException,
-} from '@nimbus/core';
+import { Command, InvalidInputException } from '@nimbus/core';
 import { getEnv } from '@nimbus/utils';
-import { z } from 'zod';
+import { ulid } from '@std/ulid';
 import { EventStore } from '../../../../shared/ports/eventStore.ts';
 import { Recipe } from '../domain/recipe.ts';
-import { RecipeAddedEvent } from '../events/recipeAdded.ts';
-import { RecipeEventBus } from '../ports/recipeEventBus.ts';
+import {
+    RecipeAddedCommandType,
+    RecipeAddedEvent,
+} from '../events/recipeAdded.ts';
 
-export const AddRecipeCommand = Command(
-    z.literal('recipe.add'),
-    Recipe,
-    AuthContext,
-);
-export type AddRecipeCommand = z.infer<typeof AddRecipeCommand>;
+export const AddRecipeCommandType = 'at.overlap.nimbus.app-recipe' as const;
+
+export type AddRecipeCommand = Command<Recipe> & {
+    type: typeof AddRecipeCommandType;
+};
 
 export const addRecipe = async (
     command: AddRecipeCommand,
     eventStore: EventStore,
-    eventBus: RecipeEventBus,
 ): Promise<Recipe> => {
-    const { EVENT_SOURCE, EVENT_TYPE_PREFIX } = getEnv({
+    const { EVENT_SOURCE } = getEnv({
         variables: ['EVENT_SOURCE', 'EVENT_TYPE_PREFIX'],
     });
 
-    const recipeAddedEvent = createEvent<RecipeAddedEvent>({
+    const recipeAddedEvent: RecipeAddedEvent = {
+        specversion: '1.0',
+        id: ulid(),
+        correlationid: command.correlationid,
+        time: new Date().toISOString(),
         source: EVENT_SOURCE,
-        subject: `/recipes/${command.data.payload.slug}`,
-        type: `${EVENT_TYPE_PREFIX}.recipe-added`,
-        data: command.data.payload,
+        type: RecipeAddedCommandType,
+        subject: `/recipes/${command.data.slug}`,
+        data: command.data,
         datacontenttype: 'application/json',
-    });
+        // TODO: add dataschema
+    };
 
     const replayedEvents = await eventStore.readEvents(
         recipeAddedEvent.subject,
@@ -58,9 +58,8 @@ export const addRecipe = async (
 
     console.log('writtenEvents', writtenEvents);
 
-    eventBus.putEvent<RecipeAddedEvent>(recipeAddedEvent);
     // TODO: Next work on the readModels and the projectors which update the readModels based on the events.
     // On application startup we need to replay all events to rebuild the readModels.
 
-    return command.data.payload;
+    return command.data;
 };

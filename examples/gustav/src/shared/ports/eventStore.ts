@@ -1,4 +1,4 @@
-import { CloudEvent } from '@nimbus/core';
+import { Event } from '@nimbus/core';
 
 // TODO: this interface should be moved to @nimbus/core
 
@@ -31,10 +31,10 @@ export type EventStoreMarker = {
 export interface EventStore {
     writeEvents: (
         events: EventStoreWriteEvent[],
-    ) => Promise<CloudEvent<string, any>[]>;
+    ) => Promise<Event[]>;
 
     readEvents: (
         subject: string,
         options?: EventStoreReadOptions,
-    ) => Promise<CloudEvent<string, any>[]>;
+    ) => Promise<Event[]>;
 }

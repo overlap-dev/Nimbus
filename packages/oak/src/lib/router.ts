@@ -1,13 +1,13 @@
 import {
+    type Command,
     createRouter,
     getLogger,
+    type Query,
     type RouteHandler,
     type RouteHandlerResult,
 } from '@nimbus/core';
 import type { Context } from '@oak/oak/context';
 import { Router as OakRouter, type RouterOptions } from '@oak/oak/router';
-import { ulid } from '@std/ulid';
-import type { ZodType } from 'zod';
 
 /**
  * The NimbusOakRouter extends the Oak Router
@@ -24,17 +24,23 @@ export class NimbusOakRouter extends OakRouter {
      *
      * @param {string} path - Oak request path
      * @param {string} commandType - Type of the command
-     * @param {ZodType} commandSchema - Schema (ZodType) of the command
      * @param {RouteHandler} handler - Nimbus Route Handler function
+     * @param {AnySchema} commandSchema - JSON Schema of the command
      * @param {Function} onError - Optional function to customize error handling
      */
-    command(
-        path: string,
-        commandType: string,
-        commandSchema: ZodType,
-        handler: RouteHandler,
-        onError?: (error: any, ctx: Context) => void,
-    ) {
+    command<TInput extends Command = Command, TOutput = unknown>({
+        path,
+        type,
+        handler,
+        allowUnsafeInput,
+        onError,
+    }: {
+        path: string;
+        type: string;
+        handler: RouteHandler<TInput, TOutput>;
+        allowUnsafeInput?: boolean;
+        onError?: (error: any, ctx: Context) => void;
+    }) {
         const inputLogFunc = (input: any) => {
             getLogger().info({
                 category: 'Nimbus',
@@ -48,32 +54,27 @@ export class NimbusOakRouter extends OakRouter {
 
         super.post(path, async (ctx: Context) => {
             try {
-                const correlationId = ctx.state.correlationId ?? ulid();
                 const requestBody = await ctx.request.body.json();
 
                 const nimbusRouter = createRouter({
+                    type: 'command',
                     handlerMap: {
-                        [commandType]: {
+                        [type]: {
                             handler,
-                            inputType: commandSchema,
+                            allowUnsafeInput: allowUnsafeInput ?? false,
                         },
                     },
                     inputLogFunc,
                 });
 
-                const result = await nimbusRouter({
-                    specversion: '1.0',
-                    id: correlationId,
-                    source: ctx.request.url.toString(),
-                    type: commandType,
-                    data: {
-                        correlationId: correlationId,
-                        payload: requestBody,
-                        ...(ctx.state.authContext && {
-                            authContext: ctx.state.authContext,
-                        }),
-                    },
-                });
+                // TODO: How do we implement the authentication context?
+                // data: {
+                //     ...(ctx.state.authContext && {
+                //         authContext: ctx.state.authContext,
+                //     }),
+                // },
+
+                const result = await nimbusRouter(requestBody);
 
                 this._handleNimbusRouterSuccess(result, ctx);
             } catch (error: any) {
@@ -87,17 +88,23 @@ export class NimbusOakRouter extends OakRouter {
      *
      * @param {string} path - Oak request path
      * @param {string} queryType - Type of the query
-     * @param {ZodType} querySchema - Schema (ZodType) of the query
+     * @param {boolean} allowUnsafeInput - Allow unsafe input
      * @param {RouteHandler} handler - Nimbus Route Handler function
      * @param {Function} onError - Optional function to customize error handling
      */
-    query(
-        path: string,
-        queryType: string,
-        querySchema: ZodType,
-        handler: RouteHandler,
-        onError?: (error: any, ctx: Context) => void,
-    ) {
+    query<TInput extends Query = Query, TOutput = unknown>({
+        path,
+        type,
+        allowUnsafeInput,
+        handler,
+        onError,
+    }: {
+        path: string;
+        type: string;
+        handler: RouteHandler<TInput, TOutput>;
+        allowUnsafeInput?: boolean;
+        onError?: (error: any, ctx: Context) => void;
+    }) {
         const inputLogFunc = (input: any) => {
             getLogger().info({
                 category: 'Nimbus',
@@ -109,44 +116,29 @@ export class NimbusOakRouter extends OakRouter {
             });
         };
 
-        super.get(path, async (ctx: Context) => {
+        super.post(path, async (ctx: Context) => {
             try {
-                const correlationId = ctx.state.correlationId ?? ulid();
-                const pathParams = (ctx as any).params;
-
-                const queryParams: Record<string, string> = {};
-                for (
-                    const [key, value] of ctx.request.url.searchParams.entries()
-                ) {
-                    queryParams[key] = value;
-                }
+                const requestBody = await ctx.request.body.json();
 
                 const nimbusRouter = createRouter({
+                    type: 'query',
                     handlerMap: {
-                        [queryType]: {
+                        [type]: {
                             handler,
-                            inputType: querySchema,
+                            allowUnsafeInput: allowUnsafeInput ?? false,
                         },
                     },
                     inputLogFunc,
                 });
 
-                const result = await nimbusRouter({
-                    specversion: '1.0',
-                    id: correlationId,
-                    source: ctx.request.url.toString(),
-                    type: queryType,
-                    data: {
-                        correlationId: correlationId,
-                        payload: {
-                            ...queryParams,
-                            ...pathParams,
-                        },
-                        ...(ctx.state.authContext && {
-                            authContext: ctx.state.authContext,
-                        }),
-                    },
-                });
+                // TODO: How do we implement the authentication context?
+                // data: {
+                //     ...(ctx.state.authContext && {
+                //         authContext: ctx.state.authContext,
+                //     }),
+                // },
+
+                const result = await nimbusRouter(requestBody);
 
                 this._handleNimbusRouterSuccess(result, ctx);
             } catch (error: any) {
