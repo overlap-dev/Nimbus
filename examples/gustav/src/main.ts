@@ -9,8 +9,9 @@ import '@std/dotenv/load';
 import { oakCors } from '@tajpouria/cors';
 import process from 'node:process';
 import { exampleAuthMiddleware } from './contexts/iam/infrastructure/http/auth.middleware.ts';
+import { router } from './shared/http/router.ts';
+import { registerSchemas } from './shared/http/schemas.ts';
 import { initMongoConnectionManager } from './shared/mongodb.ts';
-import { router } from './shared/routing/httpRouter.ts';
 
 //
 // Setup logging with basic options provided by Nimbus
@@ -24,6 +25,9 @@ setupLogger({
         : jsonLogFormatter,
     useConsoleColors: process.env.LOG_FORMAT === 'pretty',
 });
+
+// Register JSON schemas for validation
+registerSchemas();
 
 // Initialize MongoDB Manager
 initMongoConnectionManager();

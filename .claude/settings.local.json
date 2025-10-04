@@ -5,7 +5,8 @@
       "Bash(deno add:*)",
       "Bash(deno task:*)",
       "Bash(deno check:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(deno doc:*)"
     ],
     "deny": [],
     "ask": []

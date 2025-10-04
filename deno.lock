@@ -318,6 +318,7 @@
           "jsr:@std/dotenv@~0.225.5",
           "jsr:@std/ulid@1",
           "jsr:@tajpouria/cors@^1.2.1",
+          "npm:ajv@^8.17.1",
           "npm:effect@^3.17.9",
           "npm:mongodb@^6.12.0",
           "npm:zod@^3.24.1"

@@ -1,6 +1,6 @@
 import { getLogger, MessageRouter } from '@nimbus/core';
-import { GetRecipeQueryType } from '../../contexts/recipe/core/queries/getRecipe.ts';
-import { getRecipeHandler } from '../../contexts/recipe/infrastructure/router/getRecipe.handler.ts';
+import { GetRecipeQueryType } from '../../core/queries/getRecipe.ts';
+import { getRecipeHandler } from './handler/getRecipe.handler.ts';
 
 export const queryRouter = new MessageRouter('query', {
     logInput: (input: any) => {
@@ -18,5 +18,4 @@ export const queryRouter = new MessageRouter('query', {
 queryRouter.register(
     GetRecipeQueryType,
     getRecipeHandler,
-    { allowUnsafeInput: true },
 );

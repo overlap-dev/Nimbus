@@ -1,6 +1,14 @@
-import { getLogger, type MessageRouter } from '@nimbus/core';
+import {
+    getLogger,
+    type MessageRouter,
+} from '@nimbus/core';
 import type { Context } from '@oak/oak/context';
-import { Router as OakRouter, type RouterOptions } from '@oak/oak/router';
+import {
+    Router as OakRouter,
+    type RouterContext,
+    type RouterOptions,
+} from '@oak/oak/router';
+import { ulid } from '@std/ulid';
 
 /**
  * Options for handling errors in Oak routes.
@@ -10,40 +18,36 @@ export type OakErrorHandlerOptions = {
 };
 
 /**
- * Helper to create an Oak middleware that handles a Nimbus MessageRouter.
- * This bridges the MessageRouter (transport-agnostic) to Oak's HTTP context.
- *
- * @param {MessageRouter} router - The Nimbus MessageRouter instance
- * @param {OakErrorHandlerOptions} options - Optional options for error handling
- *
- * @returns {Function} The Oak middleware function
+ * Function to extract data from Oak RouterContext for a message.
  */
-export function createOakMessageHandler(
-    router: MessageRouter,
-    options?: OakErrorHandlerOptions,
-): (ctx: Context) => Promise<void> {
-    return async (ctx: Context) => {
-        try {
-            const requestBody = await ctx.request.body.json();
-            const result = await router.route(requestBody);
+export type DataExtractor<TData = any> = (ctx: RouterContext<any>) => TData | Promise<TData>;
 
-            // Default HTTP response
-            ctx.response.status = 200;
-            ctx.response.body = result as any;
-        } catch (error: any) {
-            handleOakError(error, ctx, options?.onError);
-        }
-    };
-}
+/**
+ * Options for registering a command route.
+ */
+export type CommandRouteOptions<TData = any> = {
+    path: string;
+    messageType: string;
+    router: MessageRouter;
+    extractData?: DataExtractor<TData>;
+    dataschema?: string;
+    onError?: (error: any, ctx: Context) => void;
+};
+
+/**
+ * Options for registering a query route.
+ */
+export type QueryRouteOptions<TData = any> = {
+    path: string;
+    messageType: string;
+    router: MessageRouter;
+    extractData: DataExtractor<TData>;
+    dataschema?: string;
+    onError?: (error: any, ctx: Context) => void;
+};
 
 /**
  * Default error handler for Oak routes that maps Nimbus exceptions to HTTP responses.
- *
- * @param {any} error - The error to handle.
- * @param {Context} ctx - The Oak context.
- * @param {Function} customHandler - Optional custom error handler.
- *
- * @returns {void}
  */
 export function handleOakError(
     error: any,
@@ -79,21 +83,38 @@ export function handleOakError(
 }
 
 /**
- * The NimbusOakRouter extends the Oak Router to provide
- * convenient methods for registering Nimbus message handlers.
+ * The NimbusOakRouter extends Oak Router to provide convenient methods
+ * for routing HTTP requests to Nimbus MessageRouter handlers.
+ *
+ * It automatically constructs CloudEvents message envelopes from HTTP requests
+ * and handles response mapping.
  *
  * @example
  * ```ts
  * import { NimbusOakRouter } from "@nimbus/oak";
+ * import { MessageRouter } from "@nimbus/core";
  *
- * const router = new NimbusOakRouter();
+ * const queryRouter = new MessageRouter('query');
+ * queryRouter.register('at.overlap.nimbus.get-recipe', getRecipeHandler);
+ *
  * const commandRouter = new MessageRouter('command');
- *
  * commandRouter.register('at.overlap.nimbus.add-recipe', addRecipeHandler);
  *
- * router.command({
- *     path: '/command',
- *     router: commandRouter,
+ * const httpRouter = new NimbusOakRouter();
+ *
+ * // Query route (GET)
+ * httpRouter.query({
+ *   path: '/recipes/:slug',
+ *   messageType: 'at.overlap.nimbus.get-recipe',
+ *   router: queryRouter,
+ *   extractData: (ctx) => ({ slug: ctx.params.slug }),
+ * });
+ *
+ * // Command route (POST)
+ * httpRouter.command({
+ *   path: '/recipes',
+ *   messageType: 'at.overlap.nimbus.add-recipe',
+ *   router: commandRouter,
  * });
  * ```
  */
@@ -103,62 +124,203 @@ export class NimbusOakRouter extends OakRouter {
     }
 
     /**
-     * Routes POST requests to a Nimbus command router.
+     * Register a GET route that maps to a query message.
      *
-     * @param {string} path - Oak request path
-     * @param {MessageRouter} router - The Nimbus MessageRouter instance
-     * @param {Function} onError - Optional function to customize error handling
+     * Automatically constructs a Query CloudEvents message from the HTTP request
+     * and routes it through the provided MessageRouter.
+     *
+     * @param options - Route configuration
      *
      * @example
      * ```ts
-     * const commandRouter = new MessageRouter('command');
-     * commandRouter.register('at.overlap.nimbus.add-recipe', addRecipeHandler);
-     *
-     * oakRouter.command({
-     *     path: '/command',
-     *     router: commandRouter,
+     * router.query({
+     *   path: '/recipes/:slug',
+     *   messageType: 'at.overlap.nimbus.get-recipe',
+     *   router: queryRouter,
+     *   extractData: (ctx) => ({ slug: ctx.params.slug }),
      * });
      * ```
      */
-    command({
-        path,
-        router,
-        onError,
-    }: {
-        path: string;
-        router: MessageRouter;
-        onError?: (error: any, ctx: Context) => void;
-    }) {
-        super.post(path, createOakMessageHandler(router, { onError }));
+    query<TData = any>(options: QueryRouteOptions<TData>): void {
+        super.get(options.path, async (ctx: RouterContext<any>) => {
+            try {
+                const data = await options.extractData(ctx);
+
+                const query = {
+                    specversion: '1.0' as const,
+                    id: ulid(),
+                    correlationid: ctx.state.correlationId ?? ulid(),
+                    time: new Date().toISOString(),
+                    source: ctx.request.url.origin,
+                    type: options.messageType,
+                    data,
+                    datacontenttype: 'application/json' as const,
+                    ...(options.dataschema && { dataschema: options.dataschema }),
+                };
+
+                const result = await options.router.route(query);
+
+                ctx.response.status = 200;
+                ctx.response.body = result as any;
+            } catch (error: any) {
+                handleOakError(error, ctx, options.onError);
+            }
+        });
     }
 
     /**
-     * Routes POST requests to a Nimbus query router.
+     * Register a POST route that maps to a command message.
      *
-     * @param {string} path - Oak request path
-     * @param {MessageRouter} router - The Nimbus MessageRouter instance
-     * @param {Function} onError - Optional function to customize error handling
+     * Automatically constructs a Command CloudEvents message from the HTTP request
+     * and routes it through the provided MessageRouter.
+     *
+     * By default, extracts data from the request body as JSON.
+     *
+     * @param options - Route configuration
      *
      * @example
      * ```ts
-     * const queryRouter = new MessageRouter('query');
-     * queryRouter.register('at.overlap.nimbus.get-recipe', getRecipeHandler);
+     * // Using default body extraction
+     * router.command({
+     *   path: '/recipes',
+     *   messageType: 'at.overlap.nimbus.add-recipe',
+     *   router: commandRouter,
+     * });
      *
-     * oakRouter.query({
-     *     path: '/query',
-     *     router: queryRouter,
+     * // Custom data extraction
+     * router.command({
+     *   path: '/recipes/:slug',
+     *   messageType: 'at.overlap.nimbus.update-recipe',
+     *   router: commandRouter,
+     *   extractData: async (ctx) => ({
+     *     slug: ctx.params.slug,
+     *     ...await ctx.request.body.json()
+     *   }),
      * });
      * ```
      */
-    query({
-        path,
-        router,
-        onError,
-    }: {
-        path: string;
-        router: MessageRouter;
-        onError?: (error: any, ctx: Context) => void;
-    }) {
-        super.post(path, createOakMessageHandler(router, { onError }));
+    command<TData = any>(options: CommandRouteOptions<TData>): void {
+        const extractData = options.extractData ??
+            (async (ctx: RouterContext<any>) => await ctx.request.body.json());
+
+        super.post(options.path, async (ctx: RouterContext<any>) => {
+            try {
+                const data = await extractData(ctx);
+
+                const command = {
+                    specversion: '1.0' as const,
+                    id: ulid(),
+                    correlationid: ctx.state.correlationId ?? ulid(),
+                    time: new Date().toISOString(),
+                    source: ctx.request.url.origin,
+                    type: options.messageType,
+                    data,
+                    datacontenttype: 'application/json' as const,
+                    ...(options.dataschema && { dataschema: options.dataschema }),
+                };
+
+                const result = await options.router.route(command);
+
+                ctx.response.status = 201;
+                ctx.response.body = result as any;
+            } catch (error: any) {
+                handleOakError(error, ctx, options.onError);
+            }
+        });
+    }
+
+    /**
+     * Register a PUT route that maps to a command message.
+     *
+     * Similar to command() but uses PUT method (for updates/replacements).
+     *
+     * @param options - Route configuration
+     *
+     * @example
+     * ```ts
+     * router.commandPut({
+     *   path: '/recipes/:slug',
+     *   messageType: 'at.overlap.nimbus.update-recipe',
+     *   router: commandRouter,
+     *   extractData: async (ctx) => ({
+     *     slug: ctx.params.slug,
+     *     ...await ctx.request.body.json()
+     *   }),
+     * });
+     * ```
+     */
+    commandPut<TData = any>(options: CommandRouteOptions<TData>): void {
+        const extractData = options.extractData ??
+            (async (ctx: RouterContext<any>) => await ctx.request.body.json());
+
+        super.put(options.path, async (ctx: RouterContext<any>) => {
+            try {
+                const data = await extractData(ctx);
+
+                const command = {
+                    specversion: '1.0' as const,
+                    id: ulid(),
+                    correlationid: ctx.state.correlationId ?? ulid(),
+                    time: new Date().toISOString(),
+                    source: ctx.request.url.origin,
+                    type: options.messageType,
+                    data,
+                    datacontenttype: 'application/json' as const,
+                    ...(options.dataschema && { dataschema: options.dataschema }),
+                };
+
+                const result = await options.router.route(command);
+
+                ctx.response.status = 200;
+                ctx.response.body = result as any;
+            } catch (error: any) {
+                handleOakError(error, ctx, options.onError);
+            }
+        });
+    }
+
+    /**
+     * Register a DELETE route that maps to a command message.
+     *
+     * @param options - Route configuration
+     *
+     * @example
+     * ```ts
+     * router.commandDelete({
+     *   path: '/recipes/:slug',
+     *   messageType: 'at.overlap.nimbus.delete-recipe',
+     *   router: commandRouter,
+     *   extractData: (ctx) => ({ slug: ctx.params.slug }),
+     * });
+     * ```
+     */
+    commandDelete<TData = any>(options: CommandRouteOptions<TData>): void {
+        const extractData = options.extractData ??
+            ((ctx: RouterContext<any>) => ({ id: ctx.params.id }));
+
+        super.delete(options.path, async (ctx: RouterContext<any>) => {
+            try {
+                const data = await extractData(ctx);
+
+                const command = {
+                    specversion: '1.0' as const,
+                    id: ulid(),
+                    correlationid: ctx.state.correlationId ?? ulid(),
+                    time: new Date().toISOString(),
+                    source: ctx.request.url.origin,
+                    type: options.messageType,
+                    data,
+                    datacontenttype: 'application/json' as const,
+                    ...(options.dataschema && { dataschema: options.dataschema }),
+                };
+
+                const result = await options.router.route(command);
+
+                ctx.response.status = 204;
+                ctx.response.body = result as any;
+            } catch (error: any) {
+                handleOakError(error, ctx, options.onError);
+            }
+        });
     }
 }

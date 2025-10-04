@@ -2,7 +2,7 @@ import { Unit } from '../../../../shared/types/unit.ts';
 
 export type Ingredient = {
     name: string;
-    quantity: number;
+    amount: number;
     unit: Unit;
     productId?: string;
 };
