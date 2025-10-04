@@ -6,7 +6,9 @@
       "Bash(deno task:*)",
       "Bash(deno check:*)",
       "Bash(find:*)",
-      "Bash(deno doc:*)"
+      "Bash(deno doc:*)",
+      "WebFetch(domain:docs.eventsourcingdb.io)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

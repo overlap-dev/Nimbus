@@ -1,6 +1,6 @@
 import { getLogger } from '@nimbus/core';
 import { NimbusOakRouter } from '@nimbus/oak';
-import { recipeRouter } from '../../contexts/recipe/infrastructure/http/router.ts';
+import { recipeRouter } from '../../../contexts/recipe/infrastructure/http/router.ts';
 import { mongoManager } from '../mongodb.ts';
 
 export const router = new NimbusOakRouter();

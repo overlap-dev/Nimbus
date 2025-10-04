@@ -1,8 +1,9 @@
 import { Command, InvalidInputException } from '@nimbus/core';
+import { type EventStore, loadAggregate } from '@nimbus/eventsourcing';
 import { getEnv } from '@nimbus/utils';
 import { ulid } from '@std/ulid';
-import { EventStore } from '../../../../shared/ports/eventStore.ts';
 import { Recipe } from '../domain/recipe.ts';
+import { recipeReducer, recipeSubject } from '../domain/recipeAggregate.ts';
 import {
     RecipeAddedCommandType,
     RecipeAddedEvent,
@@ -19,27 +20,21 @@ export const addRecipe = async (
     eventStore: EventStore,
 ): Promise<Recipe> => {
     const { EVENT_SOURCE } = getEnv({
-        variables: ['EVENT_SOURCE', 'EVENT_TYPE_PREFIX'],
+        variables: ['EVENT_SOURCE'],
     });
 
-    const recipeAddedEvent: RecipeAddedEvent = {
-        specversion: '1.0',
-        id: ulid(),
-        correlationid: command.correlationid,
-        time: new Date().toISOString(),
-        source: EVENT_SOURCE,
-        type: RecipeAddedCommandType,
-        subject: `/recipes/${command.data.slug}`,
-        data: command.data,
-        datacontenttype: 'application/json',
-        // TODO: add dataschema
-    };
+    const subject = recipeSubject(command.data.slug);
 
-    const replayedEvents = await eventStore.readEvents(
-        recipeAddedEvent.subject,
+    // Load current aggregate state by replaying events
+    const snapshot = await loadAggregate(
+        eventStore,
+        subject,
+        null,
+        recipeReducer,
     );
 
-    if (replayedEvents.length > 0) {
+    // Validate recipe doesn't already exist
+    if (snapshot.state !== null) {
         throw new InvalidInputException('Recipe already exists', {
             errorCode: 'DUPLICATE_RECIPE',
             reason:
@@ -47,7 +42,21 @@ export const addRecipe = async (
         });
     }
 
-    const writtenEvents = await eventStore.writeEvents([
+    // Create event
+    const recipeAddedEvent: RecipeAddedEvent = {
+        specversion: '1.0',
+        id: ulid(),
+        correlationid: command.correlationid,
+        time: new Date().toISOString(),
+        source: EVENT_SOURCE,
+        type: RecipeAddedCommandType,
+        subject,
+        data: command.data,
+        datacontenttype: 'application/json',
+    };
+
+    // Write event
+    await eventStore.writeEvents([
         {
             source: recipeAddedEvent.source,
             subject: recipeAddedEvent.subject,
@@ -55,11 +64,6 @@ export const addRecipe = async (
             data: recipeAddedEvent.data,
         },
     ]);
-
-    console.log('writtenEvents', writtenEvents);
-
-    // TODO: Next work on the readModels and the projectors which update the readModels based on the events.
-    // On application startup we need to replay all events to rebuild the readModels.
 
     return command.data;
 };

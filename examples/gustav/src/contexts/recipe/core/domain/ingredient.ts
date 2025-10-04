@@ -1,4 +1,4 @@
-import { Unit } from '../../../../shared/types/unit.ts';
+import { Unit } from '../../../../shared/core/domain/unit.ts';
 
 export type Ingredient = {
     name: string;

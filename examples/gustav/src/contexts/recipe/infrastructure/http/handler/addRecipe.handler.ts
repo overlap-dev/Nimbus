@@ -1,5 +1,5 @@
 import { MessageHandler } from '@nimbus/core';
-import { eventSourcingDBEventStore } from '../../../../../shared/adapters/eventSourcingDBEventStore.ts';
+import { eventStore } from '../../../../../shared/infrastructure/eventStore.ts';
 import {
     addRecipe,
     AddRecipeCommand,
@@ -12,6 +12,6 @@ export const addRecipeHandler: MessageHandler<
 > = async (command) => {
     return addRecipe(
         command,
-        eventSourcingDBEventStore,
+        eventStore,
     );
 };

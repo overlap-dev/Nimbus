@@ -1,6 +1,4 @@
-import { Event } from '@nimbus/core';
-
-// TODO: this interface should be moved to @nimbus/core
+import type { Event } from '@nimbus/core';
 
 export type EventStoreWriteEvent = {
     source: string;
@@ -28,6 +26,9 @@ export type EventStoreMarker = {
     ifEventIsMissing: 'read-everything' | 'read-nothing';
 };
 
+/**
+ * Event store interface.
+ */
 export interface EventStore {
     writeEvents: (
         events: EventStoreWriteEvent[],

@@ -9,9 +9,10 @@ import '@std/dotenv/load';
 import { oakCors } from '@tajpouria/cors';
 import process from 'node:process';
 import { exampleAuthMiddleware } from './contexts/iam/infrastructure/http/auth.middleware.ts';
-import { router } from './shared/http/router.ts';
-import { registerSchemas } from './shared/http/schemas.ts';
-import { initMongoConnectionManager } from './shared/mongodb.ts';
+import { initEventStore } from './shared/infrastructure/eventStore.ts';
+import { router } from './shared/infrastructure/http/router.ts';
+import { registerSchemas } from './shared/infrastructure/http/schemas.ts';
+import { initMongoConnectionManager } from './shared/infrastructure/mongodb.ts';
 
 //
 // Setup logging with basic options provided by Nimbus
@@ -28,6 +29,9 @@ setupLogger({
 
 // Register JSON schemas for validation
 registerSchemas();
+
+// Initialize EventStore
+initEventStore();
 
 // Initialize MongoDB Manager
 initMongoConnectionManager();

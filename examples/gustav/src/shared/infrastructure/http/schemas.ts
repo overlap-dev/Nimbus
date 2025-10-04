@@ -1,6 +1,6 @@
 import { getValidator } from '@nimbus/core';
-import { addRecipeCommandSchema } from '../../contexts/recipe/infrastructure/http/schemas/addRecipeCommandSchema.ts';
-import { getRecipeQuerySchema } from '../../contexts/recipe/infrastructure/http/schemas/getRecipeQuerySchema.ts';
+import { addRecipeCommandSchema } from '../../../contexts/recipe/infrastructure/http/schemas/addRecipeCommandSchema.ts';
+import { getRecipeQuerySchema } from '../../../contexts/recipe/infrastructure/http/schemas/getRecipeQuerySchema.ts';
 
 /**
  * Register all JSON schemas with the Nimbus validator.

@@ -5,6 +5,8 @@
   "workspace": [
     "./packages/core",
     "./packages/client",
+    "./packages/eventsourcing",
+    "./packages/eventsourcingdb",
     "./packages/mongodb",
     "./packages/oak",
     "./packages/utils",

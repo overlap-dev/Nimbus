@@ -5,7 +5,7 @@ export interface RecipeRepository {
 
     insert: (recipe: Recipe) => Promise<Recipe>;
 
-    update: (recipe: Recipe) => Promise<Recipe>;
+    update: (slug: string, updates: Partial<Recipe>) => Promise<Recipe>;
 
     delete: (id: string) => Promise<void>;
 

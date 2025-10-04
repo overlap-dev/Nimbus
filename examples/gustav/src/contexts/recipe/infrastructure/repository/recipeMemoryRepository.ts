@@ -18,8 +18,8 @@ const makeMemoryRepository = (): RecipeRepository => {
         },
 
         // deno-lint-ignore require-await
-        update: async (recipe) => {
-            const existingRecipe = store.get(recipe.slug);
+        update: async (slug, updates) => {
+            const existingRecipe = store.get(slug);
 
             if (!existingRecipe) {
                 throw new NotFoundException('Recipe not found', {
@@ -27,8 +27,9 @@ const makeMemoryRepository = (): RecipeRepository => {
                 });
             }
 
-            store.set(recipe.slug, recipe);
-            return recipe;
+            const updatedRecipe = { ...existingRecipe, ...updates };
+            store.set(slug, updatedRecipe);
+            return updatedRecipe;
         },
 
         // deno-lint-ignore require-await
