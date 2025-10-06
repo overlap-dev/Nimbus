@@ -13,14 +13,18 @@ import {
     RecipeUpdatedEventType,
 } from '../events/recipeUpdated.ts';
 
-export const UpdateRecipeCommandType = 'at.overlap.nimbus.update-recipe' as const;
+export const UpdateRecipeCommandType =
+    'at.overlap.nimbus.update-recipe' as const;
 
-export type UpdateRecipeCommand = Command<{
+export type UpdateRecipeData = Partial<Recipe> & {
     slug: string;
-    updates: Partial<Recipe>;
-}> & {
-    type: typeof UpdateRecipeCommandType;
 };
+
+export type UpdateRecipeCommand =
+    & Command<UpdateRecipeData>
+    & {
+        type: typeof UpdateRecipeCommandType;
+    };
 
 export const updateRecipe = async (
     command: UpdateRecipeCommand,
@@ -43,11 +47,18 @@ export const updateRecipe = async (
     // Validate recipe exists
     const currentRecipe = requireRecipe(snapshot.state);
 
+    // Prevent slug changes
+    const updates: Partial<Recipe> = {
+        ...command.data,
+    };
+    if (updates.slug) {
+        delete updates.slug;
+    }
+
     // Apply updates to get new state
     const updatedRecipe = {
         ...currentRecipe,
-        ...command.data.updates,
-        slug: currentRecipe.slug, // Prevent slug changes
+        ...updates,
     };
 
     // Create event
@@ -59,19 +70,30 @@ export const updateRecipe = async (
         source: EVENT_SOURCE,
         type: RecipeUpdatedEventType,
         subject,
-        data: command.data.updates,
+        data: updates,
         datacontenttype: 'application/json',
     };
 
-    // Write event
-    await eventStore.writeEvents([
+    // Write event with optimistic concurrency control
+    // Use isSubjectOnEventId to ensure no other updates happened since we read
+    await eventStore.writeEvents(
+        [
+            recipeUpdatedEvent,
+        ],
         {
-            source: recipeUpdatedEvent.source,
-            subject: recipeUpdatedEvent.subject,
-            type: recipeUpdatedEvent.type,
-            data: recipeUpdatedEvent.data,
+            preconditions: snapshot.lastEventId
+                ? [
+                    {
+                        type: 'isSubjectOnEventId',
+                        payload: {
+                            subject,
+                            eventId: snapshot.lastEventId,
+                        },
+                    },
+                ]
+                : undefined,
         },
-    ]);
+    );
 
     return updatedRecipe;
 };

@@ -1,6 +1,7 @@
 import { getValidator } from '@nimbus/core';
 import { addRecipeCommandSchema } from '../../../contexts/recipe/infrastructure/http/schemas/addRecipeCommandSchema.ts';
 import { getRecipeQuerySchema } from '../../../contexts/recipe/infrastructure/http/schemas/getRecipeQuerySchema.ts';
+import { updateRecipeCommandSchema } from '../../../contexts/recipe/infrastructure/http/schemas/updateRecipeCommandSchema.ts';
 
 /**
  * Register all JSON schemas with the Nimbus validator.
@@ -12,6 +13,7 @@ export function registerSchemas(): void {
     const validator = getValidator();
 
     validator.addSchema(addRecipeCommandSchema);
+    validator.addSchema(updateRecipeCommandSchema);
     validator.addSchema(getRecipeQuerySchema);
 
     // TODO: Add more schemas as you develop more commands/queries

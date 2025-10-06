@@ -1,5 +1,6 @@
 export * from './lib/auth/authContext.ts';
 export * from './lib/event/eventBus.ts';
+export * from './lib/exception/concurrencyException.ts';
 export * from './lib/exception/exception.ts';
 export * from './lib/exception/forbiddenException.ts';
 export * from './lib/exception/genericException.ts';

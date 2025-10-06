@@ -1,9 +1,45 @@
-import { type Event, GenericException, getLogger } from '@nimbus/core';
+import {
+    ConcurrencyException,
+    type Event,
+    GenericException,
+    getLogger,
+} from '@nimbus/core';
 import type {
     EventStore,
     EventStoreReadOptions,
-    EventStoreWriteEvent,
+    EventStoreWriteOptions,
+    EventWithMetadata,
 } from '@nimbus/eventsourcing';
+
+export type MappingEnvelope = {
+    nimbusData: {
+        id: string;
+        correlationid: string;
+        dataschema?: string;
+    };
+    data: any;
+};
+
+export type EventSourcingDbInput = {
+    source: string;
+    subject: string;
+    type: string;
+    data: MappingEnvelope;
+};
+
+export type EventSourcingDbEvent = {
+    source: string;
+    subject: string;
+    type: string;
+    specversion: '1.0';
+    id: string;
+    time: string;
+    datacontenttype: string;
+    data: any;
+    hash: string;
+    predecessorhash: string;
+    signature: string | null;
+};
 
 /**
  * Options for EventSourcingDBStore.
@@ -52,11 +88,19 @@ export class EventSourcingDBStore implements EventStore {
      * Write events to EventSourcingDB.
      *
      * @param events - Events to write
+     * @param options - Write options including preconditions for optimistic concurrency
      * @returns The written events with metadata
+     * @throws ConcurrencyException if preconditions fail (409 status)
      */
-    async writeEvents(events: EventStoreWriteEvent[]): Promise<Event[]> {
+    async writeEvents(
+        events: Event[],
+        options?: EventStoreWriteOptions,
+    ): Promise<EventWithMetadata[]> {
         const payload = JSON.stringify({
-            events: events,
+            events: events.map(this._mapNimbusEventToEventSourcingDbInput),
+            ...(options?.preconditions && {
+                preconditions: options.preconditions,
+            }),
         });
 
         const response = await fetch(`${this._apiUrl}/write-events`, {
@@ -69,6 +113,17 @@ export class EventSourcingDBStore implements EventStore {
         });
 
         const body = await response.text();
+
+        if (response.status === 409) {
+            throw new ConcurrencyException(
+                `Concurrency conflict. At least one precondition failed.`,
+                {
+                    ...(options?.preconditions &&
+                        { preconditions: options.preconditions }),
+                    response: body || 'Precondition check failed',
+                },
+            );
+        }
 
         if (!response.ok) {
             throw new GenericException('Failed to write events', {
@@ -96,7 +151,7 @@ export class EventSourcingDBStore implements EventStore {
                 data: { count: items.length },
             });
 
-            return items;
+            return items.map(this._mapEventSourcingDbEventToNimbusEvent);
         } else {
             throw new GenericException('Failed to parse events', {
                 reason: 'Response was not an array of events',
@@ -109,12 +164,12 @@ export class EventSourcingDBStore implements EventStore {
      *
      * @param subject - The subject to read events for
      * @param options - Read options (recursive, order, bounds, etc.)
-     * @returns Array of events matching the criteria
+     * @returns Array of events matching the criteria with metadata
      */
     async readEvents(
         subject: string,
         options: EventStoreReadOptions = defaultReadOptions,
-    ): Promise<Event[]> {
+    ): Promise<EventWithMetadata[]> {
         const response = await fetch(`${this._apiUrl}/read-events`, {
             method: 'POST',
             headers: {
@@ -170,8 +225,9 @@ export class EventSourcingDBStore implements EventStore {
             });
         }
 
-        // Parse all items to Nimbus objects and ensure type safety.
-        const events = items.map((item) => item.payload);
+        const events: EventWithMetadata[] = items.map((item) =>
+            this._mapEventSourcingDbEventToNimbusEvent(item.payload)
+        );
 
         getLogger().debug({
             category: 'Nimbus',
@@ -180,5 +236,47 @@ export class EventSourcingDBStore implements EventStore {
         });
 
         return events;
+    }
+
+    private _mapNimbusEventToEventSourcingDbInput(
+        event: Event,
+    ): EventSourcingDbInput {
+        return {
+            source: event.source,
+            subject: event.subject,
+            type: event.type,
+            data: {
+                nimbusData: {
+                    id: event.id,
+                    correlationid: event.correlationid,
+                    ...(event.dataschema && { dataschema: event.dataschema }),
+                },
+                data: event.data,
+            },
+        };
+    }
+
+    private _mapEventSourcingDbEventToNimbusEvent(
+        dbEvent: EventSourcingDbEvent,
+    ): EventWithMetadata {
+        return {
+            specversion: '1.0',
+            id: dbEvent.data.nimbusData.id,
+            correlationid: dbEvent.data.nimbusData.correlationId,
+            time: dbEvent.time,
+            source: dbEvent.source,
+            type: dbEvent.type,
+            subject: dbEvent.subject,
+            data: dbEvent.data.data,
+            datacontenttype: dbEvent.datacontenttype,
+            ...(dbEvent.data.nimbusData.dataschema &&
+                { dataschema: dbEvent.data.nimbusData.dataschema }),
+            eventstoremetadata: {
+                id: dbEvent.id,
+                hash: dbEvent.hash,
+                predecessorhash: dbEvent.predecessorhash,
+                signature: dbEvent.signature,
+            },
+        };
     }
 }

@@ -1,6 +1,8 @@
 import { getLogger, MessageRouter } from '@nimbus/core';
 import { AddRecipeCommandType } from '../../core/commands/addRecipe.ts';
+import { UpdateRecipeCommandType } from '../../core/commands/updateRecipe.ts';
 import { addRecipeHandler } from './handler/addRecipe.handler.ts';
+import { updateRecipeHandler } from './handler/updateRecipe.handler.ts';
 
 export const commandRouter = new MessageRouter('command', {
     logInput: (input: any) => {
@@ -18,4 +20,9 @@ export const commandRouter = new MessageRouter('command', {
 commandRouter.register(
     AddRecipeCommandType,
     addRecipeHandler,
+);
+
+commandRouter.register(
+    UpdateRecipeCommandType,
+    updateRecipeHandler,
 );

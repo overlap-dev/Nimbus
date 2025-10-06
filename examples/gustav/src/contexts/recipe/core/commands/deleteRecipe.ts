@@ -12,13 +12,16 @@ import {
     RecipeDeletedEventType,
 } from '../events/recipeDeleted.ts';
 
-export const DeleteRecipeCommandType = 'at.overlap.nimbus.delete-recipe' as const;
+export const DeleteRecipeCommandType =
+    'at.overlap.nimbus.delete-recipe' as const;
 
-export type DeleteRecipeCommand = Command<{
-    slug: string;
-}> & {
-    type: typeof DeleteRecipeCommandType;
-};
+export type DeleteRecipeCommand =
+    & Command<{
+        slug: string;
+    }>
+    & {
+        type: typeof DeleteRecipeCommandType;
+    };
 
 export const deleteRecipe = async (
     command: DeleteRecipeCommand,
@@ -54,13 +57,24 @@ export const deleteRecipe = async (
         datacontenttype: 'application/json',
     };
 
-    // Write event
-    await eventStore.writeEvents([
+    // Write event with optimistic concurrency control
+    // Use isSubjectOnEventId to ensure no other updates happened since we read
+    await eventStore.writeEvents(
+        [
+            recipeDeletedEvent,
+        ],
         {
-            source: recipeDeletedEvent.source,
-            subject: recipeDeletedEvent.subject,
-            type: recipeDeletedEvent.type,
-            data: recipeDeletedEvent.data,
+            preconditions: snapshot.lastEventId
+                ? [
+                    {
+                        type: 'isSubjectOnEventId',
+                        payload: {
+                            subject,
+                            eventId: snapshot.lastEventId,
+                        },
+                    },
+                ]
+                : undefined,
         },
-    ]);
+    );
 };

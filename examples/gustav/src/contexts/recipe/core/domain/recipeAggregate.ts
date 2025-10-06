@@ -1,4 +1,4 @@
-import { Event } from '@nimbus/core';
+import { Event, NotFoundException } from '@nimbus/core';
 import { type EventReducer } from '@nimbus/eventsourcing';
 import { Recipe } from './recipe.ts';
 
@@ -79,7 +79,10 @@ export function recipeSubject(slug: string): string {
  */
 export function requireRecipe(state: RecipeState): Recipe {
     if (!state) {
-        throw new Error('Recipe does not exist');
+        throw new NotFoundException('Recipe not found', {
+            errorCode: 'RECIPE_NOT_FOUND',
+            reason: 'The recipe with the provided slug was not found',
+        });
     }
     return state;
 }

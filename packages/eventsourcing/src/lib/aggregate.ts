@@ -1,5 +1,9 @@
 import type { Event } from '@nimbus/core';
-import type { EventStore, EventStoreReadOptions } from './eventStore.ts';
+import type {
+    EventStore,
+    EventStoreReadOptions,
+    EventWithMetadata,
+} from './eventStore.ts';
 
 /**
  * Reducer function that applies an event to aggregate state.
@@ -23,8 +27,8 @@ export type LoadAggregateOptions = EventStoreReadOptions;
  */
 export type AggregateSnapshot<TState> = {
     state: TState;
-    events: Event[];
-    version: number;
+    events: EventWithMetadata[];
+    lastEventId?: string;
 };
 
 /**
@@ -67,12 +71,12 @@ export async function loadAggregate<TState>(
         order: 'chronological', // Always apply events in order
     });
 
-    const state = events.reduce(reducer, initialState);
-
     return {
-        state,
+        state: events.reduce(reducer, initialState),
         events,
-        version: events.length,
+        lastEventId: events.length > 0
+            ? events[events.length - 1].eventstoremetadata.id
+            : undefined,
     };
 }
 
@@ -130,7 +134,7 @@ export async function loadAggregates<TState>(
     parentSubject: string,
     initialState: TState,
     reducer: EventReducer<TState>,
-    groupBy: (event: Event) => string,
+    groupBy: (event: EventWithMetadata) => string,
 ): Promise<Map<string, AggregateSnapshot<TState>>> {
     const events = await eventStore.readEvents(parentSubject, {
         recursive: true,
@@ -138,7 +142,7 @@ export async function loadAggregates<TState>(
     });
 
     // Group events by subject
-    const eventsBySubject = new Map<string, Event[]>();
+    const eventsBySubject = new Map<string, EventWithMetadata[]>();
     for (const event of events) {
         const subject = groupBy(event);
         if (!eventsBySubject.has(subject)) {
@@ -150,11 +154,12 @@ export async function loadAggregates<TState>(
     // Reduce each subject's events to build aggregates
     const aggregates = new Map<string, AggregateSnapshot<TState>>();
     for (const [subject, subjectEvents] of eventsBySubject) {
-        const state = subjectEvents.reduce(reducer, initialState);
         aggregates.set(subject, {
-            state,
+            state: subjectEvents.reduce(reducer, initialState),
             events: subjectEvents,
-            version: subjectEvents.length,
+            lastEventId: subjectEvents.length > 0
+                ? subjectEvents[subjectEvents.length - 1].eventstoremetadata.id
+                : undefined,
         });
     }
 
