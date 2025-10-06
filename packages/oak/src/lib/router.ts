@@ -314,10 +314,9 @@ export class NimbusOakRouter extends OakRouter {
                     ...(options.dataschema && { dataschema: options.dataschema }),
                 };
 
-                const result = await options.router.route(command);
+                await options.router.route(command);
 
                 ctx.response.status = 204;
-                ctx.response.body = result as any;
             } catch (error: any) {
                 handleOakError(error, ctx, options.onError);
             }
