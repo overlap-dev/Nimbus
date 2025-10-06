@@ -10,8 +10,10 @@ export const addRecipeHandler: MessageHandler<
     AddRecipeCommand,
     Recipe
 > = async (command) => {
-    return addRecipe(
+    const recipe = await addRecipe(
         command,
         eventStore,
     );
+
+    return recipe;
 };

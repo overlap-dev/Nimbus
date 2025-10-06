@@ -1,6 +1,8 @@
 import { getValidator } from '@nimbus/core';
 import { addRecipeCommandSchema } from '../../../contexts/recipe/infrastructure/http/schemas/addRecipeCommandSchema.ts';
+import { deleteRecipeCommandSchema } from '../../../contexts/recipe/infrastructure/http/schemas/deleteRecipeCommandSchema.ts';
 import { getRecipeQuerySchema } from '../../../contexts/recipe/infrastructure/http/schemas/getRecipeQuerySchema.ts';
+import { listRecipesQuerySchema } from '../../../contexts/recipe/infrastructure/http/schemas/listRecipesQuerySchema.ts';
 import { updateRecipeCommandSchema } from '../../../contexts/recipe/infrastructure/http/schemas/updateRecipeCommandSchema.ts';
 
 /**
@@ -14,7 +16,9 @@ export function registerSchemas(): void {
 
     validator.addSchema(addRecipeCommandSchema);
     validator.addSchema(updateRecipeCommandSchema);
+    validator.addSchema(deleteRecipeCommandSchema);
     validator.addSchema(getRecipeQuerySchema);
+    validator.addSchema(listRecipesQuerySchema);
 
     // TODO: Add more schemas as you develop more commands/queries
 }

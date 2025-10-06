@@ -6,10 +6,13 @@ import {
 } from '@nimbus/core';
 import type {
     EventStore,
+    EventStoreObserveConfig,
     EventStoreReadOptions,
+    EventStoreSubscription,
     EventStoreWriteOptions,
     EventWithMetadata,
 } from '@nimbus/eventsourcing';
+import { EventSourcingDBSubscription } from './eventSourcingDbSubscription.ts';
 
 export type MappingEnvelope = {
     nimbusData: {
@@ -236,6 +239,30 @@ export class EventSourcingDBStore implements EventStore {
         });
 
         return events;
+    }
+
+    /**
+     * Observe events from EventSourcingDB in real-time.
+     *
+     * Creates a streaming connection to EventSourcingDB and calls the handler
+     * for each new event. Supports resuming from a specific event ID.
+     *
+     * @param config - Configuration for observing events
+     * @returns A subscription object that can be used to unsubscribe
+     */
+    async observe(
+        config: EventStoreObserveConfig,
+    ): Promise<EventStoreSubscription> {
+        const subscription = new EventSourcingDBSubscription(
+            this._apiUrl,
+            this._secret,
+            config,
+            this._mapEventSourcingDbEventToNimbusEvent.bind(this),
+        );
+
+        await subscription.start();
+
+        return subscription;
     }
 
     private _mapNimbusEventToEventSourcingDbInput(

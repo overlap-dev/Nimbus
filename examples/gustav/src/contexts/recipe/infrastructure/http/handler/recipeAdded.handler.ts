@@ -10,5 +10,7 @@ export const recipeAddedHandler: MessageHandler<
     RecipeAddedEvent,
     Recipe
 > = async (event) => {
-    return recipeAdded(event, recipeMemoryRepository);
+    const recipe = await recipeAdded(event, recipeMemoryRepository);
+
+    return recipe;
 };

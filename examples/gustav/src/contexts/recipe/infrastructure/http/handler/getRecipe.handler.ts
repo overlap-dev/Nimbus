@@ -7,5 +7,7 @@ export const getRecipeHandler: MessageHandler<
     GetRecipeQuery,
     Recipe
 > = async (query) => {
-    return getRecipe(query, recipeMemoryRepository);
+    const recipe = await getRecipe(query, recipeMemoryRepository);
+
+    return recipe;
 };

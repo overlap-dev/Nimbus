@@ -70,7 +70,10 @@ export const updateRecipe = async (
         source: EVENT_SOURCE,
         type: RecipeUpdatedEventType,
         subject,
-        data: updates,
+        data: {
+            slug: command.data.slug,
+            updates,
+        },
         datacontenttype: 'application/json',
     };
 

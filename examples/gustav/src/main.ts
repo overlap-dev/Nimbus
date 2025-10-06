@@ -30,8 +30,8 @@ setupLogger({
 // Register JSON schemas for validation
 registerSchemas();
 
-// Initialize EventStore
-initEventStore();
+// Initialize EventStore (includes event observer for read models)
+await initEventStore();
 
 // Initialize MongoDB Manager
 initMongoConnectionManager();
