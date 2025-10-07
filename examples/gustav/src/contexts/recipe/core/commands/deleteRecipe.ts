@@ -1,9 +1,8 @@
 import { Command } from '@nimbus/core';
-import { type EventStore, loadAggregate } from '@nimbus/eventsourcing';
 import { getEnv } from '@nimbus/utils';
 import { ulid } from '@std/ulid';
 import {
-    recipeReducer,
+    RecipeState,
     recipeSubject,
     requireRecipe,
 } from '../domain/recipeAggregate.ts';
@@ -23,26 +22,21 @@ export type DeleteRecipeCommand =
         type: typeof DeleteRecipeCommandType;
     };
 
-export const deleteRecipe = async (
+export const deleteRecipe = (
     command: DeleteRecipeCommand,
-    eventStore: EventStore,
-): Promise<void> => {
+    state: RecipeState,
+): {
+    newState: RecipeState;
+    events: RecipeDeletedEvent[];
+} => {
     const { EVENT_SOURCE } = getEnv({
         variables: ['EVENT_SOURCE'],
     });
 
-    const subject = recipeSubject(command.data.slug);
-
-    // Load current aggregate state by replaying events
-    const snapshot = await loadAggregate(
-        eventStore,
-        subject,
-        null,
-        recipeReducer,
-    );
-
     // Validate recipe exists
-    requireRecipe(snapshot.state);
+    requireRecipe(state);
+
+    const subject = recipeSubject(command.data.slug);
 
     // Create event
     const recipeDeletedEvent: RecipeDeletedEvent = {
@@ -57,24 +51,8 @@ export const deleteRecipe = async (
         datacontenttype: 'application/json',
     };
 
-    // Write event with optimistic concurrency control
-    // Use isSubjectOnEventId to ensure no other updates happened since we read
-    await eventStore.writeEvents(
-        [
-            recipeDeletedEvent,
-        ],
-        {
-            preconditions: snapshot.lastEventId
-                ? [
-                    {
-                        type: 'isSubjectOnEventId',
-                        payload: {
-                            subject,
-                            eventId: snapshot.lastEventId,
-                        },
-                    },
-                ]
-                : undefined,
-        },
-    );
+    return {
+        newState: null,
+        events: [recipeDeletedEvent],
+    };
 };

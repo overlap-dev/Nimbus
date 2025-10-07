@@ -4,9 +4,12 @@ To get started with Nimbus you need to install the [@nimbus/core](https://jsr.io
 
 ## Dependencies
 
-Nimbus tries to keep dependencies as low as possible, but there are some packages that are necessary to run Nimbus.
+Nimbus tries to keep dependencies as low as possible.  
+Theses are the dependencies Nimbus relies on.
 
-For type safety at runtime Nimbus relies on [Zod](https://zod.dev/).
+-   [Deno Standard Library](https://docs.deno.com/runtime/fundamentals/standard_library/) ([@std](https://jsr.io/@std))
+-   [ajv](https://ajv.js.org/)
+-   [ajv-formats](https://ajv.js.org/packages/ajv-formats.html)
 
 ## Installation
 
@@ -15,19 +18,17 @@ Depending on your runtime you can install Nimbus with the following commands.
 ### Deno
 
 ```bash
-deno add jsr:@nimbus/core npm:zod
+deno add jsr:@nimbus/core
 ```
 
 ### NPM
 
 ```bash
-npm install zod
 npx jsr add @nimbus/core
 ```
 
 ### Bun
 
 ```bash
-bun add zod
 bunx jsr add @nimbus/core
 ```

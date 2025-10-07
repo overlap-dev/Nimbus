@@ -3,18 +3,20 @@ import type { EventStoreSubscription } from '@nimbus/eventsourcing';
 import { EventSourcingDBStore } from '@nimbus/eventsourcingdb';
 import { getEnv } from '@nimbus/utils';
 import {
-    recipeAdded,
     RecipeAddedCommandType,
+    RecipeAddedEvent,
 } from '../../contexts/recipe/core/events/recipeAdded.ts';
 import {
-    recipeDeleted,
+    RecipeDeletedEvent,
     RecipeDeletedEventType,
 } from '../../contexts/recipe/core/events/recipeDeleted.ts';
 import {
-    recipeUpdated,
+    RecipeUpdatedEvent,
     RecipeUpdatedEventType,
 } from '../../contexts/recipe/core/events/recipeUpdated.ts';
-import { recipeMemoryRepository } from '../../contexts/recipe/infrastructure/repository/recipeMemoryRepository.ts';
+import { recipeAddedHandler } from '../../contexts/recipe/infrastructure/eventHandler/recipeAdded.handler.ts';
+import { recipeDeletedHandler } from '../../contexts/recipe/infrastructure/eventHandler/recipeDeleted.handler.ts';
+import { recipeUpdatedHandler } from '../../contexts/recipe/infrastructure/eventHandler/recipeUpdated.handler.ts';
 
 export let eventStore: EventSourcingDBStore;
 let subscription: EventStoreSubscription | undefined;
@@ -69,15 +71,15 @@ export const initEventStore = async () => {
             // Route events to appropriate read model handlers
             switch (event.type) {
                 case RecipeAddedCommandType:
-                    await recipeAdded(event as any, recipeMemoryRepository);
+                    await recipeAddedHandler(event as RecipeAddedEvent);
                     break;
 
                 case RecipeUpdatedEventType:
-                    await recipeUpdated(event as any, recipeMemoryRepository);
+                    await recipeUpdatedHandler(event as RecipeUpdatedEvent);
                     break;
 
                 case RecipeDeletedEventType:
-                    await recipeDeleted(event as any, recipeMemoryRepository);
+                    await recipeDeletedHandler(event as RecipeDeletedEvent);
                     break;
 
                 default:

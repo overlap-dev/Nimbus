@@ -73,16 +73,42 @@ export default defineConfig({
                 },
 
                 {
-                    text: "Oak (HTTP)",
-                    link: "/guide/oak",
+                    text: "HTTP (Oak)",
+                    link: "/guide/http",
                     items: [
                         {
                             text: "Router",
-                            link: "/guide/oak/router",
+                            link: "/guide/http/router",
+                        },
+                    ],
+                },
+
+                {
+                    text: "Event Sourcing",
+                    link: "/guide/eventsourcing",
+                    items: [
+                        {
+                            text: "Why Event Sourcing?",
+                            link: "/guide/eventsourcing/why-event-sourcing",
                         },
                         {
-                            text: "Middleware",
-                            link: "/guide/oak/middleware",
+                            text: "Event Store",
+                            link: "/guide/eventsourcing/event-store",
+                        },
+                        {
+                            text: "Aggregate",
+                            link: "/guide/eventsourcing/aggregate",
+                        },
+                    ],
+                },
+
+                {
+                    text: "EventSourcingDB",
+                    link: "/guide/eventsourcingdb",
+                    items: [
+                        {
+                            text: "EventSourcingDB Event Store",
+                            link: "/guide/eventsourcingdb/event-store",
                         },
                     ],
                 },

@@ -1,10 +1,9 @@
 import { Command } from '@nimbus/core';
-import { type EventStore, loadAggregate } from '@nimbus/eventsourcing';
 import { getEnv } from '@nimbus/utils';
 import { ulid } from '@std/ulid';
 import { Recipe } from '../domain/recipe.ts';
 import {
-    recipeReducer,
+    RecipeState,
     recipeSubject,
     requireRecipe,
 } from '../domain/recipeAggregate.ts';
@@ -26,26 +25,21 @@ export type UpdateRecipeCommand =
         type: typeof UpdateRecipeCommandType;
     };
 
-export const updateRecipe = async (
+export const updateRecipe = (
     command: UpdateRecipeCommand,
-    eventStore: EventStore,
-): Promise<Recipe> => {
+    state: RecipeState,
+): {
+    newState: Recipe;
+    events: RecipeUpdatedEvent[];
+} => {
     const { EVENT_SOURCE } = getEnv({
         variables: ['EVENT_SOURCE'],
     });
 
     const subject = recipeSubject(command.data.slug);
 
-    // Load current aggregate state by replaying events
-    const snapshot = await loadAggregate(
-        eventStore,
-        subject,
-        null,
-        recipeReducer,
-    );
-
     // Validate recipe exists
-    const currentRecipe = requireRecipe(snapshot.state);
+    const currentRecipe = requireRecipe(state);
 
     // Prevent slug changes
     const updates: Partial<Recipe> = {
@@ -54,12 +48,6 @@ export const updateRecipe = async (
     if (updates.slug) {
         delete updates.slug;
     }
-
-    // Apply updates to get new state
-    const updatedRecipe = {
-        ...currentRecipe,
-        ...updates,
-    };
 
     // Create event
     const recipeUpdatedEvent: RecipeUpdatedEvent = {
@@ -77,26 +65,11 @@ export const updateRecipe = async (
         datacontenttype: 'application/json',
     };
 
-    // Write event with optimistic concurrency control
-    // Use isSubjectOnEventId to ensure no other updates happened since we read
-    await eventStore.writeEvents(
-        [
-            recipeUpdatedEvent,
-        ],
-        {
-            preconditions: snapshot.lastEventId
-                ? [
-                    {
-                        type: 'isSubjectOnEventId',
-                        payload: {
-                            subject,
-                            eventId: snapshot.lastEventId,
-                        },
-                    },
-                ]
-                : undefined,
+    return {
+        newState: {
+            ...currentRecipe,
+            ...updates,
         },
-    );
-
-    return updatedRecipe;
+        events: [recipeUpdatedEvent],
+    };
 };

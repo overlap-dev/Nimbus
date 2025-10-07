@@ -1,9 +1,8 @@
 import { Command, InvalidInputException } from '@nimbus/core';
-import { type EventStore, loadAggregate } from '@nimbus/eventsourcing';
 import { getEnv } from '@nimbus/utils';
 import { ulid } from '@std/ulid';
 import { Recipe } from '../domain/recipe.ts';
-import { recipeReducer, recipeSubject } from '../domain/recipeAggregate.ts';
+import { RecipeState, recipeSubject } from '../domain/recipeAggregate.ts';
 import {
     RecipeAddedCommandType,
     RecipeAddedEvent,
@@ -15,25 +14,18 @@ export type AddRecipeCommand = Command<Recipe> & {
     type: typeof AddRecipeCommandType;
 };
 
-export const addRecipe = async (
+export const addRecipe = (
     command: AddRecipeCommand,
-    eventStore: EventStore,
-): Promise<Recipe> => {
+    state: RecipeState,
+): {
+    newState: Recipe;
+    events: RecipeAddedEvent[];
+} => {
     const { EVENT_SOURCE } = getEnv({
         variables: ['EVENT_SOURCE'],
     });
 
-    const subject = recipeSubject(command.data.slug);
-
-    // Load current aggregate state by replaying events
-    const snapshot = await loadAggregate(
-        eventStore,
-        subject,
-        null,
-        recipeReducer,
-    );
-
-    if (snapshot.state !== null) {
+    if (state !== null) {
         throw new InvalidInputException('Recipe already exists', {
             errorCode: 'DUPLICATE_RECIPE',
             reason:
@@ -41,7 +33,8 @@ export const addRecipe = async (
         });
     }
 
-    // Create event
+    const subject = recipeSubject(command.data.slug);
+
     const recipeAddedEvent: RecipeAddedEvent = {
         specversion: '1.0',
         id: ulid(),
@@ -54,11 +47,8 @@ export const addRecipe = async (
         datacontenttype: 'application/json',
     };
 
-    await eventStore.writeEvents(
-        [
-            recipeAddedEvent,
-        ],
-    );
-
-    return command.data;
+    return {
+        newState: command.data,
+        events: [recipeAddedEvent],
+    };
 };
