@@ -60,6 +60,11 @@ export const prettyLogFormatter: LogFormatter = (
 ): string | string[] => {
     let dataString = '';
     let errorString = '';
+    let correlationId = '';
+
+    if (logRecord.correlationId) {
+        correlationId = `(${logRecord.correlationId}) `;
+    }
 
     if (logRecord.data) {
         dataString = JSON.stringify(logRecord.data, null, 2);
@@ -69,14 +74,14 @@ export const prettyLogFormatter: LogFormatter = (
         errorString = JSON.stringify(logRecord.error, null, 2);
 
         return [
-            `[${logRecord.category}] ${logRecord.level.toUpperCase()} :: ${logRecord.message}`,
+            `[${logRecord.category}] ${logRecord.level.toUpperCase()} ${correlationId}:: ${logRecord.message}`,
             errorString.length ? `\n${errorString}` : '',
             logRecord.error.stack ? `\n${logRecord.error.stack}` : '',
             dataString.length ? `\n${dataString}` : '',
         ];
     }
 
-    return `[${logRecord.category}] ${logRecord.level.toUpperCase()} :: ${logRecord.message}${
+    return `[${logRecord.category}] ${logRecord.level.toUpperCase()} ${correlationId}:: ${logRecord.message}${
         dataString.length ? `\n${dataString}` : ''
     }`;
 };
