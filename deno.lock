@@ -2,7 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@oak/commons@1": "1.0.0",
-    "jsr:@oak/oak@^17.1.4": "17.1.4",
+    "jsr:@oak/oak@^17.1.4": "17.1.6",
     "jsr:@oak/oak@^17.1.6": "17.1.6",
     "jsr:@std/assert@1": "1.0.10",
     "jsr:@std/assert@^1.0.10": "1.0.10",
@@ -10,7 +10,8 @@
     "jsr:@std/bytes@^1.0.2": "1.0.4",
     "jsr:@std/crypto@1": "1.0.3",
     "jsr:@std/dotenv@*": "0.225.3",
-    "jsr:@std/dotenv@~0.225.5": "0.225.5",
+    "jsr:@std/dotenv@~0.225.5": "0.225.6",
+    "jsr:@std/dotenv@~0.225.6": "0.225.6",
     "jsr:@std/encoding@1": "1.0.6",
     "jsr:@std/encoding@^1.0.5": "1.0.6",
     "jsr:@std/fmt@^1.0.4": "1.0.5",
@@ -23,14 +24,16 @@
     "jsr:@std/text@^1.0.10": "1.0.10",
     "jsr:@std/ulid@1": "1.0.0",
     "jsr:@tajpouria/cors@^1.2.1": "1.2.1",
+    "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@types/node@*": "22.5.4",
-    "npm:ajv-formats@^3.0.1": "3.0.1_ajv@8.17.1",
     "npm:ajv@^8.17.1": "8.17.1",
     "npm:effect@^3.17.9": "3.17.9",
+    "npm:hono@^4.11.4": "4.11.4",
     "npm:mongodb@^6.12.0": "6.12.0",
     "npm:path-to-regexp@6.2.1": "6.2.1",
     "npm:path-to-regexp@^6.3.0": "6.3.0",
-    "npm:zod@^3.24.1": "3.24.1"
+    "npm:zod@^3.24.1": "3.24.1",
+    "npm:zod@^4.3.5": "4.3.5"
   },
   "jsr": {
     "@oak/commons@1.0.0": {
@@ -100,6 +103,9 @@
     "@std/dotenv@0.225.5": {
       "integrity": "9ce6f9d0ec3311f74a32535aa1b8c62ed88b1ab91b7f0815797d77a6f60c922f"
     },
+    "@std/dotenv@0.225.6": {
+      "integrity": "1d6f9db72f565bd26790fa034c26e45ecb260b5245417be76c2279e5734c421b"
+    },
     "@std/encoding@1.0.6": {
       "integrity": "ca87122c196e8831737d9547acf001766618e78cd8c33920776c7f5885546069"
     },
@@ -147,6 +153,9 @@
         "sparse-bitfield"
       ]
     },
+    "@opentelemetry/api@1.9.0": {
+      "integrity": "sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg=="
+    },
     "@standard-schema/spec@1.0.0": {
       "integrity": "sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA=="
     },
@@ -163,15 +172,6 @@
       "integrity": "sha512-coYR071JRaHa+xoEvvYqvnIHaVqaYrLPbsufM9BF63HkwI5Lgmy2QR8Q5K/lYDYo5AK82wOvSOS0UsLTpTG7uQ==",
       "dependencies": [
         "@types/webidl-conversions"
-      ]
-    },
-    "ajv-formats@3.0.1_ajv@8.17.1": {
-      "integrity": "sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==",
-      "dependencies": [
-        "ajv"
-      ],
-      "optionalPeers": [
-        "ajv"
       ]
     },
     "ajv@8.17.1": {
@@ -205,6 +205,9 @@
     },
     "fast-uri@3.1.0": {
       "integrity": "sha512-iPeeDKJSWf4IEOasVVrknXpaBV0IApz/gp7S2bb7Z4Lljbl2MGJRqInZiUrQwV16cpzw/D3S5j5Julj/gT52AA=="
+    },
+    "hono@4.11.4": {
+      "integrity": "sha512-U7tt8JsyrxSRKspfhtLET79pU8K+tInj5QZXs1jSugO1Vq5dFj3kmZsRldo29mTBfcjDRVRXrEZ6LS63Cog9ZA=="
     },
     "json-schema-traverse@1.0.0": {
       "integrity": "sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug=="
@@ -269,6 +272,9 @@
     },
     "zod@3.24.1": {
       "integrity": "sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A=="
+    },
+    "zod@4.3.5": {
+      "integrity": "sha512-k7Nwx6vuWx1IJ9Bjuf4Zt1PEllcwe7cls3VNzm4CQ1/hgtFUK2bRNG3rvnpPUhFjmqJKAKtjV576KnUkHocg/g=="
     }
   },
   "redirects": {
@@ -324,6 +330,12 @@
           "npm:zod@^3.24.1"
         ]
       },
+      "examples/hono-demo": {
+        "dependencies": [
+          "jsr:@std/dotenv@~0.225.6",
+          "npm:hono@^4.11.4"
+        ]
+      },
       "examples/the-expense": {
         "dependencies": [
           "jsr:@oak/oak@^17.1.4",
@@ -338,8 +350,13 @@
           "jsr:@std/assert@^1.0.10",
           "jsr:@std/fmt@^1.0.5",
           "jsr:@std/ulid@1",
-          "npm:ajv-formats@^3.0.1",
-          "npm:ajv@^8.17.1"
+          "npm:zod@^4.3.5"
+        ]
+      },
+      "packages/hono": {
+        "dependencies": [
+          "npm:@opentelemetry/api@^1.9.0",
+          "npm:hono@^4.11.4"
         ]
       },
       "packages/mongodb": {

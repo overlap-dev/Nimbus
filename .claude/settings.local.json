@@ -8,7 +8,8 @@
       "Bash(find:*)",
       "Bash(deno doc:*)",
       "WebFetch(domain:docs.eventsourcingdb.io)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []

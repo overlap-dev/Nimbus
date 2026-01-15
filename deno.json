@@ -9,9 +9,11 @@
     "./packages/eventsourcingdb",
     "./packages/mongodb",
     "./packages/oak",
+    "./packages/hono",
     "./packages/utils",
     "./examples/gustav",
-    "./examples/the-expense"
+    "./examples/the-expense",
+    "./examples/hono-demo"
   ],
   "nodeModulesDir": "none"
 }
