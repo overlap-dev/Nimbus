@@ -32,6 +32,7 @@
   },
   "imports": {
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
+    "@std/ulid": "jsr:@std/ulid@^1.0.0",
     "hono": "npm:hono@^4.11.4"
   }
 }

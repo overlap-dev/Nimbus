@@ -7,6 +7,7 @@ import {
     SpanStatusCode,
     trace,
 } from '@opentelemetry/api';
+import { getCorrelationId } from './correlationId.ts';
 
 /**
  * Options for configuring the hono logger middleware.
@@ -66,10 +67,12 @@ export const logger = (options?: LoggerOptions): MiddlewareHandler => {
 
     return async (c, next) => {
         const startTime = Date.now();
+        const correlationId = getCorrelationId(c);
 
         getLogger().info({
             category: 'API',
             message: `REQ: [${c.req.method}] ${c.req.path}`,
+            correlationId,
         });
 
         if (options?.enableTracing) {
@@ -93,6 +96,9 @@ export const logger = (options?: LoggerOptions): MiddlewareHandler => {
                             'http.method': c.req.method,
                             'url.path': c.req.path,
                             'http.target': c.req.url,
+                            ...(correlationId && {
+                                correlation_id: correlationId,
+                            }),
                         },
                     },
                     async (span) => {
@@ -124,6 +130,7 @@ export const logger = (options?: LoggerOptions): MiddlewareHandler => {
             message: `RES: [${c.req.method}] ${c.req.path} - ${
                 time(startTime)
             }`,
+            correlationId,
         });
     };
 };

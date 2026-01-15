@@ -7,7 +7,7 @@ import {
     prettyLogFormatter,
     setupLogger,
 } from '@nimbus/core';
-import { logger } from '@nimbus/hono';
+import { correlationId, logger } from '@nimbus/hono';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
@@ -22,6 +22,8 @@ setupLogger({
 });
 
 const app = new Hono();
+
+app.use(correlationId());
 
 app.use(logger({
     enableTracing: true,
