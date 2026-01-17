@@ -1,3 +1,6 @@
+import { ulid } from '@std/ulid';
+import { z } from 'zod';
+
 /**
  * An event is a message that is emitted by the system to notify
  * subscribers that something has happened. Typically events are
@@ -52,76 +55,71 @@ export type Event<TData = unknown> = {
     dataschema?: string;
 };
 
-export const eventSchema = {
-    $id: 'https://nimbus.overlap.at/schemas/event/v1',
-    type: 'object',
-    required: [
-        'specversion',
-        'id',
-        'correlationid',
-        'time',
-        'source',
-        'type',
-        'subject',
-        'data',
-    ],
-    properties: {
-        specversion: {
-            const: '1.0',
-        },
-        id: {
-            type: 'string',
-            minLength: 1,
-        },
-        correlationid: {
-            type: 'string',
-            minLength: 1,
-        },
-        time: {
-            type: 'string',
-            format: 'date-time',
-            minLength: 1,
-        },
-        source: {
-            type: 'string',
-            format: 'uri-reference',
-            minLength: 1,
-        },
-        type: {
-            type: 'string',
-            minLength: 1,
-        },
-        subject: {
-            type: 'string',
-            minLength: 1,
-        },
-        data: {
-            anyOf: [
-                {
-                    type: 'object',
-                },
-                {
-                    type: 'string',
-                },
-                {
-                    type: 'number',
-                },
-                {
-                    type: 'array',
-                },
-                {
-                    type: 'boolean',
-                },
-            ],
-        },
-        datacontenttype: {
-            type: 'string',
-            minLength: 1,
-        },
-        dataschema: {
-            type: 'string',
-            format: 'uri',
-            minLength: 1,
-        },
-    },
+/**
+ * The Zod schema matching the Event type.
+ *
+ * Zod is the default for validating incomming messages.
+ *
+ * We do not infer the Event type from this schema because of
+ * slow type issues see https://jsr.io/docs/about-slow-types for more details.
+ */
+export const eventSchema = z.object({
+    specversion: z.literal('1.0'),
+    id: z.string(),
+    correlationid: z.string(),
+    time: z.iso.datetime(),
+    source: z.string(),
+    type: z.string(),
+    subject: z.string(),
+    data: z.union([
+        z.record(z.string(), z.unknown()),
+        z.string(),
+        z.number(),
+        z.array(z.unknown()),
+        z.boolean(),
+    ]),
+    datacontenttype: z.string().optional(),
+    dataschema: z.url().optional(),
+});
+
+/**
+ * Input for creating an event.
+ */
+export type CreateEventInput = Partial<Omit<Event, 'specversion'>> & {
+    type: string;
+    source: string;
+    data: unknown;
+};
+
+/**
+ * Creates an event based on input data with the convenience
+ * to skip properties and use the defaults for the rest.
+ */
+export const createEvent = <TEvent extends Event>(
+    {
+        id,
+        correlationid,
+        time,
+        source,
+        type,
+        subject,
+        data,
+        datacontenttype,
+        dataschema,
+    }: CreateEventInput,
+): TEvent => {
+    const event = {
+        specversion: '1.0',
+        id: id ?? ulid(),
+        correlationid: correlationid ?? ulid(),
+        time: time ?? new Date().toISOString(),
+        source,
+        type,
+        ...(subject && { subject }),
+        data,
+        datacontenttype: datacontenttype ?? 'application/json',
+        ...(dataschema && { dataschema }),
+    } as TEvent;
+
+    return event;
 };

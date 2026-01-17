@@ -1,10 +1,7 @@
 /**
  * Base exception
  */
-export class Exception {
-    public readonly name: string;
-    public message: string;
-    public stack?: string;
+export class Exception extends Error {
     public details?: Record<string, unknown>;
     public statusCode?: number;
 
@@ -14,8 +11,8 @@ export class Exception {
         details?: Record<string, unknown>,
         statusCode?: number,
     ) {
+        super(message);
         this.name = name;
-        this.message = message;
 
         if (details) {
             this.details = details;
@@ -25,7 +22,10 @@ export class Exception {
             this.statusCode = statusCode;
         }
 
-        Error.captureStackTrace(this, this.constructor);
+        // Maintains proper stack trace in V8 environments
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, this.constructor);
+        }
     }
 
     public fromError(error: Error): Exception {

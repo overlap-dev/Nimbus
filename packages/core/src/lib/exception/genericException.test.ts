@@ -5,8 +5,8 @@ Deno.test('GenericException without constructor input', () => {
     const exception = new GenericException();
 
     assertInstanceOf(exception, GenericException);
-    assertEquals(exception.name, 'GENERIC_EXCEPTION');
-    assertEquals(exception.message, 'An error occurred');
+    assertEquals(exception.name, 'INTERNAL_SERVER_ERROR');
+    assertEquals(exception.message, 'Internal server error');
     assertEquals(exception.statusCode, 500);
     assertEquals(typeof exception.details, 'undefined');
     assertEquals(typeof exception.stack, 'string');
@@ -21,7 +21,7 @@ Deno.test('GenericException with constructor input', () => {
     const exception = new GenericException(message, details);
 
     assertInstanceOf(exception, GenericException);
-    assertEquals(exception.name, 'GENERIC_EXCEPTION');
+    assertEquals(exception.name, 'INTERNAL_SERVER_ERROR');
     assertEquals(exception.message, message);
     assertEquals(exception.statusCode, 500);
     assertEquals(exception.details, details);
@@ -34,7 +34,7 @@ Deno.test('GenericException from error without constructor input', () => {
     const exception = new GenericException().fromError(nativeError);
 
     assertInstanceOf(exception, GenericException);
-    assertEquals(exception.name, 'GENERIC_EXCEPTION');
+    assertEquals(exception.name, 'INTERNAL_SERVER_ERROR');
     assertEquals(exception.message, nativeError.message);
     assertEquals(exception.statusCode, 500);
     assertEquals(typeof exception.details, 'undefined');
@@ -54,7 +54,7 @@ Deno.test('GenericException from error with constructor input', () => {
     ).fromError(nativeError);
 
     assertInstanceOf(exception, GenericException);
-    assertEquals(exception.name, 'GENERIC_EXCEPTION');
+    assertEquals(exception.name, 'INTERNAL_SERVER_ERROR');
     assertEquals(exception.message, nativeError.message);
     assertEquals(exception.statusCode, 500);
     assertEquals(exception.details, details);

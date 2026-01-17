@@ -1,102 +1,21 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@oak/commons@1": "1.0.0",
-    "jsr:@oak/oak@^17.1.4": "17.1.6",
-    "jsr:@oak/oak@^17.1.6": "17.1.6",
-    "jsr:@std/assert@1": "1.0.10",
-    "jsr:@std/assert@^1.0.10": "1.0.10",
-    "jsr:@std/bytes@1": "1.0.4",
-    "jsr:@std/bytes@^1.0.2": "1.0.4",
-    "jsr:@std/crypto@1": "1.0.3",
     "jsr:@std/dotenv@*": "0.225.3",
-    "jsr:@std/dotenv@~0.225.5": "0.225.6",
     "jsr:@std/dotenv@~0.225.6": "0.225.6",
-    "jsr:@std/encoding@1": "1.0.6",
-    "jsr:@std/encoding@^1.0.5": "1.0.6",
     "jsr:@std/fmt@^1.0.4": "1.0.5",
     "jsr:@std/fmt@^1.0.5": "1.0.5",
-    "jsr:@std/http@1": "1.0.12",
-    "jsr:@std/internal@^1.0.5": "1.0.5",
-    "jsr:@std/io@0.224": "0.224.9",
-    "jsr:@std/media-types@1": "1.1.0",
-    "jsr:@std/path@1": "1.0.8",
     "jsr:@std/text@^1.0.10": "1.0.10",
     "jsr:@std/ulid@1": "1.0.0",
-    "jsr:@tajpouria/cors@^1.2.1": "1.2.1",
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@types/node@*": "22.5.4",
     "npm:ajv@^8.17.1": "8.17.1",
-    "npm:effect@^3.17.9": "3.17.9",
     "npm:hono@^4.11.4": "4.11.4",
     "npm:mongodb@^6.12.0": "6.12.0",
-    "npm:path-to-regexp@6.2.1": "6.2.1",
-    "npm:path-to-regexp@^6.3.0": "6.3.0",
-    "npm:zod@^3.24.1": "3.24.1",
+    "npm:zod@^3.24.1": "3.25.76",
     "npm:zod@^4.3.5": "4.3.5"
   },
   "jsr": {
-    "@oak/commons@1.0.0": {
-      "integrity": "49805b55603c3627a9d6235c0655aa2b6222d3036b3a13ff0380c16368f607ac",
-      "dependencies": [
-        "jsr:@std/assert@1",
-        "jsr:@std/bytes@1",
-        "jsr:@std/crypto",
-        "jsr:@std/encoding@1",
-        "jsr:@std/http",
-        "jsr:@std/media-types"
-      ]
-    },
-    "@oak/oak@17.1.3": {
-      "integrity": "d89296c22db91681dd3a2a1e1fd14e258d0d5a9654de55637aee5b661c159f33",
-      "dependencies": [
-        "jsr:@oak/commons",
-        "jsr:@std/assert@1",
-        "jsr:@std/bytes@1",
-        "jsr:@std/crypto",
-        "jsr:@std/http",
-        "jsr:@std/io",
-        "jsr:@std/media-types",
-        "jsr:@std/path",
-        "npm:path-to-regexp@6.2.1"
-      ]
-    },
-    "@oak/oak@17.1.4": {
-      "integrity": "60530b582bf276ff741e39cc664026781aa08dd5f2bc5134d756cc427bf2c13e",
-      "dependencies": [
-        "jsr:@oak/commons",
-        "jsr:@std/assert@1",
-        "jsr:@std/bytes@1",
-        "jsr:@std/http",
-        "jsr:@std/media-types",
-        "jsr:@std/path",
-        "npm:path-to-regexp@^6.3.0"
-      ]
-    },
-    "@oak/oak@17.1.6": {
-      "integrity": "c7eef2eec733fba8e72b679bba3b8cf2fceccf5ef489a8b8fb43571908c0335d",
-      "dependencies": [
-        "jsr:@oak/commons",
-        "jsr:@std/assert@1",
-        "jsr:@std/bytes@1",
-        "jsr:@std/http",
-        "jsr:@std/media-types",
-        "jsr:@std/path",
-        "npm:path-to-regexp@^6.3.0"
-      ]
-    },
-    "@std/assert@1.0.10": {
-      "integrity": "59b5cbac5bd55459a19045d95cc7c2ff787b4f8527c0dd195078ff6f9481fbb3",
-      "dependencies": [
-        "jsr:@std/internal"
-      ]
-    },
-    "@std/bytes@1.0.4": {
-      "integrity": "11a0debe522707c95c7b7ef89b478c13fb1583a7cfb9a85674cd2cc2e3a28abc"
-    },
-    "@std/crypto@1.0.3": {
-      "integrity": "a2a32f51ddef632d299e3879cd027c630dcd4d1d9a5285d6e6788072f4e51e7f"
-    },
     "@std/dotenv@0.225.3": {
       "integrity": "a95e5b812c27b0854c52acbae215856d9cce9d4bbf774d938c51d212711e8d4a"
     },
@@ -106,44 +25,17 @@
     "@std/dotenv@0.225.6": {
       "integrity": "1d6f9db72f565bd26790fa034c26e45ecb260b5245417be76c2279e5734c421b"
     },
-    "@std/encoding@1.0.6": {
-      "integrity": "ca87122c196e8831737d9547acf001766618e78cd8c33920776c7f5885546069"
-    },
     "@std/fmt@1.0.4": {
       "integrity": "e14fe5bedee26f80877e6705a97a79c7eed599e81bb1669127ef9e8bc1e29a74"
     },
     "@std/fmt@1.0.5": {
       "integrity": "0cfab43364bc36650d83c425cd6d99910fc20c4576631149f0f987eddede1a4d"
     },
-    "@std/http@1.0.12": {
-      "integrity": "85246d8bfe9c8e2538518725b158bdc31f616e0869255f4a8d9e3de919cab2aa",
-      "dependencies": [
-        "jsr:@std/encoding@^1.0.5"
-      ]
-    },
-    "@std/internal@1.0.5": {
-      "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
-    },
-    "@std/io@0.224.9": {
-      "integrity": "4414664b6926f665102e73c969cfda06d2c4c59bd5d0c603fd4f1b1c840d6ee3",
-      "dependencies": [
-        "jsr:@std/bytes@^1.0.2"
-      ]
-    },
-    "@std/media-types@1.1.0": {
-      "integrity": "c9d093f0c05c3512932b330e3cc1fe1d627b301db33a4c2c2185c02471d6eaa4"
-    },
-    "@std/path@1.0.8": {
-      "integrity": "548fa456bb6a04d3c1a1e7477986b6cffbce95102d0bb447c67c4ee70e0364be"
-    },
     "@std/text@1.0.10": {
       "integrity": "9dcab377450253c0efa9a9a0c731040bfd4e1c03f8303b5934381467b7954338"
     },
     "@std/ulid@1.0.0": {
       "integrity": "d41c3d27a907714413649fee864b7cde8d42ee68437d22b79d5de4f81d808780"
-    },
-    "@tajpouria/cors@1.2.1": {
-      "integrity": "eca42e4fb7cb3906ef0ee3d1e565dd6bb4632ccd8e70a95cf4279759743328f0"
     }
   },
   "npm": {
@@ -155,9 +47,6 @@
     },
     "@opentelemetry/api@1.9.0": {
       "integrity": "sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg=="
-    },
-    "@standard-schema/spec@1.0.0": {
-      "integrity": "sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA=="
     },
     "@types/node@22.5.4": {
       "integrity": "sha512-FDuKUJQm/ju9fT/SeX/6+gBzoPzlVCzfzmGkwKvRHQVxi4BntVbyIwf6a4Xn62mrvndLiml6z/UBXIdEVjQLXg==",
@@ -186,19 +75,6 @@
     "bson@6.10.1": {
       "integrity": "sha512-P92xmHDQjSKPLHqFxefqMxASNq/aWJMEZugpCjf+AF/pgcUpMMQCg7t7+ewko0/u8AapvF3luf/FoehddEK+sA==",
       "deprecated": true
-    },
-    "effect@3.17.9": {
-      "integrity": "sha512-Nkkn9n1zhy30Dq0MpQatDCH7nfYnOIiebkOHNxmmvoVnEDKCto+2ZwDDWFGzcN/ojwfqjRXWGC9Lo91K5kwZCg==",
-      "dependencies": [
-        "@standard-schema/spec",
-        "fast-check"
-      ]
-    },
-    "fast-check@3.23.2": {
-      "integrity": "sha512-h5+1OzzfCC3Ef7VbtKdcv7zsstUQwUDlYpUTvjeUsJAssPgLn7QzbboPtL5ro04Mq0rPOsMzl7q5hIbRs2wD1A==",
-      "dependencies": [
-        "pure-rand"
-      ]
     },
     "fast-deep-equal@3.1.3": {
       "integrity": "sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q=="
@@ -230,17 +106,8 @@
         "mongodb-connection-string-url"
       ]
     },
-    "path-to-regexp@6.2.1": {
-      "integrity": "sha512-JLyh7xT1kizaEvcaXOQwOc2/Yhw6KZOvPf1S8401UyLk86CU79LN3vl7ztXGm/pZ+YjoyAJ4rxmHwbkBXJX+yw=="
-    },
-    "path-to-regexp@6.3.0": {
-      "integrity": "sha512-Yhpw4T9C6hPpgPeA28us07OJeqZ5EzQTkbfwuhsUg0c237RomFoETJgmp2sa3F/41gfLE6G5cqcYwznmeEeOlQ=="
-    },
     "punycode@2.3.1": {
       "integrity": "sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg=="
-    },
-    "pure-rand@6.1.0": {
-      "integrity": "sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA=="
     },
     "require-from-string@2.0.2": {
       "integrity": "sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw=="
@@ -270,8 +137,8 @@
         "webidl-conversions"
       ]
     },
-    "zod@3.24.1": {
-      "integrity": "sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A=="
+    "zod@3.25.76": {
+      "integrity": "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="
     },
     "zod@4.3.5": {
       "integrity": "sha512-k7Nwx6vuWx1IJ9Bjuf4Zt1PEllcwe7cls3VNzm4CQ1/hgtFUK2bRNG3rvnpPUhFjmqJKAKtjV576KnUkHocg/g=="
@@ -318,31 +185,12 @@
   },
   "workspace": {
     "members": {
-      "examples/gustav": {
-        "dependencies": [
-          "jsr:@oak/oak@^17.1.6",
-          "jsr:@std/dotenv@~0.225.5",
-          "jsr:@std/ulid@1",
-          "jsr:@tajpouria/cors@^1.2.1",
-          "npm:ajv@^8.17.1",
-          "npm:effect@^3.17.9",
-          "npm:mongodb@^6.12.0",
-          "npm:zod@^3.24.1"
-        ]
-      },
       "examples/hono-demo": {
         "dependencies": [
           "jsr:@std/dotenv@~0.225.6",
-          "npm:hono@^4.11.4"
-        ]
-      },
-      "examples/the-expense": {
-        "dependencies": [
-          "jsr:@oak/oak@^17.1.4",
           "jsr:@std/ulid@1",
-          "jsr:@tajpouria/cors@^1.2.1",
-          "npm:mongodb@^6.12.0",
-          "npm:zod@^3.24.1"
+          "npm:hono@^4.11.4",
+          "npm:zod@^4.3.5"
         ]
       },
       "packages/core": {
@@ -355,6 +203,7 @@
       },
       "packages/hono": {
         "dependencies": [
+          "jsr:@std/ulid@1",
           "npm:@opentelemetry/api@^1.9.0",
           "npm:hono@^4.11.4"
         ]

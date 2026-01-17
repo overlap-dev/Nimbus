@@ -1,6 +1,4 @@
-export * from './lib/auth/authContext.ts';
 export * from './lib/event/eventBus.ts';
-export * from './lib/exception/concurrencyException.ts';
 export * from './lib/exception/exception.ts';
 export * from './lib/exception/forbiddenException.ts';
 export * from './lib/exception/genericException.ts';
@@ -15,5 +13,4 @@ export * from './lib/message/command.ts';
 export * from './lib/message/event.ts';
 export * from './lib/message/message.ts';
 export * from './lib/message/query.ts';
-export * from './lib/router/router.ts';
-export * from './lib/validator/validator.ts';
+export * from './lib/message/router.ts';

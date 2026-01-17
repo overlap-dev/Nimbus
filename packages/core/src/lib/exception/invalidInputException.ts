@@ -1,3 +1,4 @@
+import type { ZodError } from 'zod';
 import { Exception } from './exception.ts';
 
 /**
@@ -6,8 +7,8 @@ import { Exception } from './exception.ts';
 export class InvalidInputException extends Exception {
     constructor(message?: string, details?: Record<string, unknown>) {
         super(
-            'INVALID_INPUT_EXCEPTION',
-            message ?? 'The provided input is invalid',
+            'INVALID_INPUT',
+            message ?? 'Invalid input',
             details,
             400,
         );
@@ -23,7 +24,7 @@ export class InvalidInputException extends Exception {
      *
      * @deprecated We do not want to depend on Zod anymore.
      */
-    public fromZodError(error: any): InvalidInputException {
+    public fromZodError(error: ZodError): InvalidInputException {
         if (error.stack) {
             this.stack = error.stack;
         }

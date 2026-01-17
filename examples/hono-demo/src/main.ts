@@ -7,11 +7,8 @@ import {
     prettyLogFormatter,
     setupLogger,
 } from '@nimbus/core';
-import { correlationId, logger } from '@nimbus/hono';
-import { Hono } from 'hono';
-import { cors } from 'hono/cors';
-import { secureHeaders } from 'hono/secure-headers';
-import { compress } from 'hono/compress';
+import { initMessages } from './shared/shell/messageRouter.ts';
+import { app } from './shared/shell/http.ts';
 
 setupLogger({
     logLevel: parseLogLevel(process.env.LOG_LEVEL),
@@ -21,29 +18,13 @@ setupLogger({
     useConsoleColors: process.env.LOG_FORMAT === 'pretty',
 });
 
-const app = new Hono();
-
-app.use(correlationId());
-
-app.use(logger({
-    enableTracing: true,
-    tracerName: 'api',
-}));
-
-app.use(cors());
-
-app.use(secureHeaders());
-
-app.use(compress());
-
-app.get('/health', (c) => {
-    return c.json({ status: 'ok' });
-});
+initMessages();
 
 if (process.env.PORT) {
     const port = parseInt(process.env.PORT);
 
-    Deno.serve({ port }, app.fetch);
+    Deno.serve({ hostname: '0.0.0.0', port }, app.fetch);
+
     getLogger().info({
         category: 'API',
         message: `Started application on port ${port}`,

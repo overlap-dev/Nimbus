@@ -1,3 +1,6 @@
+import { ulid } from '@std/ulid';
+import { z } from 'zod';
+
 /**
  * A query is a message that is sent to the system to request
  * information.
@@ -45,56 +48,68 @@ export type Query<TData = unknown> = {
     dataschema?: string;
 };
 
-export const querySchema = {
-    $id: 'https://nimbus.overlap.at/schemas/query/v1',
-    type: 'object',
-    required: [
-        'specversion',
-        'id',
-        'correlationid',
-        'time',
-        'source',
-        'type',
-        'data',
-    ],
-    properties: {
-        specversion: {
-            const: '1.0',
-        },
-        id: {
-            type: 'string',
-            minLength: 1,
-        },
-        correlationid: {
-            type: 'string',
-            minLength: 1,
-        },
-        time: {
-            type: 'string',
-            format: 'date-time',
-            minLength: 1,
-        },
-        source: {
-            type: 'string',
-            format: 'uri-reference',
-            minLength: 1,
-        },
-        type: {
-            type: 'string',
-            minLength: 1,
-        },
-        data: {
-            type: 'object',
-            additionalProperties: true,
-        },
-        datacontenttype: {
-            type: 'string',
-            minLength: 1,
-        },
-        dataschema: {
-            type: 'string',
-            format: 'uri',
-            minLength: 1,
-        },
-    },
+/**
+ * The Zod schema matching the Query type.
+ *
+ * Zod is the default for validating incomming messages.
+ *
+ * We do not infer the Query type from this schema because of
+ * slow type issues see https://jsr.io/docs/about-slow-types for more details.
+ */
+export const querySchema = z.object({
+    specversion: z.literal('1.0'),
+    id: z.string(),
+    correlationid: z.string(),
+    time: z.iso.datetime(),
+    source: z.string(),
+    type: z.string(),
+    data: z.union([
+        z.record(z.string(), z.unknown()),
+        z.string(),
+        z.number(),
+        z.array(z.unknown()),
+        z.boolean(),
+    ]),
+    datacontenttype: z.string().optional(),
+    dataschema: z.url().optional(),
+});
+
+/**
+ * Input for creating a query.
+ */
+export type CreateQueryInput = Partial<Omit<Query, 'specversion'>> & {
+    type: string;
+    source: string;
+    data: unknown;
+};
+
+/**
+ * Creates a query based on input data with the convenience
+ * to skip properties and use the defaults for the rest.
+ */
+export const createQuery = <TQuery extends Query>(
+    {
+        id,
+        correlationid,
+        time,
+        source,
+        type,
+        data,
+        datacontenttype,
+        dataschema,
+    }: CreateQueryInput,
+): TQuery => {
+    const query = {
+        specversion: '1.0',
+        id: id ?? ulid(),
+        correlationid: correlationid ?? ulid(),
+        time: time ?? new Date().toISOString(),
+        source,
+        type,
+        data,
+        datacontenttype: datacontenttype ?? 'application/json',
+        ...(dataschema && { dataschema }),
+    } as TQuery;
+
+    return query;
 };

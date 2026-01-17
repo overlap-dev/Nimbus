@@ -1,127 +1,228 @@
 # Commands
 
-Commands are the messages that tell your application to do something.  
-Like "Hey, create a new account with the following data".
+Commands represent write operations - intentions to change system state in the application.
+
+Commands follow the Command pattern from CQRS (Command Query Responsibility Segregation), where writes and reads are separated for better scalability and maintainability.
 
 ::: info Example Application
-You can find the full example on GitHub [The Expense Repo](https://github.com/overlap-dev/Nimbus/tree/main/examples/the-expense)
+The examples on this page reference the Gustav application.
 
-Check it out and run it with `deno task dev`
+You can find the full example on GitHub: [Gustav Recipe App](https://github.com/overlap-dev/Nimbus/tree/main/examples/gustav)
 :::
 
-## Example
+## Key Characteristics
 
-At first we define the command and the core functionality in a file called `addAccount.ts` in the `core/commands` folder. If you like you can also split the command definition and the function into separate files. Or add more functions to handle the core business logic involved when adding an account.
+- **Write Operations**: Commands modify application state
+- **Intent-Based**: Commands express what should happen (e.g., "AddRecipe", "DeleteRecipe")
+- **Validated**: Command data is validated before execution
+- **Type-Safe**: Full TypeScript type safety for command data and handlers
 
-Next we add a command handler in a fille called `addAccount.handler.ts` in the `shell/commands` folder. This is the first function that is executed when the app receives this specific command.
+## Command Structure
 
-The command handler contains all the glue needed to communicate with other parts of the application and to handle all the side-effects. In this example we first call the core function to get a new account. Then we write the account to the database, we publish an event that the account was added and finally we return the account to the caller.
+A command in Nimbus follows the CloudEvents specification and consists of:
 
-::: code-group
+```typescript
+export type Command<T> = {
+    specversion: '1.0';
+    id: string;
+    correlationid: string;
+    time: string;
+    source: string;
+    type: string;
+    data: T;
+    datacontenttype: string;
+};
+```
 
-```typescript [Core]
-import {
-    AuthContext,
-    Command,
-    CommandMetadata,
-    InvalidInputException,
-} from "@nimbus/core";
-import { ObjectId } from "mongodb";
-import { z } from "zod";
-import { Account } from "../account.type.ts";
+## Example: Add Recipe Command
 
-// Define the data for the command
-export const AddAccountData = z.object({
-    name: z.string(),
-});
-export type AddAccountData = z.infer<typeof AddAccountData>;
+### Define the Command Type
 
-// Define the Command with it's unique name, data and metadata
-export const AddAccountCommand = Command(
-    z.literal("ADD_ACCOUNT"),
-    AddAccountData,
-    CommandMetadata(AuthContext) // You can define you own meta data type if needed
-);
-export type AddAccountCommand = z.infer<typeof AddAccountCommand>;
+Create a command type definition in the core layer:
 
-// The core logic
-// We take the command data and the authContext and return the new account.
-//
-// Apply any important business logic here if needed.
-// For example to set the balance of the account to 0
-// or in case of a promotion add a starting balance.
-export const addAccount = (
-    data: AddAccountData,
-    authContext?: AuthContext
-): Account => {
-    if (!authContext) {
-        throw new InvalidInputException();
+```typescript
+// core/commands/addRecipe.ts
+import { Command } from '@nimbus/core';
+import { Recipe } from '../domain/recipe.ts';
+
+export const AddRecipeCommandType = 'at.overlap.nimbus.app-recipe' as const;
+
+export type AddRecipeCommand = Command<Recipe> & {
+    type: typeof AddRecipeCommandType;
+};
+```
+
+### Implement Pure Core Logic
+
+The core function contains pure business logic with no I/O operations:
+
+```typescript
+// core/commands/addRecipe.ts
+export const addRecipe = (
+    command: AddRecipeCommand,
+    state: RecipeState,
+): {
+    newState: Recipe;
+    events: RecipeAddedEvent[];
+} => {
+    // Business validation
+    if (state !== null) {
+        throw new InvalidInputException('Recipe already exists', {
+            errorCode: 'DUPLICATE_RECIPE',
+        });
     }
 
+    const subject = recipeSubject(command.data.slug);
+    const event = createRecipeAddedEvent(command, subject);
+
     return {
-        _id: new ObjectId().toString(),
-        name: data.name,
-        status: "active",
+        newState: command.data,
+        events: [event],
     };
 };
 ```
 
-```typescript [Shell]
-import { InvalidInputException, type RouteHandler } from "@nimbus/core";
-import { eventBus } from "../../../eventBus.ts";
-import { Account } from "../../core/account.type.ts";
-import {
-    addAccount,
-    AddAccountCommand,
-} from "../../core/commands/addAccount.ts";
-import { AccountAddedEvent } from "../../core/events/accountAdded.ts";
-import { accountRepository } from "../account.repository.ts";
+### Implement Shell Handler
 
-export const addAccountHandler: RouteHandler<any, Account> = async (
-    command: AddAccountCommand
-) => {
-    // Call the Core with validated and type-safe inputs.
-    // The Nimbus router takes care these are type checked and validated.
-    // Learn more about the router on the next sections of the guide.
-    let account = addAccount(command.data, command.metadata.authContext);
+The handler orchestrates I/O operations and calls the pure core logic:
 
-    // Write the new account to the database
-    try {
-        account = await accountRepository.insertOne({ item: account });
-    } catch (error: any) {
-        if (error.message.startsWith("E11000")) {
-            throw new InvalidInputException("Account already exists", {
-                errorCode: "ACCOUNT_ALREADY_EXISTS",
-                reason: "An account with the same name already exists",
-            });
-        }
+```typescript
+// infrastructure/http/handler/addRecipe.handler.ts
+import { MessageHandler } from '@nimbus/core';
+import { loadAggregate } from '@nimbus/eventsourcing';
+import { eventStore } from '../eventStore.ts';
+import { addRecipe, AddRecipeCommand } from '../../../core/commands/addRecipe.ts';
+import { recipeReducer, recipeSubject } from '../../../core/domain/recipeAggregate.ts';
 
-        throw error;
-    }
+export const addRecipeHandler: MessageHandler<AddRecipeCommand, Recipe> =
+    async (command) => {
+        const subject = recipeSubject(command.data.slug);
 
-    // We want to publish an event that the account was added
-    // See more about events in the next section of the guide
-    eventBus.putEvent<AccountAddedEvent>({
-        name: "ACCOUNT_ADDED",
-        data: {
-            account: account,
-        },
-        metadata: {
-            correlationId: command.metadata.correlationId,
-            authContext: command.metadata.authContext,
-        },
-    });
+        // Load current state from event store
+        const snapshot = await loadAggregate(
+            eventStore,
+            subject,
+            null,
+            recipeReducer,
+        );
 
-    // Return the successful result
-    return {
-        statusCode: 200,
-        data: account,
+        // Call pure core logic
+        const { newState, events } = addRecipe(command, snapshot.state);
+
+        // Persist events with optimistic concurrency control
+        await eventStore.writeEvents(events, {
+            preconditions: snapshot.lastEventId !== undefined
+                ? [{ type: 'isSubjectOnEventId', payload: { subject, eventId: snapshot.lastEventId } }]
+                : [{ type: 'isSubjectPristine', payload: { subject } }],
+        });
+
+        return newState;
     };
+```
+
+## Architecture Pattern
+
+Commands follow the Pure Core - Imperative Shell pattern:
+
+1. **Core Layer** (Pure):
+   - Define command types
+   - Implement business logic
+   - No I/O operations
+   - Returns new state and events to persist
+
+2. **Infrastructure Layer** (Shell):
+   - Define message handlers
+   - Load current state from data sources
+   - Call pure core functions
+   - Persist results
+   - Handle errors and responses
+
+## Best Practices
+
+### Keep Core Pure
+
+The core command logic should be completely free of side effects:
+
+```typescript
+// ✅ Good - Pure function
+export const addRecipe = (command: AddRecipeCommand, state: RecipeState) => {
+    if (state !== null) throw new InvalidInputException('Recipe already exists');
+    return { newState: command.data, events: [createEvent(command)] };
+};
+
+// ❌ Bad - Has side effects
+export const addRecipe = async (command: AddRecipeCommand) => {
+    const existing = await db.findRecipe(command.data.slug); // I/O in core!
+    if (existing) throw new InvalidInputException('Recipe already exists');
+    await db.saveRecipe(command.data); // I/O in core!
 };
 ```
 
-:::
+### Use Ports for Dependencies
 
-## Receive and Route Commands
+When the core needs external data, define ports (interfaces):
 
-Learn more about how to receive and route commands in the [Router](/guide/core/router.md) guide.
+```typescript
+// core/ports/recipeRepository.ts
+export interface RecipeRepository {
+    getBySlug(slug: string): Promise<Recipe | null>;
+    save(recipe: Recipe): Promise<void>;
+}
+```
+
+The shell provides the implementation (adapter):
+
+```typescript
+// infrastructure/repository/recipeMemoryRepository.ts
+export const recipeMemoryRepository: RecipeRepository = {
+    async getBySlug(slug: string) { /* implementation */ },
+    async save(recipe: Recipe) { /* implementation */ },
+};
+```
+
+### Validate Early
+
+Validate command data before reaching core logic using JSON schemas:
+
+```typescript
+// infrastructure/http/schemas/addRecipeCommandSchema.ts
+export const addRecipeCommandSchema = {
+    $id: 'https://nimbus.overlap.at/schemas/commands/add-recipe/v1',
+    type: 'object',
+    properties: {
+        slug: { type: 'string', minLength: 1, maxLength: 100 },
+        title: { type: 'string', minLength: 1, maxLength: 200 },
+        ingredients: { type: 'array', items: { $ref: '#/definitions/ingredient' } },
+    },
+    required: ['slug', 'title', 'ingredients'],
+};
+```
+
+### Emit Events
+
+Commands should emit domain events for other parts of the system to react to:
+
+```typescript
+const event: RecipeAddedEvent = {
+    specversion: '1.0',
+    id: ulid(),
+    correlationid: command.correlationid,
+    time: new Date().toISOString(),
+    source: EVENT_SOURCE,
+    type: 'at.overlap.nimbus.recipe-added',
+    subject: `/recipes/${command.data.slug}`,
+    data: command.data,
+    datacontenttype: 'application/json',
+};
+```
+
+## Routing Commands
+
+Commands are routed to handlers using the message router. See the [HTTP Guide](/guide/http/) for more details on routing commands through HTTP endpoints.
+
+## Related Patterns
+
+- [Queries](/guide/core/queries) - Read operations
+- [Events](/guide/core/events) - Domain events
+- [Event Sourcing](/guide/eventsourcing/) - Persisting state as events
+- [CQRS](/guide/what-is-nimbus#cqrs-event-sourcing) - Separating reads and writes

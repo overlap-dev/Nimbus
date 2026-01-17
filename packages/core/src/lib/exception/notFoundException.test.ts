@@ -5,7 +5,7 @@ Deno.test('NotFoundException without constructor input', () => {
     const exception = new NotFoundException();
 
     assertInstanceOf(exception, NotFoundException);
-    assertEquals(exception.name, 'NOT_FOUND_EXCEPTION');
+    assertEquals(exception.name, 'NOT_FOUND');
     assertEquals(exception.message, 'Not found');
     assertEquals(exception.statusCode, 404);
     assertEquals(typeof exception.details, 'undefined');
@@ -21,7 +21,7 @@ Deno.test('NotFoundException with constructor input', () => {
     const exception = new NotFoundException(message, details);
 
     assertInstanceOf(exception, NotFoundException);
-    assertEquals(exception.name, 'NOT_FOUND_EXCEPTION');
+    assertEquals(exception.name, 'NOT_FOUND');
     assertEquals(exception.message, message);
     assertEquals(exception.statusCode, 404);
     assertEquals(exception.details, details);
@@ -34,7 +34,7 @@ Deno.test('NotFoundException from error without constructor input', () => {
     const exception = new NotFoundException().fromError(nativeError);
 
     assertInstanceOf(exception, NotFoundException);
-    assertEquals(exception.name, 'NOT_FOUND_EXCEPTION');
+    assertEquals(exception.name, 'NOT_FOUND');
     assertEquals(exception.message, nativeError.message);
     assertEquals(exception.statusCode, 404);
     assertEquals(typeof exception.details, 'undefined');
@@ -54,7 +54,7 @@ Deno.test('NotFoundException from error with constructor input', () => {
     ).fromError(nativeError);
 
     assertInstanceOf(exception, NotFoundException);
-    assertEquals(exception.name, 'NOT_FOUND_EXCEPTION');
+    assertEquals(exception.name, 'NOT_FOUND');
     assertEquals(exception.message, nativeError.message);
     assertEquals(exception.statusCode, 404);
     assertEquals(exception.details, details);

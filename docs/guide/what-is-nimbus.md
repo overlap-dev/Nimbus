@@ -127,38 +127,25 @@ For complex scenarios requiring multiple database queries with business logic in
 
 ## Message-Driven Architecture
 
-Nimbus uses a message-driven approach with three core message types:
+Nimbus uses a message-driven approach with three core message types that follow the Command Query Responsibility Segregation (CQRS) pattern.
 
 ### Commands
 
 Commands represent write operations - intentions to change system state. They are processed by command handlers that execute business logic and persist changes.
 
-```typescript
-export type AddRecipeCommand = Command<Recipe> & {
-    type: "at.overlap.nimbus.app-recipe";
-};
-```
+Learn more in the [Commands Guide](/guide/core/commands).
 
 ### Queries
 
 Queries represent read operations - requests for information without changing state. Query handlers fetch and return data.
 
-```typescript
-export type GetRecipeQuery = Query<GetRecipeParams, Recipe> & {
-    type: "at.overlap.nimbus.get-recipe";
-};
-```
+Learn more in the [Queries Guide](/guide/core/queries).
 
 ### Events
 
 Events represent facts - things that have already happened in the system. Event handlers react to these facts to update read models, trigger notifications, or coordinate between different parts of the system.
 
-```typescript
-export type RecipeAddedEvent = Event<Recipe> & {
-    type: "at.overlap.nimbus.recipe-added";
-    subject: string;
-};
-```
+Learn more in the [Events Guide](/guide/core/events).
 
 ## Domain-Driven Design & Hexagonal Architecture
 

@@ -5,8 +5,8 @@ Deno.test('InvalidInputException without constructor input', () => {
     const exception = new InvalidInputException();
 
     assertInstanceOf(exception, InvalidInputException);
-    assertEquals(exception.name, 'INVALID_INPUT_EXCEPTION');
-    assertEquals(exception.message, 'The provided input is invalid');
+    assertEquals(exception.name, 'INVALID_INPUT');
+    assertEquals(exception.message, 'Invalid input');
     assertEquals(exception.statusCode, 400);
     assertEquals(typeof exception.details, 'undefined');
     assertEquals(typeof exception.stack, 'string');
@@ -24,7 +24,7 @@ Deno.test('InvalidInputException with constructor input', () => {
     );
 
     assertInstanceOf(exception, InvalidInputException);
-    assertEquals(exception.name, 'INVALID_INPUT_EXCEPTION');
+    assertEquals(exception.name, 'INVALID_INPUT');
     assertEquals(exception.message, message);
     assertEquals(exception.statusCode, 400);
     assertEquals(exception.details, details);
@@ -39,7 +39,7 @@ Deno.test('InvalidInputException from error without constructor input', () => {
     );
 
     assertInstanceOf(exception, InvalidInputException);
-    assertEquals(exception.name, 'INVALID_INPUT_EXCEPTION');
+    assertEquals(exception.name, 'INVALID_INPUT');
     assertEquals(exception.message, nativeError.message);
     assertEquals(exception.statusCode, 400);
     assertEquals(typeof exception.details, 'undefined');
@@ -59,7 +59,7 @@ Deno.test('InvalidInputException from error with constructor input', () => {
     ).fromError(nativeError);
 
     assertInstanceOf(exception, InvalidInputException);
-    assertEquals(exception.name, 'INVALID_INPUT_EXCEPTION');
+    assertEquals(exception.name, 'INVALID_INPUT');
     assertEquals(exception.message, nativeError.message);
     assertEquals(exception.statusCode, 400);
     assertEquals(exception.details, details);

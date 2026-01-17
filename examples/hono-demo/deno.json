@@ -28,6 +28,8 @@
   },
   "imports": {
     "@std/dotenv": "jsr:@std/dotenv@^0.225.6",
-    "hono": "npm:hono@^4.11.4"
+    "@std/ulid": "jsr:@std/ulid@^1.0.0",
+    "hono": "npm:hono@^4.11.4",
+    "zod": "npm:zod@^4.3.5"
   }
 }

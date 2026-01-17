@@ -2,8 +2,7 @@ import EventEmitter from 'node:events';
 import { GenericException } from '../exception/genericException.ts';
 import { getLogger } from '../log/logger.ts';
 import type { Event } from '../message/event.ts';
-import type { MessageHandler } from '../router/router.ts';
-import { MessageRouter } from '../router/router.ts';
+import { type MessageHandler, MessageRouter } from '../message/router.ts';
 
 /**
  * The input type for subscribing to an event.

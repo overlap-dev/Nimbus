@@ -4,15 +4,10 @@
   },
   "workspace": [
     "./packages/core",
-    "./packages/client",
-    "./packages/eventsourcing",
-    "./packages/eventsourcingdb",
     "./packages/mongodb",
     "./packages/oak",
     "./packages/hono",
     "./packages/utils",
-    "./examples/gustav",
-    "./examples/the-expense",
     "./examples/hono-demo"
   ],
   "nodeModulesDir": "none"
