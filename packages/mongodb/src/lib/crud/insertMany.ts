@@ -6,6 +6,7 @@ import type {
     OptionalUnlessRequiredId,
 } from 'mongodb';
 import { handleMongoError } from '../handleMongoError.ts';
+import { withSpan } from '../tracing.ts';
 
 /**
  * Type to define the input for the insertMany function.
@@ -33,15 +34,16 @@ export type InsertMany = (
  *
  * @returns {Promise<InsertManyResult<Document>} The result of the insert operation.
  */
-export const insertMany: InsertMany = async ({
+export const insertMany: InsertMany = ({
     collection,
     documents,
     options,
 }) => {
-    try {
-        const res = await collection.insertMany(documents, options);
-        return res;
-    } catch (error) {
-        throw handleMongoError(error);
-    }
+    return withSpan('insertMany', collection, async () => {
+        try {
+            return await collection.insertMany(documents, options);
+        } catch (error) {
+            throw handleMongoError(error);
+        }
+    });
 };

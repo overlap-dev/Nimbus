@@ -5,6 +5,7 @@ import type {
     Filter,
 } from 'mongodb';
 import { handleMongoError } from '../handleMongoError.ts';
+import { withSpan } from '../tracing.ts';
 
 /**
  * Type to define the input for the countDocuments function.
@@ -32,15 +33,16 @@ export type CountDocuments = (
  *
  * @returns {Promise<number>} The number of documents.
  */
-export const countDocuments: CountDocuments = async ({
+export const countDocuments: CountDocuments = ({
     collection,
     filter,
     options,
 }) => {
-    try {
-        const res = await collection.countDocuments(filter, options);
-        return res;
-    } catch (error) {
-        throw handleMongoError(error);
-    }
+    return withSpan('countDocuments', collection, async () => {
+        try {
+            return await collection.countDocuments(filter, options);
+        } catch (error) {
+            throw handleMongoError(error);
+        }
+    });
 };

@@ -1,5 +1,3 @@
-import '@std/dotenv/load';
-import process from 'node:process';
 import {
     getLogger,
     jsonLogFormatter,
@@ -7,8 +5,11 @@ import {
     prettyLogFormatter,
     setupLogger,
 } from '@nimbus/core';
-import { initMessages } from './shared/shell/messageRouter.ts';
+import '@std/dotenv/load';
+import process from 'node:process';
 import { app } from './shared/shell/http.ts';
+import { initMessages } from './shared/shell/messageRouter.ts';
+import { initMongoConnectionManager } from './shared/shell/mongodb.ts';
 
 setupLogger({
     logLevel: parseLogLevel(process.env.LOG_LEVEL),
@@ -17,6 +18,8 @@ setupLogger({
         : jsonLogFormatter,
     useConsoleColors: process.env.LOG_FORMAT === 'pretty',
 });
+
+initMongoConnectionManager();
 
 initMessages();
 

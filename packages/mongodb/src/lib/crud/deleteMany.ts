@@ -6,6 +6,7 @@ import type {
     Filter,
 } from 'mongodb';
 import { handleMongoError } from '../handleMongoError.ts';
+import { withSpan } from '../tracing.ts';
 
 /**
  * Type to define the input for the deleteMany function.
@@ -33,15 +34,16 @@ export type DeleteMany = (
  *
  * @returns {Promise<DeleteResult>} The result of the delete operation.
  */
-export const deleteMany: DeleteMany = async ({
+export const deleteMany: DeleteMany = ({
     collection,
     filter,
     options,
 }) => {
-    try {
-        const res = await collection.deleteMany(filter, options);
-        return res;
-    } catch (error) {
-        throw handleMongoError(error);
-    }
+    return withSpan('deleteMany', collection, async () => {
+        try {
+            return await collection.deleteMany(filter, options);
+        } catch (error) {
+            throw handleMongoError(error);
+        }
+    });
 };

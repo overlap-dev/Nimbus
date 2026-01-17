@@ -1,5 +1,6 @@
-import { z } from 'zod';
 import { commandSchema, InvalidInputException } from '@nimbus/core';
+import { ObjectId } from 'mongodb';
+import { z } from 'zod';
 import { UserState } from '../domain/user.ts';
 
 export const ADD_USER_COMMAND_TYPE = 'at.overlap.nimbus.add-user';
@@ -28,7 +29,7 @@ export const addUser = (
     }
 
     return {
-        id: crypto.randomUUID(),
+        _id: new ObjectId().toString(),
         email: email,
         firstName: command.data.firstName,
         lastName: command.data.lastName,

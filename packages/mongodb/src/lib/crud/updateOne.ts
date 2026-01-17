@@ -7,6 +7,7 @@ import type {
     UpdateResult,
 } from 'mongodb';
 import { handleMongoError } from '../handleMongoError.ts';
+import { withSpan } from '../tracing.ts';
 
 /**
  * Type to define the input for the updateOne function.
@@ -36,16 +37,17 @@ export type UpdateOne = (
  *
  * @returns {Promise<UpdateResult<Document>} The result of the update operation.
  */
-export const updateOne: UpdateOne = async ({
+export const updateOne: UpdateOne = ({
     collection,
     filter,
     update,
     options,
 }) => {
-    try {
-        const res = await collection.updateOne(filter, update, options);
-        return res;
-    } catch (error) {
-        throw handleMongoError(error);
-    }
+    return withSpan('updateOne', collection, async () => {
+        try {
+            return await collection.updateOne(filter, update, options);
+        } catch (error) {
+            throw handleMongoError(error);
+        }
+    });
 };

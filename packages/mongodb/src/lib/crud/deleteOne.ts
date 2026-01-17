@@ -6,6 +6,7 @@ import type {
     Filter,
 } from 'mongodb';
 import { handleMongoError } from '../handleMongoError.ts';
+import { withSpan } from '../tracing.ts';
 
 /**
  * Type to define the input for the deleteOne function.
@@ -33,15 +34,16 @@ export type DeleteOne = (
  *
  * @returns {Promise<DeleteResult>} The result of the delete operation.
  */
-export const deleteOne: DeleteOne = async ({
+export const deleteOne: DeleteOne = ({
     collection,
     filter,
     options,
 }) => {
-    try {
-        const res = await collection.deleteOne(filter, options);
-        return res;
-    } catch (error) {
-        throw handleMongoError(error);
-    }
+    return withSpan('deleteOne', collection, async () => {
+        try {
+            return await collection.deleteOne(filter, options);
+        } catch (error) {
+            throw handleMongoError(error);
+        }
+    });
 };

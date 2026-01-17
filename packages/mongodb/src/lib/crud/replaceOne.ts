@@ -7,6 +7,7 @@ import type {
     WithoutId,
 } from 'mongodb';
 import { handleMongoError } from '../handleMongoError.ts';
+import { withSpan } from '../tracing.ts';
 
 /**
  * Type to define the input for the replaceOne function.
@@ -36,16 +37,17 @@ export type ReplaceOne = (
  *
  * @returns {Promise<Document | UpdateResult<Document>} The result of the replace operation.
  */
-export const replaceOne: ReplaceOne = async ({
+export const replaceOne: ReplaceOne = ({
     collection,
     filter,
     replacement,
     options,
 }) => {
-    try {
-        const res = await collection.replaceOne(filter, replacement, options);
-        return res;
-    } catch (error) {
-        throw handleMongoError(error);
-    }
+    return withSpan('replaceOne', collection, async () => {
+        try {
+            return await collection.replaceOne(filter, replacement, options);
+        } catch (error) {
+            throw handleMongoError(error);
+        }
+    });
 };

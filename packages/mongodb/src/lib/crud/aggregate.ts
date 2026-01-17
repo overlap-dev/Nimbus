@@ -2,6 +2,7 @@ import { GenericException } from '@nimbus/core';
 import type { AggregateOptions, Collection, Document } from 'mongodb';
 import type { ZodType } from 'zod';
 import { handleMongoError } from '../handleMongoError.ts';
+import { withSpan } from '../tracing.ts';
 
 /**
  * Type to define the input for the aggregate function.
@@ -34,29 +35,31 @@ export type Aggregate = <TData>(
  *
  * @returns {Promise<TData[]>} The aggregated documents.
  */
-export const aggregate: Aggregate = async ({
+export const aggregate: Aggregate = ({
     collection,
     aggregation,
     mapDocument,
     outputType,
     options,
 }) => {
-    let res: Document[] = [];
+    return withSpan('aggregate', collection, async () => {
+        let res: Document[] = [];
 
-    try {
-        const aggregationRes = collection.aggregate(aggregation, options);
-        res = await aggregationRes.toArray();
-    } catch (error) {
-        throw handleMongoError(error);
-    }
+        try {
+            const aggregationRes = collection.aggregate(aggregation, options);
+            res = await aggregationRes.toArray();
+        } catch (error) {
+            throw handleMongoError(error);
+        }
 
-    try {
-        return res.map((item) => outputType.parse(mapDocument(item)));
-    } catch (error) {
-        const exception = error instanceof Error
-            ? new GenericException().fromError(error)
-            : new GenericException();
+        try {
+            return res.map((item) => outputType.parse(mapDocument(item)));
+        } catch (error) {
+            const exception = error instanceof Error
+                ? new GenericException().fromError(error)
+                : new GenericException();
 
-        throw exception;
-    }
+            throw exception;
+        }
+    });
 };

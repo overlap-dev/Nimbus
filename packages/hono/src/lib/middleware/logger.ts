@@ -21,7 +21,7 @@ export type LoggerOptions = {
     enableTracing?: boolean;
     /**
      * Optionally change the name of the tracer.
-     * Defaults to "nimbus-hono".
+     * Defaults to "nimbus".
      */
     tracerName?: string;
 };
@@ -62,7 +62,7 @@ const time = (start: number) => {
  * ```
  */
 export const logger = (options?: LoggerOptions): MiddlewareHandler => {
-    const tracerName = options?.tracerName ?? 'nimbus-hono';
+    const tracerName = options?.tracerName ?? 'nimbus';
     const tracer = trace.getTracer(tracerName);
 
     return async (c, next) => {

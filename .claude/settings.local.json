@@ -9,7 +9,8 @@
       "Bash(deno doc:*)",
       "WebFetch(domain:docs.eventsourcingdb.io)",
       "Bash(cat:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

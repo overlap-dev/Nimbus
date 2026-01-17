@@ -2,15 +2,13 @@ import EventEmitter from 'node:events';
 import { GenericException } from '../exception/genericException.ts';
 import { getLogger } from '../log/logger.ts';
 import type { Event } from '../message/event.ts';
-import { type MessageHandler, MessageRouter } from '../message/router.ts';
 
 /**
  * The input type for subscribing to an event.
  */
 export type SubscribeEventInput = {
     type: string;
-    handler: MessageHandler<Event, any>;
-    allowUnsafeInput?: boolean;
+    handler: (event: Event) => Promise<void>;
     onError?: (error: any, event: Event) => void;
     options?: NimbusEventBusOptions;
 };
@@ -36,7 +34,7 @@ export type NimbusEventBusOptions = {
  *
  * eventBus.subscribeEvent({
  *     type: 'at.overlap.nimbus.account-added',
- *     handler: accountAddedHandler,
+ *     handler: (event) => { ... },
  * });
  *
  * eventBus.putEvent<AccountAddedEvent>({
@@ -115,7 +113,7 @@ export class NimbusEventBus {
      * Subscribe to an event.
      *
      * @param {string} eventType - The type of event to subscribe to.
-     * @param {MessageHandler} handler - The handler to call when the event got published.
+     * @param {Function} handler - The handler to process the event.
      * @param {Function} [onError] - The function to call when the event could not be handled after the maximum number of retries.
      * @param {NimbusEventBusOptions} [options] - The options for the event bus.
      * @param {number} [options.maxRetries] - The maximum number of retries for handling the event in case of an error.
@@ -133,7 +131,6 @@ export class NimbusEventBus {
     public subscribeEvent({
         type,
         handler,
-        allowUnsafeInput,
         onError,
         options,
     }: SubscribeEventInput): void {
@@ -145,18 +142,10 @@ export class NimbusEventBus {
         const maxRetries = options?.maxRetries ?? this._maxRetries;
         const retryDelay = options?.retryDelay ?? this._retryDelay;
 
-        const nimbusRouter = new MessageRouter('event', {
-            logInput: this._logInput,
-        });
-
-        nimbusRouter.register(type, handler, {
-            allowUnsafeInput: allowUnsafeInput ?? false,
-        });
-
         const handleEvent = async (event: Event) => {
             try {
                 await this._processEvent(
-                    nimbusRouter,
+                    handler,
                     event,
                     maxRetries,
                     retryDelay,
@@ -177,19 +166,8 @@ export class NimbusEventBus {
         this._eventEmitter.on(type, handleEvent);
     }
 
-    private _logInput(input: any) {
-        getLogger().info({
-            category: 'Nimbus',
-            ...(input?.data?.correlationId && {
-                correlationId: input?.data?.correlationId,
-            }),
-            message:
-                `${input?.data?.correlationId} - [Event] ${input?.type} from ${input?.source}`,
-        });
-    }
-
     private async _processEvent(
-        nimbusRouter: MessageRouter,
+        handler: (event: Event) => Promise<void>,
         event: Event,
         maxRetries: number,
         retryDelay: number,
@@ -198,7 +176,7 @@ export class NimbusEventBus {
 
         while (attempt < maxRetries) {
             try {
-                await nimbusRouter.route(event);
+                await handler(event);
                 break;
             } catch (error: any) {
                 attempt++;

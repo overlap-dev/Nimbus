@@ -2,6 +2,7 @@ import { GenericException, NotFoundException } from '@nimbus/core';
 import type { Collection, Document, Filter, WithId } from 'mongodb';
 import type { ZodType } from 'zod';
 import { handleMongoError } from '../handleMongoError.ts';
+import { withSpan } from '../tracing.ts';
 
 /**
  * Type to define the input for the findOne function.
@@ -32,31 +33,33 @@ export type FindOne = <TData>(
  *
  * @returns {Promise<TData>} The found document.
  */
-export const findOne: FindOne = async ({
+export const findOne: FindOne = ({
     collection,
     filter,
     mapDocument,
     outputType,
 }) => {
-    let res: WithId<Document> | null = null;
+    return withSpan('findOne', collection, async () => {
+        let res: WithId<Document> | null = null;
 
-    try {
-        res = await collection.findOne(filter);
-    } catch (error) {
-        throw handleMongoError(error);
-    }
+        try {
+            res = await collection.findOne(filter);
+        } catch (error) {
+            throw handleMongoError(error);
+        }
 
-    if (!res) {
-        throw new NotFoundException('Document not found');
-    }
+        if (!res) {
+            throw new NotFoundException('Document not found');
+        }
 
-    try {
-        return outputType.parse(mapDocument(res));
-    } catch (error) {
-        const exception = error instanceof Error
-            ? new GenericException().fromError(error)
-            : new GenericException();
+        try {
+            return outputType.parse(mapDocument(res));
+        } catch (error) {
+            const exception = error instanceof Error
+                ? new GenericException().fromError(error)
+                : new GenericException();
 
-        throw exception;
-    }
+            throw exception;
+        }
+    });
 };
