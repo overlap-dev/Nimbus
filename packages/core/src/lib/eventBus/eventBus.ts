@@ -1,154 +1,312 @@
+import { metrics, SpanKind, SpanStatusCode, trace } from '@opentelemetry/api';
 import EventEmitter from 'node:events';
 import { GenericException } from '../exception/genericException.ts';
 import { getLogger } from '../log/logger.ts';
 import type { Event } from '../message/event.ts';
 
-/**
- * The input type for subscribing to an event.
- */
-export type SubscribeEventInput = {
-    type: string;
-    handler: (event: Event) => Promise<void>;
-    onError?: (error: any, event: Event) => void;
-    options?: NimbusEventBusOptions;
-};
+const tracer = trace.getTracer('nimbus');
+const meter = metrics.getMeter('nimbus');
+
+const eventsPublishedCounter = meter.createCounter(
+    'eventbus_events_published_total',
+    {
+        description: 'Total number of events published to the event bus',
+    },
+);
+
+const eventsDeliveredCounter = meter.createCounter(
+    'eventbus_events_delivered_total',
+    {
+        description: 'Total number of events delivered to handlers',
+    },
+);
+
+const handlingDuration = meter.createHistogram(
+    'eventbus_event_handling_duration_seconds',
+    {
+        description: 'Duration of event handler execution in seconds',
+        unit: 's',
+    },
+);
+
+const retryAttemptsCounter = meter.createCounter(
+    'eventbus_retry_attempts_total',
+    {
+        description: 'Total number of retry attempts for event handling',
+    },
+);
+
+const eventSizeBytes = meter.createHistogram(
+    'eventbus_event_size_bytes',
+    {
+        description: 'Size of events published to the event bus in bytes',
+        unit: 'By',
+    },
+);
 
 /**
  * The type for the NimbusEventBus options.
  */
 export type NimbusEventBusOptions = {
+    /**
+     * The name of the event bus instance for metrics and traces.
+     * Defaults to 'default'.
+     */
+    name?: string;
+    /**
+     * The maximum number of retries for handling the event in case of an error.
+     * Defaults to 2.
+     */
     maxRetries?: number;
-    retryDelay?: number;
+    /**
+     * The base delay for exponential backoff in milliseconds.
+     * Defaults to 1000ms.
+     */
+    baseDelay?: number;
+    /**
+     * The maximum delay cap for exponential backoff in milliseconds.
+     * Defaults to 30000ms (30 seconds).
+     */
+    maxDelay?: number;
+    /**
+     * Whether to add jitter to the retry delay to prevent thundering herd issues.
+     * Defaults to true.
+     */
+    useJitter?: boolean;
+    /**
+     * Optional callback invoked when an event is published.
+     * Useful for custom logging or debugging.
+     */
+    logPublish?: (event: Event) => void;
 };
 
 /**
- * The NimbusEventBus is used to publish and
- * subscribe to events within the application.
+ * The input type for subscribing to an event.
+ */
+export type SubscribeEventInput<TEvent extends Event> = {
+    /**
+     * The CloudEvents event type to subscribe to (e.g., 'at.overlap.nimbus.order-created').
+     */
+    type: string;
+    /**
+     * The async handler function that processes received events.
+     */
+    handler: (event: TEvent) => Promise<void>;
+    /**
+     * Optional error callback invoked when event handling fails after all retries.
+     * If not provided, errors are logged using the default logger.
+     */
+    onError?: (error: Error, event: TEvent) => void;
+    /**
+     * Optional retry options that override the EventBus defaults for this subscription.
+     */
+    options?: Omit<NimbusEventBusOptions, 'name'>;
+};
+
+/**
+ * The NimbusEventBus is used to publish and subscribe to events within the application.
+ *
+ * Events are delivered asynchronously to all registered handlers. If a handler fails,
+ * it will be retried using exponential backoff until it succeeds or the maximum retry
+ * count is reached.
+ *
+ * All operations are instrumented with OpenTelemetry tracing and metrics for observability.
  *
  * @example
  * ```ts
- * export const eventBus = new NimbusEventBus({
+ * import { NimbusEventBus } from '@nimbus/core';
+ *
+ * const eventBus = new NimbusEventBus({
+ *     name: 'orders',
  *     maxRetries: 3,
- *     retryDelay: 3000,
+ *     baseDelay: 1000,
  * });
  *
+ * // Subscribe to events
  * eventBus.subscribeEvent({
- *     type: 'at.overlap.nimbus.account-added',
- *     handler: (event) => { ... },
+ *     type: 'at.overlap.nimbus.order-created',
+ *     handler: async (event) => {
+ *         console.log('Order created:', event.data);
+ *     },
  * });
  *
- * eventBus.putEvent<AccountAddedEvent>({
+ * // Publish an event
+ * eventBus.putEvent({
  *     specversion: '1.0',
- *     id: '123',
- *     correlationid: '456',
- *     time: '2025-01-01T00:00:00Z',
- *     source: 'https://nimbus.overlap.at',
- *     type: 'at.overlap.nimbus.account-added',
- *     subject: '/accounts/123',
- *     data: {
- *         accountId: '123',
- *     },
- *     datacontenttype: 'application/json',
- *     dataschema: 'https://nimbus.overlap.at/schemas/events/account-added/v1',
+ *     id: crypto.randomUUID(),
+ *     type: 'at.overlap.nimbus.order-created',
+ *     source: 'https://api.example.com',
+ *     time: new Date().toISOString(),
+ *     data: { orderId: '12345' },
  * });
  * ```
  */
 export class NimbusEventBus {
     private _eventEmitter: EventEmitter;
+    private _name: string;
     private _maxRetries: number;
-    private _retryDelay: number;
+    private _baseDelay: number;
+    private _maxDelay: number;
+    private _useJitter: boolean;
+    private _logPublish?: (event: Event) => void;
 
     /**
      * Create a new NimbusEventBus instance.
      *
      * @param {NimbusEventBusOptions} [options] - The options for the event bus.
+     * @param {string} [options.name] - The name of the event bus instance for metrics and traces.
      * @param {number} [options.maxRetries] - The maximum number of retries for handling the event in case of an error.
-     * @param {number} [options.retryDelay] - The delay between retries in milliseconds.
+     * @param {number} [options.baseDelay] - The base delay for exponential backoff in milliseconds.
+     * @param {number} [options.maxDelay] - The maximum delay cap for exponential backoff in milliseconds.
+     * @param {boolean} [options.useJitter] - Whether to add jitter to the retry delay.
      *
      * @example
      * ```ts
      * const eventBus = new NimbusEventBus({
+     *     name: 'orders',
      *     maxRetries: 3,
-     *     retryDelay: 3000,
+     *     baseDelay: 1000,
+     *     maxDelay: 30000,
+     *     useJitter: true,
      * });
      * ```
      */
     constructor(options?: NimbusEventBusOptions) {
         this._eventEmitter = new EventEmitter();
-
+        this._name = options?.name ?? 'default';
         this._maxRetries = options?.maxRetries ?? 2;
-        this._retryDelay = options?.retryDelay ?? 1000;
+        this._baseDelay = options?.baseDelay ?? 1000;
+        this._maxDelay = options?.maxDelay ?? 30000;
+        this._useJitter = options?.useJitter ?? true;
+        this._logPublish = options?.logPublish;
     }
 
     /**
      * Publish an event to the event bus.
      *
-     * @param event - The event to send to the event bus.
+     * The event is validated against the CloudEvents 64KB size limit before publishing.
+     * All subscribers registered for this event type will receive the event asynchronously.
+     *
+     * @param event - The CloudEvents-compliant event to publish.
+     * @throws {GenericException} If the event size exceeds 64KB.
      *
      * @example
      * ```ts
-     * eventBus.putEvent<AccountAddedEvent>({
+     * eventBus.putEvent({
      *     specversion: '1.0',
-     *     id: '123',
-     *     correlationid: '456',
-     *     time: '2025-01-01T00:00:00Z',
-     *     source: 'https://nimbus.overlap.at',
-     *     type: 'at.overlap.nimbus.account-added',
-     *     subject: '/accounts/123',
-     *     data: {
-     *         accountId: '123',
-     *     },
-     *     datacontenttype: 'application/json',
-     *     dataschema: 'https://nimbus.overlap.at/schemas/events/account-added/v1',
+     *     id: crypto.randomUUID(),
+     *     type: 'at.overlap.nimbus.order-created',
+     *     source: 'https://api.example.com',
+     *     time: new Date().toISOString(),
+     *     data: { orderId: '12345' },
      * });
      * ```
      */
-    public putEvent(event: Event): void {
-        this._validateEventSize(event);
+    public putEvent<TEvent extends Event>(event: TEvent): void {
+        const eventSize = this._validateEventSize(event);
+        const metricLabels = {
+            eventbus_name: this._name,
+            event_type: event.type,
+        };
 
-        this._eventEmitter.emit(event.type, event);
+        tracer.startActiveSpan(
+            'eventbus.publish',
+            {
+                kind: SpanKind.PRODUCER,
+                attributes: {
+                    'messaging.system': 'nimbusEventBus',
+                    'messaging.eventbus_name': this._name,
+                    'messaging.operation': 'publish',
+                    'messaging.destination': event.type,
+                    'cloudevents.event_id': event.id,
+                    'cloudevents.event_source': event.source,
+                    ...(event.correlationid && {
+                        correlation_id: event.correlationid,
+                    }),
+                },
+            },
+            (span) => {
+                try {
+                    eventsPublishedCounter.add(1, metricLabels);
+                    eventSizeBytes.record(eventSize, metricLabels);
+
+                    if (this._logPublish) {
+                        this._logPublish(event);
+                    }
+
+                    this._eventEmitter.emit(event.type, event);
+                } catch (error) {
+                    span.setStatus({
+                        code: SpanStatusCode.ERROR,
+                        message: error instanceof Error
+                            ? error.message
+                            : 'Unknown error',
+                    });
+                    span.recordException(
+                        error instanceof Error
+                            ? error
+                            : new Error('Unknown error'),
+                    );
+                    throw error;
+                } finally {
+                    span.end();
+                }
+            },
+        );
     }
 
     /**
-     * Subscribe to an event.
+     * Subscribe to an event type with a handler function.
      *
-     * @param {string} eventType - The type of event to subscribe to.
-     * @param {Function} handler - The handler to process the event.
-     * @param {Function} [onError] - The function to call when the event could not be handled after the maximum number of retries.
-     * @param {NimbusEventBusOptions} [options] - The options for the event bus.
-     * @param {number} [options.maxRetries] - The maximum number of retries for handling the event in case of an error.
-     * @param {number} [options.retryDelay] - The delay between retries in milliseconds.
+     * When an event matching the specified type is published, the handler is invoked.
+     * If the handler throws an error, it will be retried using exponential backoff
+     * (delay doubles with each attempt) until either it succeeds or the maximum retry
+     * count is reached.
+     *
+     * @param input - The subscription configuration.
+     * @param input.type - The CloudEvents event type to subscribe to.
+     * @param input.handler - The async handler function to process events.
+     * @param input.onError - Optional callback invoked when all retries are exhausted.
+     * @param input.options - Optional retry options to override EventBus defaults.
      *
      * @example
      * ```ts
      * eventBus.subscribeEvent({
-     *     type: 'at.overlap.nimbus.account-added',
-     *     handler: accountAddedHandler,
-     *     allowUnsafeInput: true, // Disables input validation (not recommended)
+     *     type: 'at.overlap.nimbus.order-created',
+     *     handler: async (event) => {
+     *         console.log('Order created:', event.data);
+     *     },
+     *     onError: (error, event) => {
+     *         console.error('Failed to process order:', error);
+     *     },
      * });
      * ```
      */
-    public subscribeEvent({
+    public subscribeEvent<TEvent extends Event>({
         type,
         handler,
         onError,
         options,
-    }: SubscribeEventInput): void {
+    }: SubscribeEventInput<TEvent>): void {
         getLogger().info({
             category: 'Nimbus',
             message: `Subscribed to ${type} event`,
         });
 
         const maxRetries = options?.maxRetries ?? this._maxRetries;
-        const retryDelay = options?.retryDelay ?? this._retryDelay;
+        const baseDelay = options?.baseDelay ?? this._baseDelay;
+        const maxDelay = options?.maxDelay ?? this._maxDelay;
+        const useJitter = options?.useJitter ?? this._useJitter;
 
-        const handleEvent = async (event: Event) => {
+        const handleEvent = async (event: TEvent) => {
             try {
-                await this._processEvent(
+                await this._processEvent<TEvent>(
                     handler,
                     event,
                     maxRetries,
-                    retryDelay,
+                    baseDelay,
+                    maxDelay,
+                    useJitter,
                 );
             } catch (error: any) {
                 if (onError) {
@@ -166,65 +324,221 @@ export class NimbusEventBus {
         this._eventEmitter.on(type, handleEvent);
     }
 
-    private async _processEvent(
-        handler: (event: Event) => Promise<void>,
-        event: Event,
+    private _processEvent<TEvent extends Event>(
+        handler: (event: TEvent) => Promise<void>,
+        event: TEvent,
         maxRetries: number,
-        retryDelay: number,
-    ) {
-        let attempt = -1;
+        baseDelay: number,
+        maxDelay: number,
+        useJitter: boolean,
+    ): Promise<void> {
+        const startTime = performance.now();
+        const metricLabels = {
+            eventbus_name: this._name,
+            event_type: event.type,
+        };
 
-        while (attempt < maxRetries) {
-            try {
-                await handler(event);
-                break;
-            } catch (error: any) {
-                attempt++;
+        return tracer.startActiveSpan(
+            'eventbus.handle',
+            {
+                kind: SpanKind.CONSUMER,
+                attributes: {
+                    'messaging.system': 'nimbusEventBus',
+                    'messaging.eventbus_name': this._name,
+                    'messaging.operation': 'process',
+                    'messaging.destination': event.type,
+                    'cloudevents.event_id': event.id,
+                    'cloudevents.event_source': event.source,
+                    ...(event.correlationid && {
+                        correlation_id: event.correlationid,
+                    }),
+                },
+            },
+            async (span) => {
+                let attempt = 0;
 
-                if (attempt >= maxRetries) {
-                    const exception = new GenericException(
-                        `Failed to handle event: ${event.type} from ${event.source}`,
-                        {
-                            retryAttempts: maxRetries,
-                            retryDelay: retryDelay,
-                        },
-                    );
+                while (attempt <= maxRetries) {
+                    try {
+                        await handler(event);
 
-                    if (error.stack) {
-                        exception.stack = error.stack;
+                        // Record success metrics
+                        eventsDeliveredCounter.add(1, {
+                            ...metricLabels,
+                            status: 'success',
+                        });
+                        handlingDuration.record(
+                            (performance.now() - startTime) / 1000,
+                            metricLabels,
+                        );
+                        span.end();
+                        return;
+                    } catch (error: any) {
+                        attempt++;
+
+                        if (attempt > maxRetries) {
+                            // Record error metrics
+                            eventsDeliveredCounter.add(1, {
+                                ...metricLabels,
+                                status: 'error',
+                            });
+                            handlingDuration.record(
+                                (performance.now() - startTime) / 1000,
+                                metricLabels,
+                            );
+
+                            span.setStatus({
+                                code: SpanStatusCode.ERROR,
+                                message: error instanceof Error
+                                    ? error.message
+                                    : 'Unknown error',
+                            });
+                            span.recordException(
+                                error instanceof Error
+                                    ? error
+                                    : new Error('Unknown error'),
+                            );
+                            span.end();
+
+                            const exception = new GenericException(
+                                `Failed to handle event: ${event.type} from ${event.source}`,
+                                {
+                                    retryAttempts: maxRetries,
+                                    baseDelay,
+                                    maxDelay,
+                                },
+                            );
+
+                            if (error.stack) {
+                                exception.stack = error.stack;
+                            }
+
+                            throw exception;
+                        }
+
+                        // Record retry metric
+                        retryAttemptsCounter.add(1, metricLabels);
+
+                        // Exponential backoff with optional jitter
+                        const delay = Math.min(
+                            baseDelay * Math.pow(2, attempt - 1),
+                            maxDelay,
+                        );
+                        const jitter = useJitter
+                            ? Math.random() * delay * 0.1
+                            : 0;
+
+                        span.addEvent('retry', {
+                            attempt,
+                            delay_ms: delay + jitter,
+                        });
+
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, delay + jitter)
+                        );
                     }
-
-                    throw exception;
                 }
-
-                await new Promise((resolve) => setTimeout(resolve, retryDelay));
-            }
-        }
+            },
+        );
     }
 
     /**
-     * Validate the size of the event.
+     * Validate the size of the event and return the size in bytes.
      *
      * To comply with the CloudEvent spec a transmitted event
      * can only have a maximum size of 64KB.
      *
      * @param event - The event to validate.
+     * @returns The size of the event in bytes.
      */
-    private _validateEventSize(event: Event): void {
+    private _validateEventSize(event: Event): number {
         const eventJson = JSON.stringify(event);
-        const eventSizeBytes = new TextEncoder().encode(eventJson).length;
+        const size = new TextEncoder().encode(eventJson).length;
         const maxSizeBytes = 64 * 1024; // 64KB
 
-        if (eventSizeBytes > maxSizeBytes) {
+        if (size > maxSizeBytes) {
             throw new GenericException(
                 `Event size exceeds the limit of 64KB`,
                 {
                     eventType: event.type,
                     eventSource: event.source,
-                    eventSizeBytes,
+                    eventSizeBytes: size,
                     maxSizeBytes,
                 },
             );
         }
+
+        return size;
     }
 }
+
+/**
+ * Registry to store named EventBus instances.
+ */
+const eventBusRegistry = new Map<string, NimbusEventBus>();
+
+/**
+ * Setup a named EventBus instance and register it for later retrieval.
+ *
+ * Use this function to configure an EventBus with specific options at application
+ * startup, then retrieve it later using {@link getEventBus}.
+ *
+ * @param name - The unique name for this EventBus instance.
+ * @param options - Optional configuration options for the EventBus.
+ *
+ * @example
+ * ```ts
+ * import { setupEventBus } from '@nimbus/core';
+ *
+ * // At application startup
+ * setupEventBus('orders', {
+ *     maxRetries: 5,
+ *     baseDelay: 500,
+ * });
+ *
+ * setupEventBus('notifications', {
+ *     maxRetries: 3,
+ *     baseDelay: 1000,
+ * });
+ * ```
+ */
+export const setupEventBus = (
+    name: string,
+    options?: Omit<NimbusEventBusOptions, 'name'>,
+): void => {
+    eventBusRegistry.set(name, new NimbusEventBus({ ...options, name }));
+};
+
+/**
+ * Get a named EventBus instance.
+ *
+ * If an EventBus with the given name has been configured via {@link setupEventBus},
+ * that instance is returned. Otherwise, a new EventBus with default options is created
+ * and registered.
+ *
+ * @param name - The name of the EventBus instance to retrieve. Defaults to 'default'.
+ * @returns The NimbusEventBus instance.
+ *
+ * @example
+ * ```ts
+ * import { getEventBus } from '@nimbus/core';
+ *
+ * // Get the orders EventBus (configured earlier with setupEventBus)
+ * const ordersEventBus = getEventBus('orders');
+ *
+ * ordersEventBus.subscribeEvent({
+ *     type: 'order.created',
+ *     handler: async (event) => {
+ *         console.log('Order created:', event.data);
+ *     },
+ * });
+ *
+ * // Get the default EventBus
+ * const defaultEventBus = getEventBus();
+ * ```
+ */
+export const getEventBus = (name: string = 'default'): NimbusEventBus => {
+    if (!eventBusRegistry.has(name)) {
+        eventBusRegistry.set(name, new NimbusEventBus({ name }));
+    }
+    return eventBusRegistry.get(name)!;
+};

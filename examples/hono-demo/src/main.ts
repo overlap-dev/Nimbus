@@ -3,6 +3,7 @@ import {
     jsonLogFormatter,
     parseLogLevel,
     prettyLogFormatter,
+    setupEventBus,
     setupLogger,
 } from '@nimbus/core';
 import '@std/dotenv/load';
@@ -19,9 +20,26 @@ setupLogger({
     useConsoleColors: process.env.LOG_FORMAT === 'pretty',
 });
 
-initMongoConnectionManager();
+setupEventBus('default', {
+    maxRetries: 3,
+    baseDelay: 1000,
+    maxDelay: 30000,
+    useJitter: true,
+    logPublish: (event) => {
+        getLogger().debug({
+            category: 'EventBus',
+            message: 'Published event',
+            data: { event },
+            ...(event?.correlationid
+                ? { correlationId: event.correlationid }
+                : {}),
+        });
+    },
+});
 
 initMessages();
+
+initMongoConnectionManager();
 
 if (process.env.PORT) {
     const port = parseInt(process.env.PORT);
@@ -36,6 +54,6 @@ if (process.env.PORT) {
     getLogger().critical({
         category: 'API',
         message:
-            `Could not start the application! Please define a valid port vienvironment variable.`,
+            `Could not start the application! Please define a valid port environment variable.`,
     });
 }

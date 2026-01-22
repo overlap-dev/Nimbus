@@ -1,16 +1,20 @@
 import { correlationId, handleError, logger } from '@nimbus/hono';
 import { Hono } from 'hono';
+import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
-import { compress } from 'hono/compress';
 import usersRouter from '../../iam/users/shell/http/router.ts';
 
 export const app = new Hono();
 
+// Next Steps:
+// - Finish example and get the documentation completed
+// - Try out PostgresSQL
+
 // TODO: document correlationId middleware
 app.use(correlationId());
 
-// TODO: document logger middleware and observability in general
+// TODO: document logger middleware and observability in general now also added to mongodb
 app.use(logger({
     enableTracing: true,
     tracerName: 'api',
