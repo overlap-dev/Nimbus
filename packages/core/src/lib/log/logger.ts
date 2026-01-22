@@ -6,31 +6,117 @@ import { defaultLogOptions, type LogOptions } from './options.ts';
 
 /**
  * The input for a log message.
+ *
+ * Use this type when calling any of the Logger's log methods (debug, info, warn, error, critical).
  */
 export type LogInput = {
+    /**
+     * The log message to output. This should be a human-readable description of what occurred.
+     */
     message: string;
+    /**
+     * An optional category to group related log messages.
+     * Useful for filtering logs by component or domain (e.g., 'Database', 'API', 'Auth').
+     * Defaults to 'Default' if not provided.
+     */
     category?: string;
+    /**
+     * Optional structured data to include with the log message.
+     * This data will be serialized according to the configured formatter.
+     */
     data?: Record<string, unknown>;
-    error?: Error | Exception;
+    /**
+     * Optional error or exception to include with the log message.
+     * The error's message and stack trace will be captured in the log output.
+     */
+    error?: Error;
+    /**
+     * Optional correlation ID to trace related log messages across operations.
+     * Useful for tracking a request through multiple services or handlers.
+     */
     correlationId?: string;
 };
 
 /**
  * A full log record with the log input and additional metadata attached.
+ *
+ * This type is passed to the LogFormatter function to produce the final log output.
  */
 export type LogRecord = {
+    /**
+     * The timestamp when the log message was created.
+     */
     timestamp: Date;
+    /**
+     * The severity level of the log message (debug, info, warn, error, critical).
+     */
     level: LogLevel;
+    /**
+     * The category for grouping related log messages.
+     */
     category: string;
+    /**
+     * The log message describing what occurred.
+     */
     message: string;
+    /**
+     * Optional structured data included with the log message.
+     */
     data?: Record<string, unknown>;
+    /**
+     * Optional error or exception included with the log message.
+     */
     error?: Error | Exception;
+    /**
+     * Optional correlation ID for tracing related log messages.
+     */
     correlationId?: string;
 };
 
 /**
- * The Logger provides different log methods to
- * log messages at different levels.
+ * The Logger provides structured logging with configurable log levels, formatters, and console colors.
+ *
+ * The Logger is a singleton that should be configured once at application startup using
+ * {@link setupLogger}, then accessed throughout the application using {@link getLogger}.
+ *
+ * Log levels in order of severity: debug < info < warn < error < critical.
+ * Messages below the configured log level are silently ignored.
+ *
+ * @example
+ * ```ts
+ * import {
+ *     getLogger,
+ *     jsonLogFormatter,
+ *     parseLogLevel,
+ *     prettyLogFormatter,
+ *     setupLogger,
+ * } from '@nimbus/core';
+ *
+ * // Configure the logger at application startup
+ * setupLogger({
+ *     logLevel: parseLogLevel(process.env.LOG_LEVEL),
+ *     formatter: process.env.NODE_ENV === 'production'
+ *         ? jsonLogFormatter
+ *         : prettyLogFormatter,
+ *     useConsoleColors: process.env.NODE_ENV !== 'production',
+ * });
+ *
+ * // Use the logger throughout your application
+ * const logger = getLogger();
+ *
+ * logger.info({
+ *     message: 'Application started',
+ *     category: 'App',
+ *     data: { port: 3000, environment: 'production' },
+ * });
+ *
+ * logger.error({
+ *     message: 'Failed to connect to database',
+ *     category: 'Database',
+ *     error: new Error('Connection timeout'),
+ *     correlationId: '550e8400-e29b-41d4-a716-446655440000',
+ * });
+ * ```
  */
 export class Logger {
     private static _instance: Logger;
@@ -358,13 +444,51 @@ export const setupLogger = (options: LogOptions): void => {
 /**
  * Get the Logger instance.
  *
- * @returns {Logger} The Logger instance
+ * Returns the singleton Logger instance. If the logger has not been configured
+ * via {@link setupLogger}, a default logger with silent log level is returned.
+ *
+ * @returns The Logger instance.
  *
  * @example
  * ```ts
- * import { getLogger } from "@nimbus/core";
+ * import { getLogger } from '@nimbus/core';
  *
  * const logger = getLogger();
+ *
+ * // Log at different levels with all available options
+ * logger.debug({
+ *     message: 'Processing request',
+ *     category: 'API',
+ *     data: { method: 'POST', path: '/orders' },
+ *     correlationId: '550e8400-e29b-41d4-a716-446655440000',
+ * });
+ *
+ * logger.info({
+ *     message: 'Order created successfully',
+ *     category: 'Orders',
+ *     data: { orderId: '12345', customerId: '67890' },
+ *     correlationId: '550e8400-e29b-41d4-a716-446655440000',
+ * });
+ *
+ * logger.warn({
+ *     message: 'Rate limit approaching',
+ *     category: 'API',
+ *     data: { currentRate: 95, maxRate: 100 },
+ * });
+ *
+ * logger.error({
+ *     message: 'Failed to process payment',
+ *     category: 'Payments',
+ *     data: { orderId: '12345' },
+ *     error: new Error('Payment gateway timeout'),
+ *     correlationId: '550e8400-e29b-41d4-a716-446655440000',
+ * });
+ *
+ * logger.critical({
+ *     message: 'Database connection lost',
+ *     category: 'Database',
+ *     error: new Error('Connection refused'),
+ * });
  * ```
  */
 export const getLogger = (): Logger => {

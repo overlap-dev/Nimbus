@@ -114,12 +114,17 @@ export type SubscribeEventInput<TEvent extends Event> = {
  *
  * @example
  * ```ts
- * import { NimbusEventBus } from '@nimbus/core';
+ * import { createEvent, NimbusEventBus } from '@nimbus/core';
  *
  * const eventBus = new NimbusEventBus({
  *     name: 'orders',
  *     maxRetries: 3,
  *     baseDelay: 1000,
+ *     maxDelay: 30000,
+ *     useJitter: true,
+ *     logPublish: (event) => {
+ *         console.log('Event published:', event.type, event.correlationid);
+ *     },
  * });
  *
  * // Subscribe to events
@@ -128,17 +133,28 @@ export type SubscribeEventInput<TEvent extends Event> = {
  *     handler: async (event) => {
  *         console.log('Order created:', event.data);
  *     },
+ *     onError: (error, event) => {
+ *         console.error('Failed to handle event:', event.id, error.message);
+ *     },
+ *     options: {
+ *         maxRetries: 5,
+ *         baseDelay: 500,
+ *         maxDelay: 15000,
+ *         useJitter: true,
+ *     },
  * });
  *
  * // Publish an event
- * eventBus.putEvent({
- *     specversion: '1.0',
- *     id: crypto.randomUUID(),
+ * const event = createEvent({
  *     type: 'at.overlap.nimbus.order-created',
  *     source: 'https://api.example.com',
- *     time: new Date().toISOString(),
- *     data: { orderId: '12345' },
+ *     correlationid: '550e8400-e29b-41d4-a716-446655440000',
+ *     subject: '/orders/12345',
+ *     data: { orderId: '12345', customerId: '67890' },
+ *     datacontenttype: 'application/json',
  * });
+ *
+ * eventBus.putEvent(event);
  * ```
  */
 export class NimbusEventBus {
@@ -153,21 +169,32 @@ export class NimbusEventBus {
     /**
      * Create a new NimbusEventBus instance.
      *
-     * @param {NimbusEventBusOptions} [options] - The options for the event bus.
-     * @param {string} [options.name] - The name of the event bus instance for metrics and traces.
-     * @param {number} [options.maxRetries] - The maximum number of retries for handling the event in case of an error.
-     * @param {number} [options.baseDelay] - The base delay for exponential backoff in milliseconds.
-     * @param {number} [options.maxDelay] - The maximum delay cap for exponential backoff in milliseconds.
-     * @param {boolean} [options.useJitter] - Whether to add jitter to the retry delay.
+     * @param options - The options for the event bus.
+     * @param options.name - The name of the event bus instance for metrics and traces. Defaults to 'default'.
+     * @param options.maxRetries - The maximum number of retries for handling the event in case of an error. Defaults to 2.
+     * @param options.baseDelay - The base delay for exponential backoff in milliseconds. Defaults to 1000ms.
+     * @param options.maxDelay - The maximum delay cap for exponential backoff in milliseconds. Defaults to 30000ms.
+     * @param options.useJitter - Whether to add jitter to the retry delay. Defaults to true.
+     * @param options.logPublish - Optional callback invoked when an event is published.
      *
      * @example
      * ```ts
+     * import { getLogger, NimbusEventBus } from '@nimbus/core';
+     *
      * const eventBus = new NimbusEventBus({
      *     name: 'orders',
      *     maxRetries: 3,
      *     baseDelay: 1000,
      *     maxDelay: 30000,
      *     useJitter: true,
+     *     logPublish: (event) => {
+     *         getLogger().debug({
+     *             category: 'EventBus',
+     *             message: 'Published event',
+     *             data: { type: event.type, id: event.id },
+     *             correlationId: event.correlationid,
+     *         });
+     *     },
      * });
      * ```
      */
@@ -192,14 +219,27 @@ export class NimbusEventBus {
      *
      * @example
      * ```ts
-     * eventBus.putEvent({
-     *     specversion: '1.0',
-     *     id: crypto.randomUUID(),
+     * import { createEvent, getEventBus } from '@nimbus/core';
+     *
+     * const eventBus = getEventBus('default');
+     *
+     * // Create and publish an event with all CloudEvents properties
+     * const event = createEvent({
      *     type: 'at.overlap.nimbus.order-created',
      *     source: 'https://api.example.com',
-     *     time: new Date().toISOString(),
-     *     data: { orderId: '12345' },
+     *     correlationid: '550e8400-e29b-41d4-a716-446655440000',
+     *     subject: '/orders/12345',
+     *     data: {
+     *         orderId: '12345',
+     *         customerId: '67890',
+     *         items: ['item-1', 'item-2'],
+     *         total: 99.99,
+     *     },
+     *     datacontenttype: 'application/json',
+     *     dataschema: 'https://schemas.example.com/order-created.json',
      * });
+     *
+     * eventBus.putEvent(event);
      * ```
      */
     public putEvent<TEvent extends Event>(event: TEvent): void {
@@ -268,16 +308,39 @@ export class NimbusEventBus {
      * @param input.handler - The async handler function to process events.
      * @param input.onError - Optional callback invoked when all retries are exhausted.
      * @param input.options - Optional retry options to override EventBus defaults.
+     * @param input.options.maxRetries - Override maximum retry attempts for this subscription.
+     * @param input.options.baseDelay - Override base delay in milliseconds for this subscription.
+     * @param input.options.maxDelay - Override maximum delay cap in milliseconds for this subscription.
+     * @param input.options.useJitter - Override jitter setting for this subscription.
      *
      * @example
      * ```ts
+     * import { getEventBus, getLogger } from '@nimbus/core';
+     *
+     * const eventBus = getEventBus('default');
+     *
+     * // Subscribe with all available options
      * eventBus.subscribeEvent({
      *     type: 'at.overlap.nimbus.order-created',
      *     handler: async (event) => {
-     *         console.log('Order created:', event.data);
+     *         // Process the event
+     *         console.log('Order created:', event.data.orderId);
+     *         console.log('Correlation ID:', event.correlationid);
      *     },
      *     onError: (error, event) => {
-     *         console.error('Failed to process order:', error);
+     *         getLogger().error({
+     *             category: 'OrderHandler',
+     *             message: 'Failed to process order after all retries',
+     *             data: { eventId: event.id, orderId: event.data.orderId },
+     *             error,
+     *             correlationId: event.correlationid,
+     *         });
+     *     },
+     *     options: {
+     *         maxRetries: 5,
+     *         baseDelay: 500,
+     *         maxDelay: 15000,
+     *         useJitter: true,
      *     },
      * });
      * ```
@@ -484,20 +547,30 @@ const eventBusRegistry = new Map<string, NimbusEventBus>();
  *
  * @param name - The unique name for this EventBus instance.
  * @param options - Optional configuration options for the EventBus.
+ * @param options.maxRetries - The maximum number of retries for handling events. Defaults to 2.
+ * @param options.baseDelay - The base delay for exponential backoff in milliseconds. Defaults to 1000ms.
+ * @param options.maxDelay - The maximum delay cap for exponential backoff in milliseconds. Defaults to 30000ms.
+ * @param options.useJitter - Whether to add jitter to the retry delay. Defaults to true.
+ * @param options.logPublish - Optional callback invoked when an event is published.
  *
  * @example
  * ```ts
- * import { setupEventBus } from '@nimbus/core';
+ * import { getLogger, setupEventBus } from '@nimbus/core';
  *
- * // At application startup
- * setupEventBus('orders', {
- *     maxRetries: 5,
- *     baseDelay: 500,
- * });
- *
- * setupEventBus('notifications', {
+ * // At application startup, configure the event bus with all options
+ * setupEventBus('default', {
  *     maxRetries: 3,
  *     baseDelay: 1000,
+ *     maxDelay: 30000,
+ *     useJitter: true,
+ *     logPublish: (event) => {
+ *         getLogger().debug({
+ *             category: 'EventBus',
+ *             message: 'Published event',
+ *             data: { type: event.type, id: event.id },
+ *             correlationId: event.correlationid,
+ *         });
+ *     },
  * });
  * ```
  */
@@ -520,20 +593,29 @@ export const setupEventBus = (
  *
  * @example
  * ```ts
- * import { getEventBus } from '@nimbus/core';
+ * import { createEvent, getEventBus } from '@nimbus/core';
  *
- * // Get the orders EventBus (configured earlier with setupEventBus)
- * const ordersEventBus = getEventBus('orders');
+ * // Get the event bus configured earlier with setupEventBus
+ * const eventBus = getEventBus('default');
  *
- * ordersEventBus.subscribeEvent({
- *     type: 'order.created',
+ * // Subscribe to events
+ * eventBus.subscribeEvent({
+ *     type: 'at.overlap.nimbus.order-created',
  *     handler: async (event) => {
- *         console.log('Order created:', event.data);
+ *         console.log('Order created:', event.data.orderId);
  *     },
  * });
  *
- * // Get the default EventBus
- * const defaultEventBus = getEventBus();
+ * // Publish an event
+ * const event = createEvent({
+ *     type: 'at.overlap.nimbus.order-created',
+ *     source: 'https://api.example.com',
+ *     correlationid: '550e8400-e29b-41d4-a716-446655440000',
+ *     data: { orderId: '12345', customerId: '67890' },
+ *     datacontenttype: 'application/json',
+ * });
+ *
+ * eventBus.putEvent(event);
  * ```
  */
 export const getEventBus = (name: string = 'default'): NimbusEventBus => {

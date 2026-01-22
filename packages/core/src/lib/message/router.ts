@@ -45,7 +45,19 @@ export type MessageRouterOptions = {
      * Defaults to 'default'.
      */
     name?: string;
+    /**
+     * Optional callback invoked when a message is received for routing.
+     * Useful for custom logging or debugging of incoming messages.
+     *
+     * @param input - The incoming message to be routed.
+     */
     logInput?: (input: any) => void;
+    /**
+     * Optional callback invoked after a message has been successfully handled.
+     * Useful for custom logging or debugging of handler results.
+     *
+     * @param output - The result returned by the message handler.
+     */
     logOutput?: (output: any) => void;
 };
 
@@ -60,34 +72,47 @@ type HandlerRegistration = {
 };
 
 /**
- * The MessageRouter routes messages to their handlers
- * based on the type value of the message.
+ * The MessageRouter routes messages to their handlers based on the type value of the message.
+ *
+ * Messages are validated against their registered Zod schemas before being passed to handlers.
+ * All routing operations are instrumented with OpenTelemetry tracing and metrics for observability.
  *
  * @example
  * ```ts
- * import { MessageRouter } from "@nimbus/core";
+ * import { createCommand, MessageRouter } from '@nimbus/core';
  *
- * const messageRouter = new MessageRouter();
+ * const messageRouter = new MessageRouter({
+ *     name: 'api',
+ *     logInput: (input) => {
+ *         console.log('Received message:', input.type);
+ *     },
+ *     logOutput: (output) => {
+ *         console.log('Handler result:', output);
+ *     },
+ * });
  *
+ * // Register command handler
  * messageRouter.register(
- *     'at.overlap.nimbus.add-recipe',
- *     addRecipeHandler,
- *     addRecipeSchema,
+ *     'at.overlap.nimbus.create-order',
+ *     createOrderHandler,
+ *     createOrderCommandSchema,
  * );
  *
+ * // Register query handler
  * messageRouter.register(
- *     'at.overlap.nimbus.recipe-added',
- *     recipeAddedHandler,
- *     recipeAddedSchema,
+ *     'at.overlap.nimbus.get-order',
+ *     getOrderHandler,
+ *     getOrderQuerySchema,
  * );
  *
- * messageRouter.register(
- *     'at.overlap.nimbus.get-recipe',
- *     getRecipeHandler,
- *     getRecipeSchema,
- * );
+ * // Route a command
+ * const command = createCommand({
+ *     type: 'at.overlap.nimbus.create-order',
+ *     source: 'https://api.example.com',
+ *     data: { customerId: '123', items: ['item-1', 'item-2'] },
+ * });
  *
- * const result = await messageRouter.route(someInput);
+ * const result = await messageRouter.route(command);
  * ```
  */
 export class MessageRouter {
@@ -108,23 +133,37 @@ export class MessageRouter {
     /**
      * Register a handler for a specific message type.
      *
-     * @param {string} messageType - The messages type as defined in the CloudEvents specification (e.g., 'at.overlap.nimbus.add-recipe')
-     * @param {MessageHandler} handler - The handler function
-     * @param {ZodSchema} schema - The schema to validate the command
+     * @param messageType - The message type as defined in the CloudEvents specification
+     *                      (e.g., 'at.overlap.nimbus.create-order').
+     * @param handler - The async handler function that processes the message and returns a result.
+     * @param schema - The Zod schema to validate the incoming message before passing to the handler.
      *
      * @example
      * ```ts
-     * router.register(
-     *     'at.overlap.nimbus.add-recipe',
-     *     addRecipeHandler,
-     *     addRecipeSchema,
-     * );
+     * import { commandSchema, type Command, getRouter } from '@nimbus/core';
+     * import { z } from 'zod';
      *
-     * router.register(
-     *     'at.overlap.nimbus.get-recipe',
-     *     getRecipeHandler,
-     *     getRecipeSchema,
-     * );
+     * // Define the command type and schema
+     * const CREATE_ORDER_TYPE = 'at.overlap.nimbus.create-order';
+     *
+     * const createOrderSchema = commandSchema.extend({
+     *     type: z.literal(CREATE_ORDER_TYPE),
+     *     data: z.object({
+     *         customerId: z.string(),
+     *         items: z.array(z.string()),
+     *     }),
+     * });
+     * type CreateOrderCommand = z.infer<typeof createOrderSchema>;
+     *
+     * // Define the handler
+     * const createOrderHandler = async (command: CreateOrderCommand) => {
+     *     // Process the command and return the result
+     *     return { orderId: '12345', status: 'created' };
+     * };
+     *
+     * // Register the handler
+     * const router = getRouter('default');
+     * router.register(CREATE_ORDER_TYPE, createOrderHandler, createOrderSchema);
      * ```
      */
     public register<TInput extends Message = Message, TOutput = unknown>(
@@ -146,13 +185,37 @@ export class MessageRouter {
     /**
      * Route a message to its handler.
      *
-     * @param {unknown} input - The raw input to route
+     * The message is validated against the registered schema before being passed to the handler.
+     * The routing operation is instrumented with OpenTelemetry tracing and metrics.
      *
-     * @returns {Promise<unknown>} The result from the handler
+     * @param input - The CloudEvents-compliant message to route (command, query, or event).
+     * @returns The result from the handler.
      *
-     * @throws {NotFoundException} - If no handler is registered for the message type
-     * @throws {InvalidInputException} - If the message is invalid
-     * @throws {GenericException} - If an error occurs during routing
+     * @throws {NotFoundException} If no handler is registered for the message type.
+     * @throws {InvalidInputException} If the message has no type attribute or fails schema validation.
+     *
+     * @example
+     * ```ts
+     * import { createCommand, getRouter } from '@nimbus/core';
+     *
+     * const router = getRouter('default');
+     *
+     * // Create a command with all CloudEvents properties
+     * const command = createCommand({
+     *     type: 'at.overlap.nimbus.create-order',
+     *     source: 'https://api.example.com',
+     *     correlationid: '550e8400-e29b-41d4-a716-446655440000',
+     *     data: {
+     *         customerId: '123',
+     *         items: ['item-1', 'item-2'],
+     *     },
+     *     datacontenttype: 'application/json',
+     * });
+     *
+     * // Route the command to its registered handler
+     * const result = await router.route(command);
+     * console.log('Order created:', result);
+     * ```
      */
     public async route(input: any): Promise<unknown> {
         const startTime = performance.now();
@@ -270,15 +333,30 @@ const routerRegistry = new Map<string, MessageRouter>();
  *
  * @param name - The unique name for this MessageRouter instance.
  * @param options - Optional configuration options for the MessageRouter.
+ * @param options.logInput - Optional callback invoked when a message is received for routing.
+ * @param options.logOutput - Optional callback invoked after a message has been successfully handled.
  *
  * @example
  * ```ts
- * import { setupRouter } from '@nimbus/core';
+ * import { getLogger, setupRouter } from '@nimbus/core';
  *
- * // At application startup
+ * // At application startup, configure the router with all options
  * setupRouter('default', {
- *     logInput: (input) => console.log('Input:', input),
- *     logOutput: (output) => console.log('Output:', output),
+ *     logInput: (input) => {
+ *         getLogger().debug({
+ *             category: 'Router',
+ *             message: 'Received message',
+ *             data: { type: input.type, correlationId: input.correlationid },
+ *             correlationId: input.correlationid,
+ *         });
+ *     },
+ *     logOutput: (output) => {
+ *         getLogger().debug({
+ *             category: 'Router',
+ *             message: 'Handler completed',
+ *             data: { output },
+ *         });
+ *     },
  * });
  * ```
  */
@@ -301,19 +379,28 @@ export const setupRouter = (
  *
  * @example
  * ```ts
- * import { getRouter } from '@nimbus/core';
+ * import { createCommand, getRouter } from '@nimbus/core';
  *
- * // Get the default router (configured earlier with setupRouter)
+ * // Get the router configured earlier with setupRouter
  * const router = getRouter('default');
  *
+ * // Register handlers
  * router.register(
- *     'order.create',
+ *     'at.overlap.nimbus.create-order',
  *     createOrderHandler,
  *     createOrderSchema,
  * );
  *
- * // Get the default router
- * const defaultRouter = getRouter();
+ * // Route a message
+ * const command = createCommand({
+ *     type: 'at.overlap.nimbus.create-order',
+ *     source: 'https://api.example.com',
+ *     correlationid: '550e8400-e29b-41d4-a716-446655440000',
+ *     data: { customerId: '123', items: ['item-1'] },
+ *     datacontenttype: 'application/json',
+ * });
+ *
+ * const result = await router.route(command);
  * ```
  */
 export const getRouter = (name: string = 'default'): MessageRouter => {
