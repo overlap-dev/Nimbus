@@ -5,11 +5,12 @@ import {
     prettyLogFormatter,
     setupEventBus,
     setupLogger,
+    setupRouter,
 } from '@nimbus/core';
 import '@std/dotenv/load';
 import process from 'node:process';
 import { app } from './shared/shell/http.ts';
-import { initMessages } from './shared/shell/messageRouter.ts';
+import { initMessages } from './shared/shell/messages.ts';
 import { initMongoConnectionManager } from './shared/shell/mongodb.ts';
 
 setupLogger({
@@ -32,6 +33,29 @@ setupEventBus('default', {
             data: { event },
             ...(event?.correlationid
                 ? { correlationId: event.correlationid }
+                : {}),
+        });
+    },
+});
+
+setupRouter('default', {
+    logInput: (input) => {
+        getLogger().debug({
+            category: 'MessageRouter',
+            message: 'Received input',
+            data: { input },
+            ...(input?.correlationid
+                ? { correlationId: input.correlationid }
+                : {}),
+        });
+    },
+    logOutput: (output) => {
+        getLogger().debug({
+            category: 'MessageRouter',
+            message: 'Output',
+            data: { output },
+            ...(output?.correlationid
+                ? { correlationId: output.correlationid }
                 : {}),
         });
     },

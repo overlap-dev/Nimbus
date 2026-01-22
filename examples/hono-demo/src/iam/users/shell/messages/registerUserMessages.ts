@@ -1,5 +1,4 @@
-import { getEventBus } from '@nimbus/core';
-import { messageRouter } from '../../../../shared/shell/messageRouter.ts';
+import { getEventBus, getRouter } from '@nimbus/core';
 import {
     ADD_USER_COMMAND_TYPE,
     addUserCommandSchema,
@@ -15,19 +14,20 @@ import { getUserQueryHandler } from './queries/getUser.query.ts';
 
 export const registerUserMessages = () => {
     const eventBus = getEventBus('default');
+    const router = getRouter('default');
 
     eventBus.subscribeEvent({
         type: USER_ADDED_EVENT_TYPE,
         handler: userAddedEventHandler,
     });
 
-    messageRouter.register(
+    router.register(
         ADD_USER_COMMAND_TYPE,
         addUserCommandHandler,
         addUserCommandSchema,
     );
 
-    messageRouter.register(
+    router.register(
         GET_USER_QUERY_TYPE,
         getUserQueryHandler,
         getUserQuerySchema,

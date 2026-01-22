@@ -1,7 +1,27 @@
-import { getLogger, InvalidInputException } from '@nimbus/core';
+import { metrics, SpanKind, SpanStatusCode, trace } from '@opentelemetry/api';
 import type { z } from 'zod';
+import { InvalidInputException } from '../exception/invalidInputException.ts';
 import { NotFoundException } from '../exception/notFoundException.ts';
+import { getLogger } from '../log/logger.ts';
 import type { Message } from './message.ts';
+
+const tracer = trace.getTracer('nimbus');
+const meter = metrics.getMeter('nimbus');
+
+const messagesRoutedCounter = meter.createCounter(
+    'router_messages_routed_total',
+    {
+        description: 'Total number of messages routed',
+    },
+);
+
+const routingDuration = meter.createHistogram(
+    'router_routing_duration_seconds',
+    {
+        description: 'Duration of message routing in seconds',
+        unit: 's',
+    },
+);
 
 /**
  * The message handler type - transport-agnostic, just returns domain data.
@@ -20,6 +40,11 @@ export type MessageHandler<
  * Options for creating a MessageRouter.
  */
 export type MessageRouterOptions = {
+    /**
+     * The name of the router instance for metrics and traces.
+     * Defaults to 'default'.
+     */
+    name?: string;
     logInput?: (input: any) => void;
     logOutput?: (output: any) => void;
 };
@@ -67,6 +92,7 @@ type HandlerRegistration = {
  */
 export class MessageRouter {
     private readonly _handlers: Map<string, HandlerRegistration>;
+    private readonly _name: string;
     private readonly _logInput?: (input: any) => void;
     private readonly _logOutput?: (output: any) => void;
 
@@ -74,6 +100,7 @@ export class MessageRouter {
         options?: MessageRouterOptions,
     ) {
         this._handlers = new Map();
+        this._name = options?.name ?? 'default';
         this._logInput = options?.logInput;
         this._logOutput = options?.logOutput;
     }
@@ -128,46 +155,170 @@ export class MessageRouter {
      * @throws {GenericException} - If an error occurs during routing
      */
     public async route(input: any): Promise<unknown> {
-        if (this._logInput) {
-            this._logInput(input);
-        }
+        const startTime = performance.now();
+        const messageType = input?.type ?? 'unknown';
 
-        if (!input?.type) {
-            throw new InvalidInputException(
-                'The provided input has no type attribute',
-            );
-        }
-
-        const registration = this._handlers.get(input.type);
-        if (!registration) {
-            throw new NotFoundException(
-                'Message handler not found',
-                {
-                    reason:
-                        `Could not find a handler for message type: "${input.type}"`,
+        return await tracer.startActiveSpan(
+            'router.route',
+            {
+                kind: SpanKind.INTERNAL,
+                attributes: {
+                    'messaging.system': 'nimbusRouter',
+                    'messaging.router_name': this._name,
+                    'messaging.operation': 'route',
+                    'messaging.destination': messageType,
+                    ...(input?.correlationid && {
+                        correlation_id: input.correlationid,
+                    }),
                 },
-            );
-        }
+            },
+            async (span) => {
+                try {
+                    if (this._logInput) {
+                        this._logInput(input);
+                    }
 
-        const { handler, schema } = registration;
+                    if (!input?.type) {
+                        throw new InvalidInputException(
+                            'The provided input has no type attribute',
+                        );
+                    }
 
-        const validationResult = schema.safeParse(input);
+                    const registration = this._handlers.get(input.type);
+                    if (!registration) {
+                        throw new NotFoundException(
+                            'Message handler not found',
+                            {
+                                reason:
+                                    `Could not find a handler for message type: "${input.type}"`,
+                            },
+                        );
+                    }
 
-        if (!validationResult.success) {
-            throw new InvalidInputException(
-                'The provided input is invalid',
-                {
-                    issues: validationResult.error.issues,
-                },
-            );
-        }
+                    const { handler, schema } = registration;
 
-        const result = await handler(validationResult.data);
+                    const validationResult = schema.safeParse(input);
 
-        if (this._logOutput) {
-            this._logOutput(result);
-        }
+                    if (!validationResult.success) {
+                        throw new InvalidInputException(
+                            'The provided input is invalid',
+                            {
+                                issues: validationResult.error.issues,
+                            },
+                        );
+                    }
 
-        return result;
+                    const result = await handler(validationResult.data);
+
+                    if (this._logOutput) {
+                        this._logOutput(result);
+                    }
+
+                    messagesRoutedCounter.add(1, {
+                        router_name: this._name,
+                        message_type: input.type,
+                        status: 'success',
+                    });
+                    routingDuration.record(
+                        (performance.now() - startTime) / 1000,
+                        { router_name: this._name, message_type: input.type },
+                    );
+
+                    return result;
+                } catch (error: any) {
+                    messagesRoutedCounter.add(1, {
+                        router_name: this._name,
+                        message_type: messageType,
+                        status: 'error',
+                    });
+                    routingDuration.record(
+                        (performance.now() - startTime) / 1000,
+                        { router_name: this._name, message_type: messageType },
+                    );
+
+                    span.setStatus({
+                        code: SpanStatusCode.ERROR,
+                        message: error instanceof Error
+                            ? error.message
+                            : 'Unknown error',
+                    });
+                    span.recordException(
+                        error instanceof Error
+                            ? error
+                            : new Error('Unknown error'),
+                    );
+
+                    throw error;
+                } finally {
+                    span.end();
+                }
+            },
+        );
     }
 }
+
+/**
+ * Registry to store named MessageRouter instances.
+ */
+const routerRegistry = new Map<string, MessageRouter>();
+
+/**
+ * Setup a named MessageRouter instance and register it for later retrieval.
+ *
+ * Use this function to configure a MessageRouter with specific options at application
+ * startup, then retrieve it later using {@link getRouter}.
+ *
+ * @param name - The unique name for this MessageRouter instance.
+ * @param options - Optional configuration options for the MessageRouter.
+ *
+ * @example
+ * ```ts
+ * import { setupRouter } from '@nimbus/core';
+ *
+ * // At application startup
+ * setupRouter('default', {
+ *     logInput: (input) => console.log('Input:', input),
+ *     logOutput: (output) => console.log('Output:', output),
+ * });
+ * ```
+ */
+export const setupRouter = (
+    name: string,
+    options?: Omit<MessageRouterOptions, 'name'>,
+): void => {
+    routerRegistry.set(name, new MessageRouter({ ...options, name }));
+};
+
+/**
+ * Get a named MessageRouter instance.
+ *
+ * If a MessageRouter with the given name has been configured via {@link setupRouter},
+ * that instance is returned. Otherwise, a new MessageRouter with default options is created
+ * and registered.
+ *
+ * @param name - The name of the MessageRouter instance to retrieve. Defaults to 'default'.
+ * @returns The MessageRouter instance.
+ *
+ * @example
+ * ```ts
+ * import { getRouter } from '@nimbus/core';
+ *
+ * // Get the default router (configured earlier with setupRouter)
+ * const router = getRouter('default');
+ *
+ * router.register(
+ *     'order.create',
+ *     createOrderHandler,
+ *     createOrderSchema,
+ * );
+ *
+ * // Get the default router
+ * const defaultRouter = getRouter();
+ * ```
+ */
+export const getRouter = (name: string = 'default'): MessageRouter => {
+    if (!routerRegistry.has(name)) {
+        routerRegistry.set(name, new MessageRouter({ name }));
+    }
+    return routerRegistry.get(name)!;
+};

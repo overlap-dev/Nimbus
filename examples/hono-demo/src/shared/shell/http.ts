@@ -7,10 +7,6 @@ import usersRouter from '../../iam/users/shell/http/router.ts';
 
 export const app = new Hono();
 
-// Next Steps:
-// - Finish example and get the documentation completed
-// - Try out PostgresSQL
-
 // TODO: document correlationId middleware
 app.use(correlationId());
 

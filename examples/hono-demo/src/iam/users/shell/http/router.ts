@@ -1,7 +1,6 @@
-import { createCommand, createQuery } from '@nimbus/core';
+import { createCommand, createQuery, getRouter } from '@nimbus/core';
 import { getCorrelationId } from '@nimbus/hono';
 import { Hono } from 'hono';
-import { messageRouter } from '../../../../shared/shell/messageRouter.ts';
 import {
     ADD_USER_COMMAND_TYPE,
     AddUserCommand,
@@ -26,7 +25,7 @@ usersRouter.post(
             data: body,
         });
 
-        const result = await messageRouter.route(command);
+        const result = await getRouter('default').route(command);
 
         return c.json(result);
     },
@@ -47,7 +46,7 @@ usersRouter.get(
             },
         });
 
-        const result = await messageRouter.route(query);
+        const result = await getRouter('default').route(query);
 
         return c.json(result);
     },
