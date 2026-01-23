@@ -33,10 +33,9 @@ export default defineConfig({
                     link: "/guide/quickstart",
                 },
                 {
-                    text: "Project Structure",
-                    link: "/guide/project-structure",
+                    text: "Observability",
+                    link: "/guide/observability",
                 },
-
                 {
                     text: "Core",
                     link: "/guide/core",
@@ -62,12 +61,12 @@ export default defineConfig({
                             link: "/guide/core/event-bus",
                         },
                         {
-                            text: "Exceptions",
-                            link: "/guide/core/exceptions",
-                        },
-                        {
                             text: "Logging",
                             link: "/guide/core/logging",
+                        },
+                        {
+                            text: "Exceptions",
+                            link: "/guide/core/exceptions",
                         },
                     ],
                 },
@@ -79,36 +78,6 @@ export default defineConfig({
                         {
                             text: "Router",
                             link: "/guide/http/router",
-                        },
-                    ],
-                },
-
-                {
-                    text: "Event Sourcing",
-                    link: "/guide/eventsourcing",
-                    items: [
-                        {
-                            text: "Why Event Sourcing?",
-                            link: "/guide/eventsourcing/why-event-sourcing",
-                        },
-                        {
-                            text: "Event Store",
-                            link: "/guide/eventsourcing/event-store",
-                        },
-                        {
-                            text: "Aggregate",
-                            link: "/guide/eventsourcing/aggregate",
-                        },
-                    ],
-                },
-
-                {
-                    text: "EventSourcingDB",
-                    link: "/guide/eventsourcingdb",
-                    items: [
-                        {
-                            text: "EventSourcingDB Event Store",
-                            link: "/guide/eventsourcingdb/event-store",
                         },
                     ],
                 },

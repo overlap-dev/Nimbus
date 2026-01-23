@@ -88,6 +88,7 @@ export const eventSchema = z.object({
 export type CreateEventInput = Partial<Omit<Event, 'specversion'>> & {
     type: string;
     source: string;
+    subject: string;
     data: unknown;
 };
 
@@ -115,7 +116,7 @@ export const createEvent = <TEvent extends Event>(
         time: time ?? new Date().toISOString(),
         source,
         type,
-        ...(subject && { subject }),
+        subject,
         data,
         datacontenttype: datacontenttype ?? 'application/json',
         ...(dataschema && { dataschema }),

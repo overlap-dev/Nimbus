@@ -1,18 +1,37 @@
+---
+prev:
+    text: "Logging"
+    link: "/guide/core/logging"
+
+next: false
+---
+
 # Exceptions
 
-Nimbus defines a set of exceptions that you can use to handle errors in your application. These exceptions are used to communicate errors of a certain type.
+Nimbus provides a set of structured exceptions for handling errors in your application. These exceptions
+have and optional status code and can include additional details for debugging.
 
-## Examples
+## Status Codes
 
-You can optionally pass a message and a details object to provide further information.
+The basic Exception class has an optional status code that can be set when creating the exceptions and you can assign any number as a value.
 
-All Exceptions have a `fromError()` method to convert a standard JavaScript error into a Nimbus exception. This takes care to keep the original error message and stack trace.
+However, Nimbus comes with some built-in exceptions that use the related HTTP status codes. As HTTP status codes are standardized and well-known we thought it would be a good idea to use them even though the Exceptions itself are transport agnostic.
 
-For the `InvalidInputException` you can use the `fromZodError()` method to convert a Zod error into a Nimbus exception. This will keep the original error message and stack trace and also keeps the validation details.
+## Built-in Exception Types
 
-::: code-group
+| Exception               | Status Code | Use Case                                    |
+| ----------------------- | ----------- | ------------------------------------------- |
+| `GenericException`      | 500         | Internal server errors, unexpected failures |
+| `InvalidInputException` | 400         | Validation errors, malformed requests       |
+| `NotFoundException`     | 404         | Resource not found                          |
+| `UnauthorizedException` | 401         | Authentication required or failed           |
+| `ForbiddenException`    | 403         | Authorization failed, access denied         |
 
-```typescript [Basics]
+## Basic Usage
+
+All exceptions accept an optional message and details object:
+
+```typescript
 import {
     ForbiddenException,
     GenericException,
@@ -21,75 +40,148 @@ import {
     UnauthorizedException,
 } from "@nimbus/core";
 
-// Status code 500
+// Generic server error (500)
 throw new GenericException("Something went wrong");
 
-// Status code 400
-throw new InvalidInputException("The input is invalid", { foo: "bar" });
+// Invalid input with details (400)
+throw new InvalidInputException("The input is invalid", {
+    field: "email",
+    reason: "Invalid email format",
+});
 
-// Status code 401
+// Unauthorized (401)
 throw new UnauthorizedException();
 
-// Status code 403
+// Forbidden (403)
 throw new ForbiddenException();
 
-// Status code 404
-throw new NotFoundException("Account not found", {
-    errorCode: "ACCOUNT_NOT_FOUND",
-    reason: "The account with the provided id was not found",
+// Not found with details (404)
+throw new NotFoundException("User not found", {
+    errorCode: "USER_NOT_FOUND",
+    userId: "12345",
 });
 ```
 
-```typescript [.fromError]
+## Converting from Standard Errors
+
+Use `fromError()` to convert a standard JavaScript error while preserving the stack trace:
+
+```typescript
 import { GenericException } from "@nimbus/core";
 
-const someError = new Error("Something went wrong");
-
-const exception = new GenericException();
-exception.fromError(someError);
-
-throw exception;
-```
-
-```typescript [.fromZodError]
-import { InvalidInputException } from "@nimbus/core";
-import { z } from "zod";
-
-const MyZodType = z.object({
-    sub: z.string(),
-    groups: z.array(z.string()),
-});
-
 try {
-    MyZodType.parse({ sub: 123, groups: ["bar"] });
+    await someExternalService.call();
 } catch (error) {
-    const exception = new InvalidInputException();
-    exception.fromZodError(error);
-
+    const exception = new GenericException();
+    exception.fromError(error);
     throw exception;
 }
 ```
 
-:::
+## Converting from Zod Errors
 
-## Create a new exception
+If you need to manually handle Zod validation:
 
-In case you need to add other types of exceptions you can simply create a new exception by extending the `BaseException` class.
+```typescript
+import { InvalidInputException } from "@nimbus/core";
+import { z } from "zod";
+
+const UserSchema = z.object({
+    email: z.email(),
+    name: z.string().min(1),
+});
+
+try {
+    UserSchema.parse({ email: "invalid", name: "" });
+} catch (error) {
+    const exception = new InvalidInputException();
+    exception.fromZodError(error);
+    throw exception;
+}
+```
+
+## Creating Custom Exceptions
+
+Create custom exceptions by extending the base `Exception` class:
 
 ```typescript
 import { Exception } from "@nimbus/core";
 
-export class MySpecialException extends Exception {
+export class RateLimitException extends Exception {
     constructor(message?: string, details?: Record<string, unknown>) {
         super(
-            "MY_SPECIAL_EXCEPTION", // The exception name
-            message ?? "Something Special", // provided message or fallback
-            details, // pass the provided details
-            500 // the status code
+            "RATE_LIMIT_EXCEEDED",
+            message ?? "Rate limit exceeded",
+            details,
+            429 // Too Many Requests
         );
     }
 }
 
 // Usage
-throw new MySpecialException("Something went wrong", { foo: "bar" });
+throw new RateLimitException("Too many requests", {
+    retryAfter: 60,
+    limit: 100,
+});
+```
+
+## HTTP Integration
+
+When using the `@nimbus/hono` package, exceptions are automatically converted to HTTP responses:
+
+```typescript
+import { onError } from "@nimbus/hono";
+import { Hono } from "hono";
+
+const app = new Hono();
+
+// Configure error handler
+app.onError(onError);
+
+// Exceptions thrown in routes are converted to JSON responses
+app.get("/users/:id", async (c) => {
+    throw new NotFoundException("User not found", {
+        userId: c.req.param("id"),
+    });
+    // Returns: { "error": "NOT_FOUND", "message": "User not found", "details": { "userId": "123" } }
+    // Status: 404
+});
+```
+
+## Best Practices
+
+### Use Specific Exceptions
+
+Choose the most specific exception type for the situation:
+
+```typescript
+// ✅ Good - Specific exception
+throw new NotFoundException("Order not found");
+
+// ❌ Bad - Generic exception for known error
+throw new GenericException("Order not found");
+```
+
+### Include Helpful Details
+
+Add details that help with debugging:
+
+```typescript
+throw new InvalidInputException("Invalid order data", {
+    errorCode: "INVALID_ORDER",
+    field: "quantity",
+    value: -5,
+    constraint: "must be positive",
+});
+```
+
+### Use Error Codes
+
+Include machine- and human-readable error codes for client handling:
+
+```typescript
+throw new NotFoundException("User not found", {
+    errorCode: "USER_NOT_FOUND", // Clients can check this AND translate it to a human-readable error message in multiple languages
+    userId: id,
+});
 ```

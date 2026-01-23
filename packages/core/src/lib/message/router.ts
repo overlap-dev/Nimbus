@@ -265,10 +265,7 @@ export class MessageRouter {
                     if (!validationResult.success) {
                         throw new InvalidInputException(
                             'The provided input is invalid',
-                            {
-                                issues: validationResult.error.issues,
-                            },
-                        );
+                        ).fromZodError(validationResult.error);
                     }
 
                     const result = await handler(validationResult.data);

@@ -28,16 +28,17 @@ export const addUserCommandHandler = async (command: AddUserCommand) => {
         state = await userRepository.insertOne({
             item: state,
         });
+
+        const event = createEvent<UserAddedEvent>({
+            type: USER_ADDED_EVENT_TYPE,
+            source: 'nimbus.overlap.at',
+            correlationid: command.correlationid,
+            subject: `/users/${state._id}`,
+            data: state,
+        });
+
+        eventBus.putEvent<UserAddedEvent>(event);
     }
-
-    const event = createEvent<UserAddedEvent>({
-        type: USER_ADDED_EVENT_TYPE,
-        source: 'nimbus.overlap.at',
-        correlationid: command.correlationid,
-        data: state,
-    });
-
-    eventBus.putEvent<UserAddedEvent>(event);
 
     return state;
 };

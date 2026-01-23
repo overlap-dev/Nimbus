@@ -1,90 +1,153 @@
+---
+prev:
+    text: "Router"
+    link: "/guide/core/router"
+
+next:
+    text: "Exceptions"
+    link: "/guide/core/exceptions"
+---
+
 # Event Bus
 
-The Nimbus event bus allows to publish and subscribe to [events](/guide/core/events.md) within the application.
+The NimbusEventBus enables publish/subscribe messaging for [events](/guide/core/events) within your application. Events are delivered asynchronously to all registered handlers with automatic retry on failure.
 
 ::: info Example Application
-You can find the full example on GitHub [The Expense Repo](https://github.com/overlap-dev/Nimbus/tree/main/examples/the-expense)
+The examples on this page reference the hono-demo application.
 
-Check it out and run it with `deno task dev`
+You can find the full example on GitHub: [hono-demo](https://github.com/overlap-dev/Nimbus/tree/main/examples/hono-demo)
 :::
 
-## Event Subscriptions
+## Setup and Configuration
 
-To set up event subscriptions, we want to create a new instance of the `NimbusEventBus` first. Then we want to use the `subscribeEvent` method to subscribe to all the events the application needs to handle.
-
-In the `main.ts` file we call the `initEventBusSubscriptions` function to subscribe to all the events for the different domains when the application starts.
-
-::: code-group
-
-```typescript [eventBus.ts]
-import { NimbusEventBus, RouteHandlerMap } from "@nimbus/core";
-import { accountEventSubscriptions } from "./account/shell/account.eventBus.ts";
-
-//
-// Create a new instance of the event bus
-//
-export const eventBus = new NimbusEventBus({
-    maxRetries: 3,
-});
-
-//
-// Create a function that subscribes to all
-// the events for the different domains
-//
-export const initEventBusSubscriptions = () => {
-    const subscriptions: Record<string, RouteHandlerMap> = {
-        account: accountEventSubscriptions,
-    };
-
-    for (const [, handlerMap] of Object.entries(subscriptions)) {
-        for (const eventName of Object.keys(handlerMap)) {
-            eventBus.subscribeEvent(
-                eventName,
-                handlerMap[eventName].inputType,
-                handlerMap[eventName].handler
-            );
-        }
-    }
-};
-```
-
-```typescript [account.eventBus.ts]
-import { RouteHandlerMap } from "@nimbus/core";
-import { AccountAddedEvent } from "../core/events/accountAdded.ts";
-import { accountAddedHandler } from "./events/accountAdded.handler.ts";
-
-export const accountEventSubscriptions: RouteHandlerMap = {
-    ACCOUNT_ADDED: {
-        handler: accountAddedHandler,
-        inputType: AccountAddedEvent,
-    },
-};
-```
-
-```typescript [main.ts]
-import { initEventBusSubscriptions } from "./eventBus.ts";
-
-initEventBusSubscriptions();
-```
-
-:::
-
-## Publish Events
-
-To publish an event, we can use the `putEvent` method of the `NimbusEventBus` class.
+Configure the event bus at application startup using `setupEventBus()`, then retrieve it anywhere using `getEventBus()`.
 
 ```typescript
-import { eventBus } from "../../../eventBus.ts";
-import { AccountAddedEvent } from "../../core/events/accountAdded.ts";
+import { getLogger, setupEventBus } from "@nimbus/core";
 
-eventBus.putEvent<AccountAddedEvent>({
-    name: "ACCOUNT_ADDED",
-    data: {
-        account: account,
-    },
-    metadata: {
-        correlationId: command.metadata.correlationId,
-        authContext: command.metadata.authContext,
+setupEventBus("MyEventBus", {
+    maxRetries: 2,
+    baseDelay: 1000,
+    maxDelay: 30000,
+    useJitter: true,
+    logPublish: (event) => {
+        getLogger().debug({
+            category: "MyEventBus",
+            message: "Published event",
+            data: { event },
+            ...(event?.correlationid
+                ? { correlationId: event.correlationid }
+                : {}),
+        });
     },
 });
 ```
+
+### Configuration Options
+
+| Option       | Type              | Default | Description                                        |
+| ------------ | ----------------- | ------- | -------------------------------------------------- |
+| `maxRetries` | `number`          | `2`     | Maximum retry attempts for failed handlers         |
+| `baseDelay`  | `number`          | `1000`  | Base delay in milliseconds for exponential backoff |
+| `maxDelay`   | `number`          | `30000` | Maximum delay cap in milliseconds                  |
+| `useJitter`  | `boolean`         | `true`  | Add randomness to delay to prevent thundering herd |
+| `logPublish` | `(event) => void` | -       | Optional callback when an event is published       |
+
+## Subscribing to Events
+
+Subscribe to event types using `subscribeEvent()`:
+
+```typescript
+import { getEventBus } from "@nimbus/core";
+
+const eventBus = getEventBus("MyEventBus");
+
+eventBus.subscribeEvent({
+    type: "at.overlap.nimbus.user-added",
+    handler: async (event: UserAddedEvent) => {
+        // Process event and return result
+    },
+});
+
+eventBus.subscribeEvent({
+    type: "at.overlap.nimbus.onboarding-started",
+    handler: async (event: OnboardingStartedEvent) => {
+        // Process event and return result
+    },
+    onError: (error, event) => {
+        // Handle the error
+    },
+    options: {
+        maxRetries: 0, // Override the default of 2 retries for this subscription
+    },
+});
+```
+
+### Subscription Options
+
+The `subscribeEvent()` method accepts the following options:
+
+| Option    | Type                       | Description                                          |
+| --------- | -------------------------- | ---------------------------------------------------- |
+| `type`    | `string`                   | The CloudEvents type to subscribe to                 |
+| `handler` | `(event) => Promise<void>` | Async handler function for the event                 |
+| `onError` | `(error, event) => void`   | Optional callback when all retries are exhausted     |
+| `options` | `object`                   | Optional retry options to override EventBus defaults |
+
+## Publishing Events
+
+Publish events using `putEvent()`:
+
+```typescript
+import { createEvent, getEventBus } from "@nimbus/core";
+
+const eventBus = getEventBus("default");
+
+const event = createEvent<UserAddedEvent>({
+    type: "at.overlap.nimbus.user-added",
+    source: "nimbus.overlap.at",
+    correlationid: command.correlationid,
+    subject: `/users/${user.id}`,
+    data: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+    },
+});
+
+eventBus.putEvent<UserAddedEvent>(event);
+```
+
+## Retry Mechanism
+
+When a handler throws an error, the event bus automatically retries using exponential backoff:
+
+1. **First retry**: Waits `baseDelay` ms (default: 1000ms)
+2. **Second retry**: Waits `baseDelay * 2` ms (2000ms)
+3. **Third retry**: Waits `baseDelay * 4` ms (4000ms)
+4. ... continues until `maxDelay` is reached
+
+With `useJitter: true`, a small random amount (up to 10% of the delay) is added to prevent multiple handlers from retrying simultaneously.
+
+After all retries are exhausted, the `onError` callback is invoked (if provided), or the error is logged.
+
+## Event Size Limit
+
+The event bus enforces the CloudEvents specification size limit of 64KB. If you attempt to publish an event larger than this, a `GenericException` is thrown.
+
+## Observability
+
+The event bus is fully instrumented with OpenTelemetry tracing and metrics. See the [Observability](/guide/core/observability) documentation for details.
+
+**Tracing:**
+
+-   `eventbus.publish` span for event publishing
+-   `eventbus.handle` span for event handling
+
+**Metrics:**
+
+-   `eventbus_events_published_total` - Counter for published events
+-   `eventbus_events_delivered_total` - Counter for delivered events (with success/error status)
+-   `eventbus_event_handling_duration_seconds` - Histogram of handler execution time
+-   `eventbus_retry_attempts_total` - Counter for retry attempts
+-   `eventbus_event_size_bytes` - Histogram of event sizes

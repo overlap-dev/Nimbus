@@ -21,8 +21,6 @@ export class InvalidInputException extends Exception {
      * @param {ZodError} error - The Zod error.
      *
      * @returns {InvalidInputException} The InvalidInputException.
-     *
-     * @deprecated We do not want to depend on Zod anymore.
      */
     public fromZodError(error: ZodError): InvalidInputException {
         if (error.stack) {

@@ -1,1 +1,0 @@
-# EventSourcingDB Event Store
