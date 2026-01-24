@@ -1,20 +1,12 @@
 ---
 prev:
-    text: "Core"
-    link: "/guide/core"
+    text: "Quickstart"
+    link: "/guide/quickstart"
 
 next:
     text: "Commands"
     link: "/guide/core/commands"
 ---
-
-# TODOS:
-
--   Get over documentation and simplify code examples.
--   fromZodError deprecated?
--   Overthink structure
-    -   Observability in main section not under core
--   work on documentation for other packages
 
 # Observability
 

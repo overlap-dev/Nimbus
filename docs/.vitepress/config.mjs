@@ -3,7 +3,7 @@ import { defineConfig } from "vitepress";
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
     title: "Nimbus",
-    description: "A Framework to build event-driven applications in the cloud.",
+    description: "Build event-driven applications with typescript.",
     themeConfig: {
         // https://vitepress.dev/reference/default-theme-config
         logo:
@@ -72,12 +72,20 @@ export default defineConfig({
                 },
 
                 {
-                    text: "HTTP (Oak)",
-                    link: "/guide/http",
+                    text: "Hono",
+                    link: "/guide/hono",
                     items: [
                         {
-                            text: "Router",
-                            link: "/guide/http/router",
+                            text: "CorrelationID Middleware",
+                            link: "/guide/hono/correlationid",
+                        },
+                        {
+                            text: "Logger Middleware",
+                            link: "/guide/hono/logger",
+                        },
+                        {
+                            text: "onError Handler",
+                            link: "/guide/hono/on-error",
                         },
                     ],
                 },

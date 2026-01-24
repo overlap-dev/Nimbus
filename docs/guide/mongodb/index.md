@@ -1,7 +1,7 @@
 ---
 prev:
-    text: "Middleware"
-    link: "/guide/oak/middleware"
+    text: "onError Handler"
+    link: "/guide/hono/on-error"
 
 next:
     text: "Repository"

@@ -3,7 +3,9 @@ prev:
     text: "Logging"
     link: "/guide/core/logging"
 
-next: false
+next:
+    text: "Nimbus Hono"
+    link: "/guide/hono"
 ---
 
 # Exceptions

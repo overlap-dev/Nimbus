@@ -8,8 +8,7 @@ Nimbus tries to keep dependencies as low as possible.
 Theses are the dependencies Nimbus relies on.
 
 -   [Deno Standard Library](https://docs.deno.com/runtime/fundamentals/standard_library/) ([@std](https://jsr.io/@std))
--   [ajv](https://ajv.js.org/)
--   [ajv-formats](https://ajv.js.org/packages/ajv-formats.html)
+-   [Zod](https://zod.dev/)
 
 ## Installation
 

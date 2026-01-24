@@ -25,9 +25,9 @@ features:
     - title: Core Concepts
       details: Compose an application with commands, events, and queries.
     - title: Simple Design
-      details: No need for clunky and complex object-oriented design principles.
-    - title: Pure Core
-      details: The only rule to follow is to keep your core logic pure and side-effect free.
-    - title: Type Safety
-      details: Ensure type safety for all I/O sources.
+      details: No clunky and complex OOP or FP design principles.
+    - title: No Framework Magic
+      details: Just explicit code without any magic.
+    - title: Observability Built-In
+      details: Logging, tracing, and metrics. Batteries included.
 ---
