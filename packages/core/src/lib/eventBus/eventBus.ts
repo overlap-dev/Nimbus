@@ -436,16 +436,14 @@ export class NimbusEventBus {
                         attempt++;
 
                         if (attempt > maxRetries) {
-                            this._handleFinalFailure(
+                            this._handleFinalFailure({
                                 error,
                                 event,
                                 span,
                                 metricLabels,
                                 startTime,
-                                maxRetries,
-                                baseDelay,
-                                maxDelay,
-                            );
+                                retryConfig: { maxRetries, baseDelay, maxDelay },
+                            });
                         }
 
                         retryAttemptsCounter.add(1, metricLabels);
@@ -480,16 +478,17 @@ export class NimbusEventBus {
         );
     }
 
-    private _handleFinalFailure(
-        error: unknown,
-        event: Event,
-        span: ReturnType<typeof tracer.startSpan>,
-        metricLabels: { eventbus_name: string; event_type: string },
-        startTime: number,
-        maxRetries: number,
-        baseDelay: number,
-        maxDelay: number,
-    ): never {
+    private _handleFinalFailure(options: {
+        error: unknown;
+        event: Event;
+        span: ReturnType<typeof tracer.startSpan>;
+        metricLabels: { eventbus_name: string; event_type: string };
+        startTime: number;
+        retryConfig: { maxRetries: number; baseDelay: number; maxDelay: number };
+    }): never {
+        const { error, event, span, metricLabels, startTime, retryConfig } =
+            options;
+
         this._recordDeliveryMetrics(metricLabels, 'error', startTime);
 
         const errorMessage = error instanceof Error
@@ -505,7 +504,7 @@ export class NimbusEventBus {
 
         const exception = new GenericException(
             `Failed to handle event: ${event.type} from ${event.source}`,
-            { retryAttempts: maxRetries, baseDelay, maxDelay },
+            retryConfig,
         );
 
         if (error instanceof Error && error.stack) {
