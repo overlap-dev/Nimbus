@@ -30,8 +30,7 @@ jobs:
         with:
           deno-version: v2
 
-      - name: Install dependencies
-        run: deno install
+      - run: deno cache
 
       - name: Check formatting
         run: deno fmt --check
