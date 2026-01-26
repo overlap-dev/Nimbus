@@ -29,8 +29,7 @@
     ],
     "rules": {
       "exclude": [
-        "no-explicit-any",
-        "no-slow-types"
+        "no-explicit-any"
       ]
     }
   },

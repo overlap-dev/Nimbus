@@ -17,18 +17,18 @@ jobs:
 
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.3.x
+          deno-version: v2
 
       - name: Publish core package
         working-directory: ./packages/core
-        run: deno publish --allow-slow-types
+        run: deno publish
 
       - name: Publish mongodb package
         working-directory: ./packages/mongodb
         run: deno publish
 
-      - name: Publish oak package
-        working-directory: ./packages/oak
+      - name: Publish hono package
+        working-directory: ./packages/hono
         run: deno publish
 
       - name: Publish utils package

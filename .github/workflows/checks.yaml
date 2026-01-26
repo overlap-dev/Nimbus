@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   deploy:
-    name: Build & Deploy
+    name: Format, Lint, Type Check & Test
     runs-on: ubuntu-latest
     env:
       DENO_DIR: deno_cache_dir
@@ -28,46 +28,16 @@ jobs:
 
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.3.x
+          deno-version: v2
 
-      # Check if the code is formatted correctly.
-      - name: Check formatting (core)
+      - name: Check formatting
         run: deno fmt --check
-        working-directory: ./packages/core
-      - name: Check formatting (mongodb)
-        run: deno fmt --check
-        working-directory: ./packages/mongodb
-      - name: Check formatting (oak)
-        run: deno fmt --check
-        working-directory: ./packages/oak
-      - name: Check formatting (utils)
-        run: deno fmt --check
-        working-directory: ./packages/utils
 
-      # Scan the code for syntax errors and style issues.
-      - name: Lint (core)
+      - name: Lint
         run: deno lint
-        working-directory: ./packages/core
-      - name: Lint (mongodb)
-        run: deno lint
-        working-directory: ./packages/mongodb
-      - name: Lint (oak)
-        run: deno lint
-        working-directory: ./packages/oak
-      - name: Lint (utils)
-        run: deno lint
-        working-directory: ./packages/utils
 
-      # Run all test files in the repository and collect code coverage.
-      - name: Test (core)
+      - name: Type check
+        run: deno check
+
+      - name: Test
         run: deno test --allow-all --permit-no-files
-        working-directory: ./packages/core
-      - name: Test (mongodb)
-        run: deno test --allow-all --permit-no-files
-        working-directory: ./packages/mongodb
-      - name: Test (oak)
-        run: deno test --allow-all --permit-no-files
-        working-directory: ./packages/oak
-      - name: Test (utils)
-        run: deno test --allow-all --permit-no-files
-        working-directory: ./packages/utils

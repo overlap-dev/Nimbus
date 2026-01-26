@@ -57,7 +57,11 @@ export const findOneAndUpdate: FindOneAndUpdate = ({
 
         try {
             if (options) {
-                res = await collection.findOneAndUpdate(filter, update, options);
+                res = await collection.findOneAndUpdate(
+                    filter,
+                    update,
+                    options,
+                );
             } else {
                 res = await collection.findOneAndUpdate(filter, update);
             }

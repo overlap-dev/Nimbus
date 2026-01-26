@@ -53,7 +53,9 @@ export const aggregate: Aggregate = <TData>({
         }
 
         try {
-            return res.map((item) => outputType.parse(mapDocument(item)) as TData);
+            return res.map((item) =>
+                outputType.parse(mapDocument(item)) as TData
+            );
         } catch (error) {
             const exception = error instanceof Error
                 ? new GenericException().fromError(error)
