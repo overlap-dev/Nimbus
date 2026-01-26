@@ -1,11 +1,11 @@
 ---
 prev:
-    text: "Project Structure"
-    link: "/guide/project-structure"
+    text: "Quickstart"
+    link: "/guide/quickstart"
 
 next:
     text: "Observability"
-    link: "/guide/core/observability"
+    link: "/guide/observability"
 ---
 
 # Nimbus Core Package
@@ -24,7 +24,7 @@ You can find the full example on GitHub: [hono-demo](https://github.com/overlap-
 
 The core package provides:
 
--   **[Observability](/guide/core/observability)** - Built-in logging, tracing, and metrics using OpenTelemetry
+-   **[Observability](/guide/observability)** - Built-in logging, tracing, and metrics using OpenTelemetry
 -   **[Commands](/guide/core/commands)** - Write operations following the CloudEvents specification
 -   **[Queries](/guide/core/queries)** - Read operations for fetching data
 -   **[Events](/guide/core/events)** - Domain events for reactive architectures

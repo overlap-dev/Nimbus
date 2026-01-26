@@ -1,26 +1,76 @@
 # What is Nimbus?
 
-Yet another framework to build software ...
+Nimbus is a lightweight TypeScript framework for building event-driven applications. It provides type-safe messaging patterns (Commands, Queries, Events) following the [CloudEvents](https://cloudevents.io/) specification, with built-in observability powered by [OpenTelemetry](https://opentelemetry.io/).
 
 ## Philosophy
 
-... with some concepts to think things differently.
+Nimbus is built on a few core principles that set it apart from other TypeScript frameworks.
 
-### Simplicity
+**Simplicity**
 
 Nimbus aims to keep things simple and to avoid overly complex OOP or FP principles. No complex inheritance hierarchies, no dependency injection, no decorators. Just explicit code that is easy to understand and reason about.
 
-### No Framework Magic
+**No Framework Magic**
 
 Three lines of code to build a whole API is great, until something goes wrong and you have no clue why the magic stopped working.
 
-### Flat and easy learning curve
+**Flat and easy learning curve**
 
 There are already great Frameworks like [NestJS](https://nestjs.com/) and [Effect](https://effect.website/) out there for building TypeScript applications.
 
 While those frameworks heavily emphasize either object-oriented or functional programming patterns this comes with the cost of a steep learning curve. Nimbus aims to have a learning curve that is as flat as possible.
 
 Be productive right from the start.
+
+## Who Is This For?
+
+Nimbus is a good fit if you are:
+
+-   Building event-driven applications
+-   Looking for explicit, traceable code without hidden magic
+-   Wanting built-in observability without complex setup
+-   Preferring a lightweight framework over heavyweight solutions
+
+## Key Features
+
+-   **CloudEvents-based messaging** - Commands, Queries, and Events following the industry-standard [CloudEvents](https://cloudevents.io/) specification
+-   **Built-in observability** - Logging, tracing, and metrics via [OpenTelemetry](https://opentelemetry.io/) with zero boilerplate
+-   **Type-safe validation** - Message validation with [Zod](https://zod.dev/) schemas
+-   **MongoDB integration** - Repository pattern and CRUD operations with automatic tracing
+-   **Hono middleware** - Ready-to-use middleware for HTTP APIs
+-   **Runtime flexibility** - Deno-first with NPM and Bun support
+
+## A Taste of Nimbus
+
+Here's a quick look at how you define and handle a command in Nimbus:
+
+```typescript
+import { commandSchema, createCommand, getRouter } from "@nimbus/core";
+import { z } from "zod";
+
+// Define a type-safe command schema
+const addUserCommandSchema = commandSchema.extend({
+    type: z.literal("com.example.add-user"),
+    data: z.object({
+        email: z.string().email(),
+        name: z.string(),
+    }),
+});
+
+type AddUserCommand = z.infer<typeof addUserCommandSchema>;
+
+// Register a handler with automatic validation and tracing
+const router = getRouter("MyRouter");
+
+router.register(
+    "com.example.add-user",
+    async (command: AddUserCommand) => {
+        // Your business logic here
+        return { userId: "123", email: command.data.email };
+    },
+    addUserCommandSchema
+);
+```
 
 ## Architecture Recommendation
 
