@@ -1,4 +1,4 @@
-import { assertEquals, assertInstanceOf } from '@std/assert';
+import { assertEquals, assertExists, assertInstanceOf } from '@std/assert';
 import { GenericException } from '../exception/genericException.ts';
 import type { Event } from '../message/event.ts';
 import { getEventBus, NimbusEventBus, setupEventBus } from './eventBus.ts';
@@ -70,9 +70,10 @@ Deno.test('EventBus delivers event to subscriber', async () => {
     // Wait for async handler to complete
     await new Promise((r) => setTimeout(r, 50));
 
-    assertEquals(receivedEvent!.type, 'test.event.deliver');
+    assertExists(receivedEvent);
+    assertEquals(receivedEvent.type, 'test.event.deliver');
     assertEquals(
-        (receivedEvent!.data as Record<string, unknown>).message,
+        (receivedEvent.data as Record<string, unknown>).message,
         'hello',
     );
 });
@@ -174,7 +175,8 @@ Deno.test('EventBus exhausts retries and invokes onError callback', async () => 
     // Initial attempt + 2 retries = 3 total attempts
     assertEquals(attempts, 3);
     assertInstanceOf(errorReceived, GenericException);
-    assertEquals(eventReceived!.id, testEvent.id);
+    assertExists(eventReceived);
+    assertEquals(eventReceived.id, testEvent.id);
 });
 
 Deno.test('EventBus onError callback receives error and event', async () => {

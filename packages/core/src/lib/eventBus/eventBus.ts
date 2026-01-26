@@ -158,13 +158,13 @@ export type SubscribeEventInput<TEvent extends Event> = {
  * ```
  */
 export class NimbusEventBus {
-    private _eventEmitter: EventEmitter;
-    private _name: string;
-    private _maxRetries: number;
-    private _baseDelay: number;
-    private _maxDelay: number;
-    private _useJitter: boolean;
-    private _logPublish?: (event: Event) => void;
+    private readonly _eventEmitter: EventEmitter;
+    private readonly _name: string;
+    private readonly _maxRetries: number;
+    private readonly _baseDelay: number;
+    private readonly _maxDelay: number;
+    private readonly _useJitter: boolean;
+    private readonly _logPublish?: (event: Event) => void;
 
     /**
      * Create a new NimbusEventBus instance.
@@ -424,84 +424,106 @@ export class NimbusEventBus {
                     try {
                         await handler(event);
 
-                        // Record success metrics
-                        eventsDeliveredCounter.add(1, {
-                            ...metricLabels,
-                            status: 'success',
-                        });
-                        handlingDuration.record(
-                            (performance.now() - startTime) / 1000,
+                        this._recordDeliveryMetrics(
                             metricLabels,
+                            'success',
+                            startTime,
                         );
+
                         span.end();
                         return;
-                    } catch (error: any) {
+                    } catch (error: unknown) {
                         attempt++;
 
                         if (attempt > maxRetries) {
-                            // Record error metrics
-                            eventsDeliveredCounter.add(1, {
-                                ...metricLabels,
-                                status: 'error',
-                            });
-                            handlingDuration.record(
-                                (performance.now() - startTime) / 1000,
+                            this._handleFinalFailure(
+                                error,
+                                event,
+                                span,
                                 metricLabels,
+                                startTime,
+                                maxRetries,
+                                baseDelay,
+                                maxDelay,
                             );
-
-                            span.setStatus({
-                                code: SpanStatusCode.ERROR,
-                                message: error instanceof Error
-                                    ? error.message
-                                    : 'Unknown error',
-                            });
-                            span.recordException(
-                                error instanceof Error
-                                    ? error
-                                    : new Error('Unknown error'),
-                            );
-                            span.end();
-
-                            const exception = new GenericException(
-                                `Failed to handle event: ${event.type} from ${event.source}`,
-                                {
-                                    retryAttempts: maxRetries,
-                                    baseDelay,
-                                    maxDelay,
-                                },
-                            );
-
-                            if (error.stack) {
-                                exception.stack = error.stack;
-                            }
-
-                            throw exception;
                         }
 
-                        // Record retry metric
                         retryAttemptsCounter.add(1, metricLabels);
 
-                        // Exponential backoff with optional jitter
-                        const delay = Math.min(
-                            baseDelay * Math.pow(2, attempt - 1),
-                            maxDelay,
-                        );
-                        const jitter = useJitter
-                            ? Math.random() * delay * 0.1
-                            : 0;
-
-                        span.addEvent('retry', {
+                        const delayMs = this._calculateRetryDelay(
                             attempt,
-                            delay_ms: delay + jitter,
-                        });
+                            baseDelay,
+                            maxDelay,
+                            useJitter,
+                        );
+
+                        span.addEvent('retry', { attempt, delay_ms: delayMs });
 
                         await new Promise((resolve) =>
-                            setTimeout(resolve, delay + jitter)
+                            setTimeout(resolve, delayMs)
                         );
                     }
                 }
             },
         );
+    }
+
+    private _recordDeliveryMetrics(
+        metricLabels: { eventbus_name: string; event_type: string },
+        status: 'success' | 'error',
+        startTime: number,
+    ): void {
+        eventsDeliveredCounter.add(1, { ...metricLabels, status });
+        handlingDuration.record(
+            (performance.now() - startTime) / 1000,
+            metricLabels,
+        );
+    }
+
+    private _handleFinalFailure(
+        error: unknown,
+        event: Event,
+        span: ReturnType<typeof tracer.startSpan>,
+        metricLabels: { eventbus_name: string; event_type: string },
+        startTime: number,
+        maxRetries: number,
+        baseDelay: number,
+        maxDelay: number,
+    ): never {
+        this._recordDeliveryMetrics(metricLabels, 'error', startTime);
+
+        const errorMessage = error instanceof Error
+            ? error.message
+            : 'Unknown error';
+        const errorInstance = error instanceof Error
+            ? error
+            : new Error('Unknown error');
+
+        span.setStatus({ code: SpanStatusCode.ERROR, message: errorMessage });
+        span.recordException(errorInstance);
+        span.end();
+
+        const exception = new GenericException(
+            `Failed to handle event: ${event.type} from ${event.source}`,
+            { retryAttempts: maxRetries, baseDelay, maxDelay },
+        );
+
+        if (error instanceof Error && error.stack) {
+            exception.stack = error.stack;
+        }
+
+        throw exception;
+    }
+
+    private _calculateRetryDelay(
+        attempt: number,
+        baseDelay: number,
+        maxDelay: number,
+        useJitter: boolean,
+    ): number {
+        const delay = Math.min(baseDelay * Math.pow(2, attempt - 1), maxDelay);
+        const jitter = useJitter ? Math.random() * delay * 0.1 : 0;
+        return delay + jitter;
     }
 
     /**
@@ -619,8 +641,12 @@ export const setupEventBus = (
  * ```
  */
 export const getEventBus = (name: string = 'default'): NimbusEventBus => {
-    if (!eventBusRegistry.has(name)) {
-        eventBusRegistry.set(name, new NimbusEventBus({ name }));
+    let eventBus = eventBusRegistry.get(name);
+
+    if (!eventBus) {
+        eventBus = new NimbusEventBus({ name });
+        eventBusRegistry.set(name, eventBus);
     }
-    return eventBusRegistry.get(name)!;
+
+    return eventBus;
 };

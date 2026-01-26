@@ -67,19 +67,19 @@ export const find: Find = <TData>({
         try {
             const findRes = collection.find(filter, options);
 
-            if (typeof limit !== 'undefined') {
+            if (limit !== undefined) {
                 findRes.limit(limit);
             }
 
-            if (typeof skip !== 'undefined') {
+            if (skip !== undefined) {
                 findRes.skip(skip);
             }
 
-            if (typeof sort !== 'undefined') {
+            if (sort !== undefined) {
                 findRes.sort(sort);
             }
 
-            if (typeof project !== 'undefined') {
+            if (project !== undefined) {
                 findRes.project(project);
             }
 

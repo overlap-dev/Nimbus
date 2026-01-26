@@ -1,4 +1,4 @@
-import { createEvent, getEventBus } from '@nimbus/core';
+import { createEvent, getEventBus, NotFoundException } from '@nimbus/core';
 import {
     addUser,
     AddUserCommand,
@@ -19,12 +19,16 @@ export const addUserCommandHandler = async (command: AddUserCommand) => {
             filter: { email: command.data.email },
         });
     } catch (_error) {
-        state = null;
+        if (_error instanceof NotFoundException) {
+            state = null;
+        } else {
+            throw _error;
+        }
     }
 
     state = addUser(state, command);
 
-    if (state) {
+    if (state !== null) {
         state = await userRepository.insertOne({
             item: state,
         });

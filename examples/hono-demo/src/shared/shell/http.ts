@@ -7,10 +7,8 @@ import usersRouter from '../../iam/users/shell/http/router.ts';
 
 export const app = new Hono();
 
-// TODO: document correlationId middleware
 app.use(correlationId());
 
-// TODO: document logger middleware and observability in general now also added to mongodb
 app.use(logger({
     enableTracing: true,
     tracerName: 'api',

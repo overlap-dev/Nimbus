@@ -3,10 +3,10 @@ export OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
 export OTEL_EXPORTER_OTLP_ENDPOINT="https://otlp-gateway-prod-eu-west-2.grafana.net/otlp"
 
 # Read OTLP headers from secret file
-if [ -f "./.otel_token" ]; then
+if [[ -f "./.otel_token" ]]; then
   export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic $(cat ./.otel_token)"
 else
-  echo "Error: .otel_token file not found."
+  echo "Error: .otel_token file not found." >&2
   exit 1
 fi
 

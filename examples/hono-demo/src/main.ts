@@ -66,7 +66,7 @@ initMessages();
 initMongoConnectionManager();
 
 if (process.env.PORT) {
-    const port = parseInt(process.env.PORT);
+    const port = Number.parseInt(process.env.PORT);
 
     Deno.serve({ hostname: '0.0.0.0', port }, app.fetch);
 

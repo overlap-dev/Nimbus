@@ -401,8 +401,12 @@ export const setupRouter = (
  * ```
  */
 export const getRouter = (name: string = 'default'): MessageRouter => {
-    if (!routerRegistry.has(name)) {
-        routerRegistry.set(name, new MessageRouter({ name }));
+    let router = routerRegistry.get(name);
+
+    if (!router) {
+        router = new MessageRouter({ name });
+        routerRegistry.set(name, router);
     }
-    return routerRegistry.get(name)!;
+
+    return router;
 };

@@ -30,7 +30,7 @@ const humanize = (times: string[]) => {
     const [delimiter, separator] = [',', '.'];
 
     const orderTimes = times.map((v) =>
-        v.replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1' + delimiter)
+        v.replaceAll(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1' + delimiter)
     );
 
     return orderTimes.join(separator);
