@@ -24,7 +24,9 @@ jobs:
         uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
         with:
           path: ${{ env.DENO_DIR }}
-          key: deno_cache
+          key: deno-${{ runner.os }}-${{ hashFiles('deno.lock') }}
+          restore-keys: |
+            deno-${{ runner.os }}-
 
       - uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb
         with:
