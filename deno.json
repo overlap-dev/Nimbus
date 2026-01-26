@@ -5,10 +5,33 @@
   "workspace": [
     "./packages/core",
     "./packages/mongodb",
-    "./packages/oak",
     "./packages/hono",
     "./packages/utils",
     "./examples/hono-demo"
   ],
-  "nodeModulesDir": "none"
+  "nodeModulesDir": "none",
+  "fmt": {
+    "include": [
+      "examples/",
+      "packages/"
+    ]
+  },
+  "lint": {
+    "include": [
+      "examples/",
+      "packages/"
+    ]
+  },
+  "check": {
+    "include": [
+      "examples/",
+      "packages/"
+    ]
+  },
+  "test": {
+    "include": [
+      "examples/",
+      "packages/"
+    ]
+  }
 }
