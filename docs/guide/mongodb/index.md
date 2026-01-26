@@ -4,8 +4,8 @@ prev:
     link: "/guide/hono/on-error"
 
 next:
-    text: "Repository"
-    link: "/guide/mongodb/repository"
+    text: "Connection Manager"
+    link: "/guide/mongodb/connection-manager"
 ---
 
 # Nimbus MongoDB Package

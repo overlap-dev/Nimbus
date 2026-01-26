@@ -35,14 +35,14 @@ export type Aggregate = <TData>(
  *
  * @returns {Promise<TData[]>} The aggregated documents.
  */
-export const aggregate: Aggregate = ({
+export const aggregate: Aggregate = <TData>({
     collection,
     aggregation,
     mapDocument,
     outputType,
     options,
-}) => {
-    return withSpan('aggregate', collection, async () => {
+}: AggregateInput<TData>) => {
+    return withSpan<TData[]>('aggregate', collection, async () => {
         let res: Document[] = [];
 
         try {
@@ -53,7 +53,7 @@ export const aggregate: Aggregate = ({
         }
 
         try {
-            return res.map((item) => outputType.parse(mapDocument(item)));
+            return res.map((item) => outputType.parse(mapDocument(item)) as TData);
         } catch (error) {
             const exception = error instanceof Error
                 ? new GenericException().fromError(error)

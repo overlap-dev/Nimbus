@@ -1,3 +1,4 @@
+export * from './lib/crud/aggregate.ts';
 export * from './lib/crud/bulkWrite.ts';
 export * from './lib/crud/countDocuments.ts';
 export * from './lib/crud/deleteMany.ts';

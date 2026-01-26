@@ -1,7 +1,7 @@
 ---
 prev:
-    text: "CRUD+"
-    link: "/guide/mongodb/crud"
+    text: "handleMongoError"
+    link: "/guide/mongodb/handle-mongo-error"
 
 next:
     text: "getEnv"

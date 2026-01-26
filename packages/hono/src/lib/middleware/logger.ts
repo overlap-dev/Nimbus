@@ -62,6 +62,7 @@ const time = (start: number) => {
  * ```
  */
 export const logger = (options?: LoggerOptions): MiddlewareHandler => {
+    const enableTracing = options?.enableTracing ?? true;
     const tracerName = options?.tracerName ?? 'nimbus';
     const tracer = trace.getTracer(tracerName);
 
@@ -75,7 +76,7 @@ export const logger = (options?: LoggerOptions): MiddlewareHandler => {
             correlationId,
         });
 
-        if (options?.enableTracing) {
+        if (enableTracing) {
             // Extract trace context from incoming headers (traceparent, tracestate)
             const parentContext = propagation.extract(
                 context.active(),

@@ -9,6 +9,7 @@ export const addUserInputSchema = z.object({
     email: z.email(),
     firstName: z.string(),
     lastName: z.string(),
+    group: z.string(),
 });
 
 export const addUserCommandSchema = commandSchema.extend({
@@ -33,6 +34,7 @@ export const addUser = (
         email: email,
         firstName: command.data.firstName,
         lastName: command.data.lastName,
+        group: command.data.group,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
     };

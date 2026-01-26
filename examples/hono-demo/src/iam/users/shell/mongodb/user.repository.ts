@@ -1,8 +1,9 @@
-import { MongoDBRepository } from '@nimbus/mongodb';
+import { aggregate, MongoDBRepository } from '@nimbus/mongodb';
 import { getEnv } from '@nimbus/utils';
 import { Document, ObjectId } from 'mongodb';
 import { mongoManager } from '../../../../shared/shell/mongodb.ts';
 import { User } from '../../core/domain/user.ts';
+import { UserGroup } from '../../core/domain/userGroup.ts';
 import { USERS_COLLECTION } from './user.collection.ts';
 
 class UserRepository extends MongoDBRepository<User> {
@@ -27,6 +28,7 @@ class UserRepository extends MongoDBRepository<User> {
             email: doc.email,
             firstName: doc.firstName,
             lastName: doc.lastName,
+            group: doc.group,
             createdAt: doc.createdAt.toISOString(),
             updatedAt: doc.updatedAt.toISOString(),
         });
@@ -38,9 +40,37 @@ class UserRepository extends MongoDBRepository<User> {
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
+            group: user.group,
             createdAt: new Date(user.createdAt),
             updatedAt: new Date(user.updatedAt),
         };
+    }
+
+    public async getUserGroups(): Promise<UserGroup[]> {
+        const collection = await this._getCollection();
+
+        const result = await aggregate<UserGroup>({
+            collection,
+            aggregation: [
+                {
+                    $group: {
+                        _id: '$group',
+                        users: { $push: '$$ROOT' },
+                    },
+                },
+            ],
+            mapDocument: (doc: Document) => {
+                return {
+                    name: doc._id,
+                    users: doc.users.map((user: Document) =>
+                        this._mapDocumentToEntity(user)
+                    ),
+                };
+            },
+            outputType: UserGroup,
+        });
+
+        return result;
     }
 }
 

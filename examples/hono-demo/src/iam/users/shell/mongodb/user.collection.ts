@@ -10,6 +10,7 @@ export const USERS_COLLECTION: MongoCollectionDefinition = {
                     'email',
                     'firstName',
                     'lastName',
+                    'group',
                     'createdAt',
                     'updatedAt',
                 ],
@@ -21,6 +22,9 @@ export const USERS_COLLECTION: MongoCollectionDefinition = {
                         bsonType: 'string',
                     },
                     lastName: {
+                        bsonType: 'string',
+                    },
+                    group: {
                         bsonType: 'string',
                     },
                     createdAt: {
@@ -37,6 +41,7 @@ export const USERS_COLLECTION: MongoCollectionDefinition = {
         { key: { email: 1 }, unique: true },
         { key: { firstName: 1 } },
         { key: { lastName: 1 } },
+        { key: { group: 1 } },
         { key: { createdAt: 1 } },
         { key: { updatedAt: 1 } },
     ],

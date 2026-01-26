@@ -95,12 +95,28 @@ export default defineConfig({
                     link: "/guide/mongodb",
                     items: [
                         {
+                            text: "Connection Manager",
+                            link: "/guide/mongodb/connection-manager",
+                        },
+                        {
                             text: "Repository",
                             link: "/guide/mongodb/repository",
                         },
                         {
                             text: "CRUD+",
                             link: "/guide/mongodb/crud",
+                        },
+                        {
+                            text: "MongoJSON",
+                            link: "/guide/mongodb/mongo-json",
+                        },
+                        {
+                            text: "handleMongoError",
+                            link: "/guide/mongodb/handle-mongo-error",
+                        },
+                        {
+                            text: "Deploy Collection",
+                            link: "/guide/mongodb/deploy-collection",
                         },
                     ],
                 },

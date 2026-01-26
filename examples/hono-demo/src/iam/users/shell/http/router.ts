@@ -9,6 +9,10 @@ import {
     GET_USER_QUERY_TYPE,
     GetUserQuery,
 } from '../../core/queries/getUser.query.ts';
+import {
+    GET_USER_GROUPS_QUERY_TYPE,
+    GetUserGroupsQuery,
+} from '../../core/queries/getUserGroups.ts';
 
 const usersRouter = new Hono();
 
@@ -26,6 +30,24 @@ usersRouter.post(
         });
 
         const result = await getRouter('default').route(command);
+
+        return c.json(result);
+    },
+);
+
+usersRouter.get(
+    '/groups',
+    async (c) => {
+        const correlationId = getCorrelationId(c);
+
+        const query = createQuery<GetUserGroupsQuery>({
+            type: GET_USER_GROUPS_QUERY_TYPE,
+            source: 'nimbus.overlap.at',
+            correlationid: correlationId,
+            data: {},
+        });
+
+        const result = await getRouter('default').route(query);
 
         return c.json(result);
     },
