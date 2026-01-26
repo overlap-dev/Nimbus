@@ -442,7 +442,11 @@ export class NimbusEventBus {
                                 span,
                                 metricLabels,
                                 startTime,
-                                retryConfig: { maxRetries, baseDelay, maxDelay },
+                                retryConfig: {
+                                    maxRetries,
+                                    baseDelay,
+                                    maxDelay,
+                                },
                             });
                         }
 
@@ -484,7 +488,11 @@ export class NimbusEventBus {
         span: ReturnType<typeof tracer.startSpan>;
         metricLabels: { eventbus_name: string; event_type: string };
         startTime: number;
-        retryConfig: { maxRetries: number; baseDelay: number; maxDelay: number };
+        retryConfig: {
+            maxRetries: number;
+            baseDelay: number;
+            maxDelay: number;
+        };
     }): never {
         const { error, event, span, metricLabels, startTime, retryConfig } =
             options;
