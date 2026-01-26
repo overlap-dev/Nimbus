@@ -2,6 +2,9 @@
   "compilerOptions": {
     "strict": true
   },
+  "exclude": [
+    "docs/"
+  ],
   "workspace": [
     "./packages/core",
     "./packages/mongodb",

@@ -41,13 +41,13 @@ export type FindOneAndDelete = <TData>(
  *
  * @returns {Promise<TData>} The found and deleted document.
  */
-export const findOneAndDelete: FindOneAndDelete = ({
+export const findOneAndDelete: FindOneAndDelete = <TData>({
     collection,
     filter,
     mapDocument,
     outputType,
     options,
-}) => {
+}: FindOneAndDeleteInput<TData>) => {
     return withSpan('findOneAndDelete', collection, async () => {
         let res: WithId<Document> | null = null;
 
@@ -66,7 +66,7 @@ export const findOneAndDelete: FindOneAndDelete = ({
         }
 
         try {
-            return outputType.parse(mapDocument(res));
+            return outputType.parse(mapDocument(res)) as TData;
         } catch (error) {
             const exception = error instanceof Error
                 ? new GenericException().fromError(error)

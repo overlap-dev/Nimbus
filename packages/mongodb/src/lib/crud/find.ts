@@ -50,7 +50,7 @@ export type Find = <TData>(
  *
  * @returns {Promise<TData[]>} The found documents.
  */
-export const find: Find = ({
+export const find: Find = <TData>({
     collection,
     filter,
     limit,
@@ -60,7 +60,7 @@ export const find: Find = ({
     mapDocument,
     outputType,
     options,
-}) => {
+}: FindInput<TData>) => {
     return withSpan('find', collection, async () => {
         let res: WithId<Document>[] = [];
 
@@ -89,7 +89,9 @@ export const find: Find = ({
         }
 
         try {
-            return res.map((item) => outputType.parse(mapDocument(item)));
+            return res.map((item) =>
+                outputType.parse(mapDocument(item))
+            ) as TData[];
         } catch (error) {
             const exception = error instanceof Error
                 ? new GenericException().fromError(error)

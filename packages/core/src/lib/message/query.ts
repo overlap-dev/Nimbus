@@ -49,6 +49,34 @@ export type Query<TData = unknown> = {
 };
 
 /**
+ * Type alias for the query data field schema.
+ */
+type QueryDataSchema = z.ZodUnion<
+    [
+        z.ZodRecord<z.ZodString, z.ZodUnknown>,
+        z.ZodString,
+        z.ZodNumber,
+        z.ZodArray<z.ZodUnknown>,
+        z.ZodBoolean,
+    ]
+>;
+
+/**
+ * Type alias for the query schema shape.
+ */
+export type QuerySchemaType = z.ZodObject<{
+    specversion: z.ZodLiteral<'1.0'>;
+    id: z.ZodString;
+    correlationid: z.ZodString;
+    time: z.ZodISODateTime;
+    source: z.ZodString;
+    type: z.ZodString;
+    data: QueryDataSchema;
+    datacontenttype: z.ZodOptional<z.ZodString>;
+    dataschema: z.ZodOptional<z.ZodURL>;
+}>;
+
+/**
  * The Zod schema matching the Query type.
  *
  * Zod is the default for validating incomming messages.
@@ -56,7 +84,7 @@ export type Query<TData = unknown> = {
  * We do not infer the Query type from this schema because of
  * slow type issues see https://jsr.io/docs/about-slow-types for more details.
  */
-export const querySchema = z.object({
+export const querySchema: QuerySchemaType = z.object({
     specversion: z.literal('1.0'),
     id: z.string(),
     correlationid: z.string(),

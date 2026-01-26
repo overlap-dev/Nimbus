@@ -56,6 +56,35 @@ export type Event<TData = unknown> = {
 };
 
 /**
+ * Type alias for the event data field schema.
+ */
+type EventDataSchema = z.ZodUnion<
+    [
+        z.ZodRecord<z.ZodString, z.ZodUnknown>,
+        z.ZodString,
+        z.ZodNumber,
+        z.ZodArray<z.ZodUnknown>,
+        z.ZodBoolean,
+    ]
+>;
+
+/**
+ * Type alias for the event schema shape.
+ */
+export type EventSchemaType = z.ZodObject<{
+    specversion: z.ZodLiteral<'1.0'>;
+    id: z.ZodString;
+    correlationid: z.ZodString;
+    time: z.ZodISODateTime;
+    source: z.ZodString;
+    type: z.ZodString;
+    subject: z.ZodString;
+    data: EventDataSchema;
+    datacontenttype: z.ZodOptional<z.ZodString>;
+    dataschema: z.ZodOptional<z.ZodURL>;
+}>;
+
+/**
  * The Zod schema matching the Event type.
  *
  * Zod is the default for validating incomming messages.
@@ -63,7 +92,7 @@ export type Event<TData = unknown> = {
  * We do not infer the Event type from this schema because of
  * slow type issues see https://jsr.io/docs/about-slow-types for more details.
  */
-export const eventSchema = z.object({
+export const eventSchema: EventSchemaType = z.object({
     specversion: z.literal('1.0'),
     id: z.string(),
     correlationid: z.string(),

@@ -53,6 +53,35 @@ export type Command<TData = unknown> = {
 };
 
 /**
+ * Type alias for the command data field schema.
+ */
+type CommandDataSchema = z.ZodUnion<
+    [
+        z.ZodRecord<z.ZodString, z.ZodUnknown>,
+        z.ZodString,
+        z.ZodNumber,
+        z.ZodArray<z.ZodUnknown>,
+        z.ZodBoolean,
+    ]
+>;
+
+/**
+ * Type alias for the command schema shape.
+ */
+export type CommandSchemaType = z.ZodObject<{
+    specversion: z.ZodLiteral<'1.0'>;
+    id: z.ZodString;
+    correlationid: z.ZodString;
+    time: z.ZodISODateTime;
+    source: z.ZodString;
+    type: z.ZodString;
+    subject: z.ZodOptional<z.ZodString>;
+    data: CommandDataSchema;
+    datacontenttype: z.ZodOptional<z.ZodString>;
+    dataschema: z.ZodOptional<z.ZodURL>;
+}>;
+
+/**
  * The Zod schema matching the Command type.
  *
  * Zod is the default for validating incomming messages.
@@ -60,7 +89,7 @@ export type Command<TData = unknown> = {
  * We do not infer the Command type from this schema because of
  * slow type issues see https://jsr.io/docs/about-slow-types for more details.
  */
-export const commandSchema = z.object({
+export const commandSchema: CommandSchemaType = z.object({
     specversion: z.literal('1.0'),
     id: z.string(),
     correlationid: z.string(),

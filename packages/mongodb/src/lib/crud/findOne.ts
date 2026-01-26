@@ -33,12 +33,12 @@ export type FindOne = <TData>(
  *
  * @returns {Promise<TData>} The found document.
  */
-export const findOne: FindOne = ({
+export const findOne: FindOne = <TData>({
     collection,
     filter,
     mapDocument,
     outputType,
-}) => {
+}: FindOneInput<TData>) => {
     return withSpan('findOne', collection, async () => {
         let res: WithId<Document> | null = null;
 
@@ -53,7 +53,7 @@ export const findOne: FindOne = ({
         }
 
         try {
-            return outputType.parse(mapDocument(res));
+            return outputType.parse(mapDocument(res)) as TData;
         } catch (error) {
             const exception = error instanceof Error
                 ? new GenericException().fromError(error)

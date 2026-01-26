@@ -18,7 +18,10 @@ import type { HTTPResponseError } from 'hono/types';
  * app.onError(handleError);
  * ```
  */
-export const handleError = (error: Error | HTTPResponseError, c: Context) => {
+export const handleError = (
+    error: Error | HTTPResponseError,
+    c: Context,
+): Response => {
     let statusCode = 500;
     let response: Record<string, any> = {
         error: 'INTERNAL_SERVER_ERROR',

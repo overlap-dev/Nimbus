@@ -108,7 +108,7 @@ export class MongoDBRepository<
      * ZodType.parse is used to ensure the data is valid and type-safe.
      */
     protected _mapDocumentToEntity(doc: Document): TEntity {
-        return this._entityType.parse(doc);
+        return this._entityType.parse(doc) as TEntity;
     }
 
     /**
