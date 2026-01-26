@@ -30,8 +30,6 @@ jobs:
         with:
           deno-version: v2
 
-      - run: deno cache
-
       - name: Check formatting
         run: deno fmt --check
 
