@@ -31,7 +31,7 @@ readRouter.get(
 );
 
 readRouter.get(
-    '/:id',
+    '/get-user-by-id/:id',
     async (c) => {
         const id = c.req.param('id');
         const correlationId = getCorrelationId(c);
