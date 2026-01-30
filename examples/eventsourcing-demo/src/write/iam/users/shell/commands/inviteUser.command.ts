@@ -5,11 +5,14 @@ import {
     inviteUser,
     InviteUserCommand,
 } from '../../core/commands/inviteUser.command.ts';
+import { UserState } from '../../core/domain/user.state.ts';
 
 export const inviteUserCommandHandler = async (command: InviteUserCommand) => {
     const id = ulid();
 
-    const events = inviteUser(id, command);
+    const state: UserState = { id };
+
+    const events = inviteUser(state, command);
 
     const eventCandidates: EventCandidate[] = events.map((event) => ({
         source: event.source,

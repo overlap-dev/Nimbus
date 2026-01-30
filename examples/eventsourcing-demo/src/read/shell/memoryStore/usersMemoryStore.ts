@@ -5,6 +5,7 @@ export type UsersRow = {
     firstName: string;
     lastName: string;
     invitedAt: string;
+    acceptedAt: string | null;
 };
 
 export const usersMemoryStore = new Map<string, UsersRow>();

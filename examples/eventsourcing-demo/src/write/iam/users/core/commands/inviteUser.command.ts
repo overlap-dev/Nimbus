@@ -1,5 +1,6 @@
 import { commandSchema, createEvent } from '@nimbus/core';
 import { z } from 'zod';
+import { UserState } from '../domain/user.state.ts';
 import {
     USER_INVITED_EVENT_TYPE,
     UserInvitedEvent,
@@ -20,7 +21,7 @@ export const inviteUserCommandSchema = commandSchema.extend({
 export type InviteUserCommand = z.infer<typeof inviteUserCommandSchema>;
 
 export const inviteUser = (
-    id: string,
+    state: UserState,
     command: InviteUserCommand,
 ): [UserInvitedEvent] => {
     // Always make sure to cast all user emails to lowercase
@@ -30,9 +31,9 @@ export const inviteUser = (
         type: USER_INVITED_EVENT_TYPE,
         source: command.source,
         correlationid: command.correlationid,
-        subject: `/users/${id}`,
+        subject: `/users/${state.id}`,
         data: {
-            id: id,
+            id: state.id,
             email: email,
             firstName: command.data.firstName,
             lastName: command.data.lastName,

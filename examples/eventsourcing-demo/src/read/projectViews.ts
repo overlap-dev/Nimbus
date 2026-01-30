@@ -1,5 +1,6 @@
 import { getLogger } from '@nimbus/core';
 import { Event } from 'eventsourcingdb';
+import { USER_INVITATION_ACCEPTED_EVENT_TYPE } from '../write/iam/users/core/events/userInvitationAccepted.event.ts';
 import { USER_INVITED_EVENT_TYPE } from '../write/iam/users/core/events/userInvited.event.ts';
 import {
     setUsersMemoryStoreLastEventId,
@@ -17,10 +18,29 @@ export const projectViews = (event: Event) => {
                 firstName: event.data.firstName as string,
                 lastName: event.data.lastName as string,
                 invitedAt: event.data.invitedAt as string,
+                acceptedAt: null,
             };
 
             usersMemoryStore.set(
                 event.data.id as string,
+                usersRow,
+            );
+
+            setUsersMemoryStoreLastEventId(event.id);
+            break;
+        }
+        case USER_INVITATION_ACCEPTED_EVENT_TYPE: {
+            const id = event.subject.split('/')[2];
+            const currentUsersRow = usersMemoryStore.get(id) as UsersRow;
+
+            const usersRow: UsersRow = {
+                ...currentUsersRow,
+                revision: event.id as string,
+                acceptedAt: event.data.acceptedAt as string,
+            };
+
+            usersMemoryStore.set(
+                id,
                 usersRow,
             );
 
