@@ -3,7 +3,8 @@ import { Hono } from 'hono';
 import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
-import usersRouter from '../../iam/users/shell/http/router.ts';
+import readRouter from '../../read/shell/http/router.ts';
+import usersRouter from '../../write/iam/users/shell/http/router.ts';
 
 export const app = new Hono();
 
@@ -25,5 +26,6 @@ app.get('/health', (c) => {
 });
 
 app.route('/iam/users', usersRouter);
+app.route('/iam/users', readRouter);
 
 app.onError(handleError);

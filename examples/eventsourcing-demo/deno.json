@@ -40,6 +40,7 @@
   "imports": {
     "@std/dotenv": "jsr:@std/dotenv@^0.225.6",
     "@std/ulid": "jsr:@std/ulid@^1.0.0",
+    "eventsourcingdb": "npm:eventsourcingdb@^1.8.1",
     "hono": "npm:hono@^4.11.4",
     "mongodb": "npm:mongodb@^7.0.0",
     "zod": "npm:zod@^4.3.5"

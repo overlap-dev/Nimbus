@@ -3,15 +3,18 @@ import {
     jsonLogFormatter,
     parseLogLevel,
     prettyLogFormatter,
-    setupEventBus,
     setupLogger,
     setupRouter,
 } from '@nimbus/core';
 import '@std/dotenv/load';
 import process from 'node:process';
+import {
+    handleEvent,
+    initEventObserver,
+    setupEventsourcingdb,
+} from './shared/shell/eventsourcingdb.ts';
 import { app } from './shared/shell/http.ts';
 import { initMessages } from './shared/shell/messages.ts';
-import { initMongoConnectionManager } from './shared/shell/mongodb.ts';
 
 setupLogger({
     logLevel: parseLogLevel(process.env.LOG_LEVEL),
@@ -21,24 +24,37 @@ setupLogger({
     useConsoleColors: process.env.LOG_FORMAT === 'pretty',
 });
 
-setupEventBus('default', {
-    maxRetries: 3,
-    baseDelay: 1000,
-    maxDelay: 30000,
-    useJitter: true,
-    logPublish: (event) => {
+setupEventsourcingdb(
+    new URL(process.env.ESDB_URL ?? ''),
+    process.env.ESDB_API_TOKEN ?? '',
+);
+
+initEventObserver(handleEvent);
+
+setupRouter('writeRouter', {
+    logInput: (input) => {
         getLogger().debug({
-            category: 'EventBus',
-            message: 'Published event',
-            data: { event },
-            ...(event?.correlationid
-                ? { correlationId: event.correlationid }
+            category: 'MessageRouter',
+            message: 'Received input',
+            data: { input },
+            ...(input?.correlationid
+                ? { correlationId: input.correlationid }
+                : {}),
+        });
+    },
+    logOutput: (output) => {
+        getLogger().debug({
+            category: 'MessageRouter',
+            message: 'Output',
+            data: { output },
+            ...(output?.correlationid
+                ? { correlationId: output.correlationid }
                 : {}),
         });
     },
 });
 
-setupRouter('default', {
+setupRouter('readRouter', {
     logInput: (input) => {
         getLogger().debug({
             category: 'MessageRouter',
@@ -62,8 +78,6 @@ setupRouter('default', {
 });
 
 initMessages();
-
-initMongoConnectionManager();
 
 if (process.env.PORT) {
     const port = Number.parseInt(process.env.PORT);
