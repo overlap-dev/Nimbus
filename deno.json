@@ -10,6 +10,7 @@
     "./packages/mongodb",
     "./packages/hono",
     "./packages/utils",
+    "./packages/eventsourcingdb",
     "./examples/hono-demo",
     "./examples/eventsourcing-demo"
   ],

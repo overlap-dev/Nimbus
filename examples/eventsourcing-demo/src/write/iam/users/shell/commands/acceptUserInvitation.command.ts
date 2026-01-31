@@ -1,5 +1,5 @@
+import { getEventSourcingDBClient } from '@nimbus/eventsourcingdb';
 import { type EventCandidate, isSubjectOnEventId } from 'eventsourcingdb';
-import { getEventsourcingdbClient } from '../../../../../shared/shell/eventsourcingdb.ts';
 import {
     acceptUserInvitation,
     AcceptUserInvitationCommand,
@@ -12,14 +12,17 @@ import {
 export const acceptUserInvitationCommandHandler = async (
     command: AcceptUserInvitationCommand,
 ) => {
-    const esdbClient = getEventsourcingdbClient();
+    const eventSourcingDBClient = getEventSourcingDBClient();
 
     let state: UserState = { id: command.data.id };
 
     for await (
-        const event of esdbClient.readEvents(`/users/${command.data.id}`, {
-            recursive: false,
-        })
+        const event of eventSourcingDBClient.readEvents(
+            `/users/${command.data.id}`,
+            {
+                recursive: false,
+            },
+        )
     ) {
         state = applyEventToUserState(state, event);
     }
@@ -33,7 +36,7 @@ export const acceptUserInvitationCommandHandler = async (
         data: event.data,
     }));
 
-    await esdbClient.writeEvents(eventCandidates, [
+    await eventSourcingDBClient.writeEvents(eventCandidates, [
         isSubjectOnEventId(
             eventCandidates[0].subject,
             command.data.expectedRevision,

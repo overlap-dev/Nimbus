@@ -6,12 +6,12 @@ import {
     setupLogger,
     setupRouter,
 } from '@nimbus/core';
+import { setupEventSourcingDBClient } from '@nimbus/eventsourcingdb';
 import '@std/dotenv/load';
 import process from 'node:process';
 import {
     handleEvent,
     initEventObserver,
-    setupEventsourcingdb,
 } from './shared/shell/eventsourcingdb.ts';
 import { app } from './shared/shell/http.ts';
 import { initMessages } from './shared/shell/messages.ts';
@@ -24,9 +24,11 @@ setupLogger({
     useConsoleColors: process.env.LOG_FORMAT === 'pretty',
 });
 
-setupEventsourcingdb(
-    new URL(process.env.ESDB_URL ?? ''),
-    process.env.ESDB_API_TOKEN ?? '',
+await setupEventSourcingDBClient(
+    {
+        url: new URL(process.env.ESDB_URL ?? ''),
+        apiToken: process.env.ESDB_API_TOKEN ?? '',
+    },
 );
 
 initEventObserver(handleEvent);
@@ -82,16 +84,20 @@ initMessages();
 if (process.env.PORT) {
     const port = Number.parseInt(process.env.PORT);
 
-    Deno.serve({ hostname: '0.0.0.0', port }, app.fetch);
-
-    getLogger().info({
-        category: 'API',
-        message: `Started application on port ${port}`,
-    });
+    Deno.serve({
+        hostname: '0.0.0.0',
+        port,
+        onListen: ({ port, hostname }) => {
+            getLogger().info({
+                category: 'API',
+                message: `Started HTTP API on http://${hostname}:${port}`,
+            });
+        },
+    }, app.fetch);
 } else {
     getLogger().critical({
         category: 'API',
         message:
-            `Could not start the application! Please define a valid port environment variable.`,
+            `Could not start the HTTP API! Please define a valid port environment variable.`,
     });
 }

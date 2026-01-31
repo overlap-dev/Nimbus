@@ -1029,6 +1029,11 @@
           "npm:zod@^4.3.5"
         ]
       },
+      "packages/eventsourcingdb": {
+        "dependencies": [
+          "npm:eventsourcingdb@^1.8.1"
+        ]
+      },
       "packages/hono": {
         "dependencies": [
           "jsr:@std/ulid@1",

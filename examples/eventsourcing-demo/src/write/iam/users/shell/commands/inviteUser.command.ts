@@ -1,6 +1,6 @@
+import { getEventSourcingDBClient } from '@nimbus/eventsourcingdb';
 import { ulid } from '@std/ulid';
 import { type EventCandidate, isSubjectPristine } from 'eventsourcingdb';
-import { getEventsourcingdbClient } from '../../../../../shared/shell/eventsourcingdb.ts';
 import {
     inviteUser,
     InviteUserCommand,
@@ -21,9 +21,9 @@ export const inviteUserCommandHandler = async (command: InviteUserCommand) => {
         data: event.data,
     }));
 
-    const esdbClient = getEventsourcingdbClient();
+    const eventSourcingDBClient = getEventSourcingDBClient();
 
-    await esdbClient.writeEvents(eventCandidates, [
+    await eventSourcingDBClient.writeEvents(eventCandidates, [
         isSubjectPristine(eventCandidates[0].subject),
     ]);
 
