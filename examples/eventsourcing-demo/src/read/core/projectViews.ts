@@ -1,12 +1,12 @@
 import { getLogger } from '@nimbus/core';
 import { Event } from 'eventsourcingdb';
-import { USER_INVITATION_ACCEPTED_EVENT_TYPE } from '../write/iam/users/core/events/userInvitationAccepted.event.ts';
-import { USER_INVITED_EVENT_TYPE } from '../write/iam/users/core/events/userInvited.event.ts';
+import { USER_INVITATION_ACCEPTED_EVENT_TYPE } from '../../write/iam/users/core/events/userInvitationAccepted.event.ts';
+import { USER_INVITED_EVENT_TYPE } from '../../write/iam/users/core/events/userInvited.event.ts';
 import {
     setUsersMemoryStoreLastEventId,
     usersMemoryStore,
     UsersRow,
-} from './shell/memoryStore/usersMemoryStore.ts';
+} from '../shell/memoryStore/usersMemoryStore.ts';
 
 export const projectViews = (event: Event) => {
     switch (event.type) {

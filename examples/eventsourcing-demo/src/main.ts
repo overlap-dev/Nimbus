@@ -9,10 +9,7 @@ import {
 import { setupEventSourcingDBClient } from '@nimbus/eventsourcingdb';
 import '@std/dotenv/load';
 import process from 'node:process';
-import {
-    handleEvent,
-    initEventObserver,
-} from './shared/shell/eventsourcingdb.ts';
+import { projectViews } from './read/core/projectViews.ts';
 import { app } from './shared/shell/http.ts';
 import { initMessages } from './shared/shell/messages.ts';
 
@@ -28,10 +25,15 @@ await setupEventSourcingDBClient(
     {
         url: new URL(process.env.ESDB_URL ?? ''),
         apiToken: process.env.ESDB_API_TOKEN ?? '',
+        eventObservers: [
+            {
+                subject: '/',
+                recursive: true,
+                eventHandler: projectViews,
+            },
+        ],
     },
 );
-
-initEventObserver(handleEvent);
 
 setupRouter('writeRouter', {
     logInput: (input) => {

@@ -1,5 +1,6 @@
 import { GenericException, getLogger } from '@nimbus/core';
 import { Client } from 'eventsourcingdb';
+import { type EventObserver, initEventObserver } from './eventObserver.ts';
 
 let eventSourcingDBClient: Client | null = null;
 
@@ -15,6 +16,10 @@ export type SetupEventSourcingDBClientInput = {
      * The API token for authenticating with EventSourcingDB.
      */
     apiToken: string;
+    /**
+     * An optional array of event observers to observe events.
+     */
+    eventObservers?: EventObserver[];
 };
 
 /**
@@ -24,9 +29,13 @@ export type SetupEventSourcingDBClientInput = {
  * the server, and validates the provided API token. It should be called once at
  * application startup before using {@link getEventSourcingDBClient}.
  *
+ * Optionally, you can provide event observers that will start observing events
+ * in the background after the client is initialized.
+ *
  * @param {SetupEventSourcingDBClientInput} options - The configuration options
  * @param {URL} options.url - The URL of the EventSourcingDB server
  * @param {string} options.apiToken - The API token for authentication
+ * @param {EventObserver[]} [options.eventObservers] - Optional array of event observers
  *
  * @throws {GenericException} If the connection to EventSourcingDB fails
  * @throws {GenericException} If the API token is invalid
@@ -34,15 +43,25 @@ export type SetupEventSourcingDBClientInput = {
  * @example
  * ```ts
  * import { setupEventSourcingDBClient } from '@nimbus/eventsourcingdb';
+ * import type { Event } from 'eventsourcingdb';
  *
  * await setupEventSourcingDBClient({
  *     url: new URL(process.env.ESDB_URL ?? ''),
  *     apiToken: process.env.ESDB_API_TOKEN ?? '',
+ *     eventObservers: [
+ *         {
+ *             subject: '/users',
+ *             recursive: true,
+ *             eventHandler: async (event: Event) => {
+ *                 console.log('Received event:', event);
+ *             },
+ *         },
+ *     ],
  * });
  * ```
  */
 export const setupEventSourcingDBClient = async (
-    { url, apiToken }: SetupEventSourcingDBClientInput,
+    { url, apiToken, eventObservers }: SetupEventSourcingDBClientInput,
 ): Promise<void> => {
     eventSourcingDBClient = new Client(
         url,
@@ -79,6 +98,12 @@ export const setupEventSourcingDBClient = async (
         category: 'Nimbus',
         message: 'EventSourcingDB client initialized successfully',
     });
+
+    if (eventObservers?.length) {
+        for (const eventObserver of eventObservers) {
+            initEventObserver(eventObserver);
+        }
+    }
 };
 
 /**
