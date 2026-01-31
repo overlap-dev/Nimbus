@@ -25,12 +25,13 @@ jobs:
         with:
           path: ${{ env.DENO_DIR }}
           key: deno-${{ runner.os }}-${{ hashFiles('deno.lock') }}
-          restore-keys: |
-            deno-${{ runner.os }}-
 
       - uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb
         with:
           deno-version: v2
+
+      - name: Install dependencies
+        run: deno install --frozen
 
       - name: Check formatting
         run: deno fmt --check
