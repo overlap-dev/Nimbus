@@ -45,3 +45,6 @@ testem.log
 Thumbs.db
 
 .nx/cache
+
+# Claude Code
+.claude/settings.local.json
