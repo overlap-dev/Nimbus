@@ -11,6 +11,7 @@
     "jsr:@std/ulid@1": "1.0.0",
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@types/node@*": "18.19.130",
+    "npm:eventsourcingdb@1.8.1": "1.8.1",
     "npm:eventsourcingdb@^1.8.1": "1.8.1",
     "npm:hono@^4.11.4": "4.11.4",
     "npm:mongodb@7": "7.0.0",
@@ -1003,6 +1004,7 @@
     "members": {
       "examples/eventsourcing-demo": {
         "dependencies": [
+          "jsr:@std/assert@^1.0.10",
           "jsr:@std/dotenv@~0.225.6",
           "jsr:@std/ulid@1",
           "npm:eventsourcingdb@^1.8.1",
@@ -1031,6 +1033,7 @@
       },
       "packages/eventsourcingdb": {
         "dependencies": [
+          "jsr:@std/assert@^1.0.10",
           "npm:eventsourcingdb@^1.8.1"
         ]
       },
