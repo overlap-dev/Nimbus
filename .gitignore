@@ -48,3 +48,6 @@ Thumbs.db
 
 # Claude Code
 .claude/settings.local.json
+
+# EventSourcingDB
+esdb-data/
