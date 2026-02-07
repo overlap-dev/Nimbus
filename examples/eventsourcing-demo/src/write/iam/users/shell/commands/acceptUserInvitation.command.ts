@@ -1,5 +1,9 @@
-import { getEventSourcingDBClient } from '@nimbus/eventsourcingdb';
-import { type EventCandidate, isSubjectOnEventId } from 'eventsourcingdb';
+import {
+    eventSourcingDBEventToNimbusEvent,
+    readEvents,
+    writeEvents,
+} from '@nimbus/eventsourcingdb';
+import { isSubjectOnEventId } from 'eventsourcingdb';
 import {
     acceptUserInvitation,
     AcceptUserInvitationCommand,
@@ -12,33 +16,28 @@ import {
 export const acceptUserInvitationCommandHandler = async (
     command: AcceptUserInvitationCommand,
 ) => {
-    const eventSourcingDBClient = getEventSourcingDBClient();
-
     let state: UserState = { id: command.data.id };
 
     for await (
-        const event of eventSourcingDBClient.readEvents(
+        const eventSourcingDBEvent of readEvents(
             `/users/${command.data.id}`,
             {
                 recursive: false,
             },
         )
     ) {
+        const event = eventSourcingDBEventToNimbusEvent(
+            eventSourcingDBEvent,
+        );
+
         state = applyEventToUserState(state, event);
     }
 
     const events = acceptUserInvitation(state, command);
 
-    const eventCandidates: EventCandidate[] = events.map((event) => ({
-        source: event.source,
-        subject: event.subject,
-        type: event.type,
-        data: event.data,
-    }));
-
-    await eventSourcingDBClient.writeEvents(eventCandidates, [
+    await writeEvents(events, [
         isSubjectOnEventId(
-            eventCandidates[0].subject,
+            events[0].subject,
             command.data.expectedRevision,
         ),
     ]);

@@ -1,6 +1,6 @@
-import { getEventSourcingDBClient } from '@nimbus/eventsourcingdb';
+import { writeEvents } from '@nimbus/eventsourcingdb';
 import { ulid } from '@std/ulid';
-import { type EventCandidate, isSubjectPristine } from 'eventsourcingdb';
+import { isSubjectPristine } from 'eventsourcingdb';
 import {
     inviteUser,
     InviteUserCommand,
@@ -14,17 +14,8 @@ export const inviteUserCommandHandler = async (command: InviteUserCommand) => {
 
     const events = inviteUser(state, command);
 
-    const eventCandidates: EventCandidate[] = events.map((event) => ({
-        source: event.source,
-        subject: event.subject,
-        type: event.type,
-        data: event.data,
-    }));
-
-    const eventSourcingDBClient = getEventSourcingDBClient();
-
-    await eventSourcingDBClient.writeEvents(eventCandidates, [
-        isSubjectPristine(eventCandidates[0].subject),
+    await writeEvents(events, [
+        isSubjectPristine(events[0].subject),
     ]);
 
     return {

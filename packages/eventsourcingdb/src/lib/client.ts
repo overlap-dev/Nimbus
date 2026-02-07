@@ -58,8 +58,21 @@ export type SetupEventSourcingDBClientInput = {
  *         {
  *             subject: '/users',
  *             recursive: true,
+ *             lowerBound: {
+ *                 id: 'last-processed-event-id',
+ *                 type: 'exclusive',
+ *             },
+ *             fromLatestEvent: {
+ *                 subject: '/users',
+ *                 type: 'io.nimbus.users.invited',
+ *                 ifEventIsMissing: 'read-everything',
+ *             },
  *             eventHandler: async (event: Event) => {
  *                 console.log('Received event:', event);
+ *             },
+ *             retryOptions: {
+ *                 maxRetries: 3,
+ *                 initialRetryDelayMs: 3000,
  *             },
  *         },
  *     ],

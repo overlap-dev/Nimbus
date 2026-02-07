@@ -1,4 +1,4 @@
-import { Event } from 'eventsourcingdb';
+import { Event } from '@nimbus/core';
 import { USER_INVITED_EVENT_TYPE } from '../events/userInvited.event.ts';
 
 export type UserState = {

@@ -1031,6 +1031,8 @@
       },
       "packages/eventsourcingdb": {
         "dependencies": [
+          "jsr:@std/ulid@1",
+          "npm:@opentelemetry/api@^1.9.0",
           "npm:eventsourcingdb@^1.8.1"
         ]
       },

@@ -1,5 +1,6 @@
-import { getLogger } from '@nimbus/core';
-import { Event } from 'eventsourcingdb';
+import { Event, getLogger } from '@nimbus/core';
+import { eventSourcingDBEventToNimbusEvent } from '@nimbus/eventsourcingdb';
+import { Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import { USER_INVITATION_ACCEPTED_EVENT_TYPE } from '../../write/iam/users/core/events/userInvitationAccepted.event.ts';
 import { USER_INVITED_EVENT_TYPE } from '../../write/iam/users/core/events/userInvited.event.ts';
 import {
@@ -8,7 +9,11 @@ import {
     UsersRow,
 } from '../shell/memoryStore/usersMemoryStore.ts';
 
-export const projectViews = (event: Event) => {
+export const projectViews = (eventSourcingDBEvent: EventSourcingDBEvent) => {
+    const event = eventSourcingDBEventToNimbusEvent<Event>(
+        eventSourcingDBEvent,
+    );
+
     switch (event.type) {
         case USER_INVITED_EVENT_TYPE: {
             const usersRow: UsersRow = {

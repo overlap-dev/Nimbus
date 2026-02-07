@@ -10,7 +10,7 @@ else
   exit 1
 fi
 
-export OTEL_SERVICE_NAME=nimbus-hono-demo
+export OTEL_SERVICE_NAME=nimbus-eventsourcing-demo
 export OTEL_RESOURCE_ATTRIBUTES=deployment.environment=development
 
 deno run -A src/main.ts

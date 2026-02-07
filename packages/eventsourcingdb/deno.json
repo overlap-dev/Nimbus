@@ -34,6 +34,8 @@
     ]
   },
   "imports": {
+    "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
+    "@std/ulid": "jsr:@std/ulid@^1.0.0",
     "eventsourcingdb": "npm:eventsourcingdb@^1.8.1"
   }
 }
