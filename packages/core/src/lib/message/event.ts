@@ -113,43 +113,36 @@ export const eventSchema: EventSchemaType = z.object({
 
 /**
  * Input for creating an event.
+ *
+ * When a specific event type is provided via the generic parameter,
+ * the input is validated against that type. This means fields like
+ * `type` and `data` must match the narrower types of `TEvent`.
  */
-export type CreateEventInput = Partial<Omit<Event, 'specversion'>> & {
-    type: string;
-    source: string;
-    subject: string;
-    data: unknown;
-};
+export type CreateEventInput<TEvent extends Event = Event> =
+    & Partial<
+        Pick<TEvent, 'id' | 'correlationid' | 'time' | 'datacontenttype' | 'dataschema'>
+    >
+    & Pick<TEvent, 'type' | 'source' | 'subject' | 'data'>;
 
 /**
  * Creates an event based on input data with the convenience
  * to skip properties and use the defaults for the rest.
  */
 export const createEvent = <TEvent extends Event>(
-    {
-        id,
-        correlationid,
-        time,
-        source,
-        type,
-        subject,
-        data,
-        datacontenttype,
-        dataschema,
-    }: CreateEventInput,
+    input: CreateEventInput<TEvent>,
 ): TEvent => {
     const event = {
-        specversion: '1.0',
-        id: id ?? ulid(),
-        correlationid: correlationid ?? ulid(),
-        time: time ?? new Date().toISOString(),
-        source,
-        type,
-        subject,
-        data,
-        datacontenttype: datacontenttype ?? 'application/json',
-        ...(dataschema && { dataschema }),
-    } as TEvent;
+        specversion: '1.0' as const,
+        id: input.id ?? ulid(),
+        correlationid: input.correlationid ?? ulid(),
+        time: input.time ?? new Date().toISOString(),
+        source: input.source,
+        type: input.type,
+        subject: input.subject,
+        data: input.data,
+        datacontenttype: input.datacontenttype ?? 'application/json',
+        ...(input.dataschema && { dataschema: input.dataschema }),
+    };
 
-    return event;
+    return event as TEvent;
 };
