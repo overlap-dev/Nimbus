@@ -110,42 +110,44 @@ export const commandSchema: CommandSchemaType = z.object({
 
 /**
  * Input for creating a command.
+ *
+ * When a specific command type is provided via the generic parameter,
+ * the input is validated against that type. This means fields like
+ * `type` and `data` must match the narrower types of `TCommand`.
  */
-export type CreateCommandInput = Partial<Omit<Command, 'specversion'>> & {
-    type: string;
-    source: string;
-    data: unknown;
-};
+export type CreateCommandInput<TCommand extends Command = Command> =
+    & Partial<
+        Pick<
+            TCommand,
+            | 'id'
+            | 'correlationid'
+            | 'time'
+            | 'subject'
+            | 'datacontenttype'
+            | 'dataschema'
+        >
+    >
+    & Pick<TCommand, 'type' | 'source' | 'data'>;
 
 /**
  * Creates a command based on input data with the convenience
  * to skip properties and use the defaults for the rest.
  */
 export const createCommand = <TCommand extends Command>(
-    {
-        id,
-        correlationid,
-        time,
-        source,
-        type,
-        subject,
-        data,
-        datacontenttype,
-        dataschema,
-    }: CreateCommandInput,
+    input: CreateCommandInput<TCommand>,
 ): TCommand => {
     const command = {
-        specversion: '1.0',
-        id: id ?? ulid(),
-        correlationid: correlationid ?? ulid(),
-        time: time ?? new Date().toISOString(),
-        source,
-        type,
-        ...(subject && { subject }),
-        data,
-        datacontenttype: datacontenttype ?? 'application/json',
-        ...(dataschema && { dataschema }),
-    } as TCommand;
+        specversion: '1.0' as const,
+        id: input.id ?? ulid(),
+        correlationid: input.correlationid ?? ulid(),
+        time: input.time ?? new Date().toISOString(),
+        source: input.source,
+        type: input.type,
+        ...(input.subject && { subject: input.subject }),
+        data: input.data,
+        datacontenttype: input.datacontenttype ?? 'application/json',
+        ...(input.dataschema && { dataschema: input.dataschema }),
+    };
 
-    return command;
+    return command as TCommand;
 };

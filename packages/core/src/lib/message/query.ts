@@ -104,40 +104,38 @@ export const querySchema: QuerySchemaType = z.object({
 
 /**
  * Input for creating a query.
+ *
+ * When a specific query type is provided via the generic parameter,
+ * the input is validated against that type. This means fields like
+ * `type` and `data` must match the narrower types of `TQuery`.
  */
-export type CreateQueryInput = Partial<Omit<Query, 'specversion'>> & {
-    type: string;
-    source: string;
-    data: unknown;
-};
+export type CreateQueryInput<TQuery extends Query = Query> =
+    & Partial<
+        Pick<
+            TQuery,
+            'id' | 'correlationid' | 'time' | 'datacontenttype' | 'dataschema'
+        >
+    >
+    & Pick<TQuery, 'type' | 'source' | 'data'>;
 
 /**
  * Creates a query based on input data with the convenience
  * to skip properties and use the defaults for the rest.
  */
 export const createQuery = <TQuery extends Query>(
-    {
-        id,
-        correlationid,
-        time,
-        source,
-        type,
-        data,
-        datacontenttype,
-        dataschema,
-    }: CreateQueryInput,
+    input: CreateQueryInput<TQuery>,
 ): TQuery => {
     const query = {
-        specversion: '1.0',
-        id: id ?? ulid(),
-        correlationid: correlationid ?? ulid(),
-        time: time ?? new Date().toISOString(),
-        source,
-        type,
-        data,
-        datacontenttype: datacontenttype ?? 'application/json',
-        ...(dataschema && { dataschema }),
-    } as TQuery;
+        specversion: '1.0' as const,
+        id: input.id ?? ulid(),
+        correlationid: input.correlationid ?? ulid(),
+        time: input.time ?? new Date().toISOString(),
+        source: input.source,
+        type: input.type,
+        data: input.data,
+        datacontenttype: input.datacontenttype ?? 'application/json',
+        ...(input.dataschema && { dataschema: input.dataschema }),
+    };
 
-    return query;
+    return query as TQuery;
 };
