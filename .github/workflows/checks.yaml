@@ -14,17 +14,8 @@ jobs:
   deploy:
     name: Format, Lint, Type Check & Test
     runs-on: ubuntu-latest
-    env:
-      DENO_DIR: deno_cache_dir
-
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-
-      - name: Cache Deno dependencies
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
-        with:
-          path: ${{ env.DENO_DIR }}
-          key: deno-${{ runner.os }}-${{ hashFiles('deno.lock') }}
 
       - uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb
         with:
