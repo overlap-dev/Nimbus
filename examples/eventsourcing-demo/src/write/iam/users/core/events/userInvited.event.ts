@@ -4,6 +4,7 @@ import z from 'zod';
 export const USER_INVITED_EVENT_TYPE = 'at.overlap.nimbus.user-invited';
 
 export const userInvitedEventDataSchema = z.object({
+    id: z.string(),
     email: z.email(),
     firstName: z.string().min(1),
     lastName: z.string().min(1),

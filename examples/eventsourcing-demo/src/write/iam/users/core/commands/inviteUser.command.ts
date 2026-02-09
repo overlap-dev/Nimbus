@@ -38,7 +38,6 @@ export const inviteUser = (
             firstName: command.data.firstName,
             lastName: command.data.lastName,
             invitedAt: new Date().toISOString(),
-            // invitedBy: authContext.user.id, // this could be relevant in production as well.
         },
     });
 

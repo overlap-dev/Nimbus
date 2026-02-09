@@ -1,8 +1,14 @@
 import { Event, getLogger } from '@nimbus/core';
 import { eventSourcingDBEventToNimbusEvent } from '@nimbus/eventsourcingdb';
 import { Event as EventSourcingDBEvent } from 'eventsourcingdb';
-import { USER_INVITATION_ACCEPTED_EVENT_TYPE } from '../../write/iam/users/core/events/userInvitationAccepted.event.ts';
-import { USER_INVITED_EVENT_TYPE } from '../../write/iam/users/core/events/userInvited.event.ts';
+import {
+    USER_INVITATION_ACCEPTED_EVENT_TYPE,
+    UserInvitationAcceptedEvent,
+} from '../../write/iam/users/core/events/userInvitationAccepted.event.ts';
+import {
+    USER_INVITED_EVENT_TYPE,
+    UserInvitedEvent,
+} from '../../write/iam/users/core/events/userInvited.event.ts';
 import {
     setUsersMemoryStoreLastEventId,
     usersMemoryStore,
@@ -10,7 +16,9 @@ import {
 } from '../shell/memoryStore/usersMemoryStore.ts';
 
 export const projectViews = (eventSourcingDBEvent: EventSourcingDBEvent) => {
-    const event = eventSourcingDBEventToNimbusEvent<Event>(
+    const event = eventSourcingDBEventToNimbusEvent<
+        UserInvitedEvent | UserInvitationAcceptedEvent
+    >(
         eventSourcingDBEvent,
     );
 
@@ -55,7 +63,7 @@ export const projectViews = (eventSourcingDBEvent: EventSourcingDBEvent) => {
         default: {
             getLogger().warn({
                 category: 'ProjectViews',
-                message: `Unknown event type ${event.type}`,
+                message: `Unknown event type ${(event as Event).type}`,
             });
             break;
         }
