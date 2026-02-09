@@ -87,7 +87,7 @@ export type EventSchemaType = z.ZodObject<{
 /**
  * The Zod schema matching the Event type.
  *
- * Zod is the default for validating incomming messages.
+ * Zod is the default for validating incoming messages.
  *
  * We do not infer the Event type from this schema because of
  * slow type issues see https://jsr.io/docs/about-slow-types for more details.
@@ -120,7 +120,10 @@ export const eventSchema: EventSchemaType = z.object({
  */
 export type CreateEventInput<TEvent extends Event = Event> =
     & Partial<
-        Pick<TEvent, 'id' | 'correlationid' | 'time' | 'datacontenttype' | 'dataschema'>
+        Pick<
+            TEvent,
+            'id' | 'correlationid' | 'time' | 'datacontenttype' | 'dataschema'
+        >
     >
     & Pick<TEvent, 'type' | 'source' | 'subject' | 'data'>;
 

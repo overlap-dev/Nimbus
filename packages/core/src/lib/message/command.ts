@@ -119,7 +119,12 @@ export type CreateCommandInput<TCommand extends Command = Command> =
     & Partial<
         Pick<
             TCommand,
-            'id' | 'correlationid' | 'time' | 'subject' | 'datacontenttype' | 'dataschema'
+            | 'id'
+            | 'correlationid'
+            | 'time'
+            | 'subject'
+            | 'datacontenttype'
+            | 'dataschema'
         >
     >
     & Pick<TCommand, 'type' | 'source' | 'data'>;
