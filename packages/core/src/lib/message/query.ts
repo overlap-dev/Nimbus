@@ -111,7 +111,10 @@ export const querySchema: QuerySchemaType = z.object({
  */
 export type CreateQueryInput<TQuery extends Query = Query> =
     & Partial<
-        Pick<TQuery, 'id' | 'correlationid' | 'time' | 'datacontenttype' | 'dataschema'>
+        Pick<
+            TQuery,
+            'id' | 'correlationid' | 'time' | 'datacontenttype' | 'dataschema'
+        >
     >
     & Pick<TQuery, 'type' | 'source' | 'data'>;
 
