@@ -1,7 +1,7 @@
 ---
 prev:
-    text: "onError Handler"
-    link: "/guide/hono/on-error"
+    text: "Event Mapping"
+    link: "/guide/eventsourcingdb/event-mapping"
 
 next:
     text: "Connection Manager"

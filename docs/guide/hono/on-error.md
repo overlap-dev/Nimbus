@@ -4,8 +4,8 @@ prev:
     link: "/guide/hono/logger"
 
 next:
-    text: "Nimbus MongoDB"
-    link: "/guide/mongodb"
+    text: "Nimbus EventSourcingDB"
+    link: "/guide/eventsourcingdb"
 ---
 
 # onError Handler
