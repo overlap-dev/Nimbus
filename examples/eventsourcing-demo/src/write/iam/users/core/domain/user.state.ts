@@ -1,8 +1,5 @@
 import { Event } from '@nimbus/core';
-import {
-    USER_INVITED_EVENT_TYPE,
-    UserInvitedEvent,
-} from '../events/userInvited.event.ts';
+import { isUserInvitedEvent } from '../events/userInvited.event.ts';
 
 export type UserState = {
     id: string;
@@ -17,17 +14,12 @@ export const applyEventToUserState = (
     state: UserState,
     event: Event,
 ): UserState => {
-    switch (event.type) {
-        case USER_INVITED_EVENT_TYPE: {
-            return {
-                ...state,
-
-                // TODO: find a better way to cast the event to the correct type
-                invitedAt: (event as any as UserInvitedEvent).data.invitedAt,
-            };
-        }
-        default: {
-            return state;
-        }
+    if (isUserInvitedEvent(event)) {
+        return {
+            ...state,
+            invitedAt: event.data.invitedAt,
+        };
     }
+
+    return state;
 };

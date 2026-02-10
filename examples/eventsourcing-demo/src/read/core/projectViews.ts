@@ -1,12 +1,12 @@
-import { Event, getLogger } from '@nimbus/core';
+import { getLogger } from '@nimbus/core';
 import { eventSourcingDBEventToNimbusEvent } from '@nimbus/eventsourcingdb';
 import { Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import {
-    USER_INVITATION_ACCEPTED_EVENT_TYPE,
+    isUserInvitationAcceptedEvent,
     UserInvitationAcceptedEvent,
 } from '../../write/iam/users/core/events/userInvitationAccepted.event.ts';
 import {
-    USER_INVITED_EVENT_TYPE,
+    isUserInvitedEvent,
     UserInvitedEvent,
 } from '../../write/iam/users/core/events/userInvited.event.ts';
 import {
@@ -22,50 +22,55 @@ export const projectViews = (eventSourcingDBEvent: EventSourcingDBEvent) => {
         eventSourcingDBEvent,
     );
 
-    switch (event.type) {
-        case USER_INVITED_EVENT_TYPE: {
-            const usersRow: UsersRow = {
-                id: event.data.id as string,
-                revision: event.id as string,
-                email: event.data.email as string,
-                firstName: event.data.firstName as string,
-                lastName: event.data.lastName as string,
-                invitedAt: event.data.invitedAt as string,
-                acceptedAt: null,
-            };
+    if (isUserInvitedEvent(event)) {
+        const usersRow: UsersRow = {
+            id: event.data.id,
+            revision: event.id,
+            email: event.data.email,
+            firstName: event.data.firstName,
+            lastName: event.data.lastName,
+            invitedAt: event.data.invitedAt,
+            acceptedAt: null,
+        };
 
-            usersMemoryStore.set(
-                event.data.id as string,
-                usersRow,
-            );
+        usersMemoryStore.set(
+            event.data.id,
+            usersRow,
+        );
 
-            setUsersMemoryStoreLastEventId(event.id);
-            break;
-        }
-        case USER_INVITATION_ACCEPTED_EVENT_TYPE: {
-            const id = event.subject.split('/')[2];
-            const currentUsersRow = usersMemoryStore.get(id) as UsersRow;
+        setUsersMemoryStoreLastEventId(event.id);
+        return;
+    }
 
-            const usersRow: UsersRow = {
-                ...currentUsersRow,
-                revision: event.id as string,
-                acceptedAt: event.data.acceptedAt as string,
-            };
+    if (isUserInvitationAcceptedEvent(event)) {
+        const id = event.subject.split('/')[2];
+        const currentUsersRow = usersMemoryStore.get(id);
 
-            usersMemoryStore.set(
-                id,
-                usersRow,
-            );
-
-            setUsersMemoryStoreLastEventId(event.id);
-            break;
-        }
-        default: {
+        if (!currentUsersRow) {
             getLogger().warn({
                 category: 'ProjectViews',
-                message: `Unknown event type ${(event as Event).type}`,
+                message: `User not found in memory store: ${id}`,
             });
-            break;
+            return;
         }
+
+        const usersRow: UsersRow = {
+            ...currentUsersRow,
+            revision: event.id,
+            acceptedAt: event.data.acceptedAt,
+        };
+
+        usersMemoryStore.set(
+            id,
+            usersRow,
+        );
+
+        setUsersMemoryStoreLastEventId(event.id);
+        return;
     }
+
+    getLogger().warn({
+        category: 'ProjectViews',
+        message: `Unknown event type ${(event as { type: string }).type}`,
+    });
 };
