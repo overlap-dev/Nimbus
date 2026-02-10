@@ -23,7 +23,7 @@ You can find the full example on GitHub: [hono-demo](https://github.com/overlap-
 ## Key Characteristics
 
 -   **Write Operations**: Commands modify application state
--   **Intent-Based**: Commands express what should happen (e.g., "AddUser", "DeleteUser")
+-   **Intent-Based**: Commands express what should happen (e.g., "InviteUser", "AcceptInvitation")
 -   **Type-Safe**: Commands are fully typed and validated using Zod
 
 ## Command Structure
@@ -45,18 +45,18 @@ type Command<TData = unknown> = {
 };
 ```
 
-| Property          | Description                                                                        |
-| ----------------- | ---------------------------------------------------------------------------------- |
-| `specversion`     | The CloudEvents specification version (always `'1.0'`)                             |
-| `id`              | A globally unique identifier for the command                                       |
-| `correlationid`   | A unique identifier to correlate this command with related messages                |
-| `time`            | ISO 8601 timestamp when the command was created                                    |
-| `source`          | A URI reference identifying the system creating the command                        |
-| `type`            | The command type following CloudEvents naming (e.g., `at.overlap.nimbus.add-user`) |
-| `subject`         | Optional identifier for the entity the command targets                             |
-| `data`            | The command payload containing the business data                                   |
-| `datacontenttype` | Optional MIME type of the data (defaults to `application/json`)                    |
-| `dataschema`      | Optional URL to the schema the data adheres to                                     |
+| Property          | Description                                                                           |
+| ----------------- | ------------------------------------------------------------------------------------- |
+| `specversion`     | The CloudEvents specification version (always `'1.0'`)                                |
+| `id`              | A globally unique identifier for the command                                          |
+| `correlationid`   | A unique identifier to correlate this command with related messages                   |
+| `time`            | ISO 8601 timestamp when the command was created                                       |
+| `source`          | A URI reference identifying the system creating the command                           |
+| `type`            | The command type following CloudEvents naming (e.g., `at.overlap.nimbus.invite-user`) |
+| `subject`         | Optional identifier for the entity the command targets                                |
+| `data`            | The command payload containing the business data                                      |
+| `datacontenttype` | Optional MIME type of the data (defaults to `application/json`)                       |
+| `dataschema`      | Optional URL to the schema the data adheres to                                        |
 
 ## Command Schema
 
@@ -67,8 +67,8 @@ import { commandSchema } from "@nimbus/core";
 import { z } from "zod";
 
 // Extend the base schema with your specific command type and data
-const addUserCommandSchema = commandSchema.extend({
-    type: z.literal("at.overlap.nimbus.add-user"),
+const inviteUserCommandSchema = commandSchema.extend({
+    type: z.literal("at.overlap.nimbus.invite-user"),
     data: z.object({
         email: z.email(),
         firstName: z.string(),
@@ -76,7 +76,7 @@ const addUserCommandSchema = commandSchema.extend({
     }),
 });
 
-type AddUserCommand = z.infer<typeof addUserCommandSchema>;
+type InviteUserCommand = z.infer<typeof inviteUserCommandSchema>;
 ```
 
 ## Create Commands
@@ -85,10 +85,10 @@ You can create commands using the `createCommand()` helper:
 
 ```typescript
 import { createCommand } from "@nimbus/core";
-import { AddUserCommand } from "./addUser.command.ts";
+import { InviteUserCommand } from "./inviteUser.command.ts";
 
-const commandForJane = createCommand<AddUserCommand>({
-    type: "at.overlap.nimbus.add-user",
+const commandForJane = createCommand<InviteUserCommand>({
+    type: "at.overlap.nimbus.invite-user",
     source: "nimbus.overlap.at",
     data: {
         email: "jane@example.com",
@@ -97,8 +97,8 @@ const commandForJane = createCommand<AddUserCommand>({
     },
 });
 
-const commandForJohn = createCommand<AddUserCommand>({
-    type: "at.overlap.nimbus.add-user",
+const commandForJohn = createCommand<InviteUserCommand>({
+    type: "at.overlap.nimbus.invite-user",
     source: "nimbus.overlap.at",
     data: {
         email: "john@example.com",

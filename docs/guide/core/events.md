@@ -23,7 +23,7 @@ You can find the full example on GitHub: [hono-demo](https://github.com/overlap-
 ## Key Characteristics
 
 -   **Immutable Facts**: Events represent things that already happened and cannot be changed
--   **Past Tense**: Event names use past tense (e.g., "UserAdded", not "AddUser")
+-   **Past Tense**: Event names use past tense (e.g., "UserInvited", not "InviteUser")
 -   **Observable**: Other parts of the system can subscribe and react to events
 -   **Type-Safe**: Events are fully typed and validated using Zod
 
@@ -53,7 +53,7 @@ type Event<TData = unknown> = {
 | `correlationid`   | A unique identifier to correlate this event with related messages                  |
 | `time`            | ISO 8601 timestamp when the event was created                                      |
 | `source`          | A URI reference identifying the system creating the event                          |
-| `type`            | The event type following CloudEvents naming (e.g., `at.overlap.nimbus.user-added`) |
+| `type`            | The event type following CloudEvents naming (e.g., `at.overlap.nimbus.user-invited`) |
 | `subject`         | An identifier for the entity the event is about (e.g., `/users/123`)               |
 | `data`            | The event payload containing the business data                                     |
 | `datacontenttype` | Optional MIME type of the data (defaults to `application/json`)                    |
@@ -80,8 +80,8 @@ import { eventSchema } from "@nimbus/core";
 import { z } from "zod";
 
 // Extend the base schema with your specific event type and data
-const userAddedEventSchema = eventSchema.extend({
-    type: z.literal("at.overlap.nimbus.user-added"),
+const userInvitedEventSchema = eventSchema.extend({
+    type: z.literal("at.overlap.nimbus.user-invited"),
     data: z.object({
         _id: z.string(),
         email: z.string(),
@@ -90,7 +90,7 @@ const userAddedEventSchema = eventSchema.extend({
     }),
 });
 
-type UserAddedEvent = z.infer<typeof userAddedEventSchema>;
+type UserInvitedEvent = z.infer<typeof userInvitedEventSchema>;
 ```
 
 ## Create Events
@@ -99,10 +99,10 @@ You can create events using the `createEvent()` helper:
 
 ```typescript
 import { createEvent } from "@nimbus/core";
-import { UserAddedEvent } from "./userAdded.event.ts";
+import { UserInvitedEvent } from "./userInvited.event.ts";
 
-const event = createEvent<UserAddedEvent>({
-    type: "at.overlap.nimbus.user-added",
+const event = createEvent<UserInvitedEvent>({
+    type: "at.overlap.nimbus.user-invited",
     source: "nimbus.overlap.at",
     correlationid: command.correlationid,
     subject: `/users/${userState._id}`,
@@ -126,12 +126,12 @@ Event names should describe what happened, not what should happen:
 
 ```typescript
 // ✅ Good - Past tense
-UserAddedEvent;
+UserInvitedEvent;
 OrderShippedEvent;
 PaymentProcessedEvent;
 
 // ❌ Bad - Imperative
-AddUserEvent;
+InviteUserEvent;
 ShipOrderEvent;
 ProcessPaymentEvent;
 ```
@@ -141,8 +141,8 @@ ProcessPaymentEvent;
 Always pass correlation IDs from commands to events for tracing:
 
 ```typescript
-const event = createEvent<UserAddedEvent>({
-    type: USER_ADDED_EVENT_TYPE,
+const event = createEvent<UserInvitedEvent>({
+    type: USER_INVITED_EVENT_TYPE,
     source: "nimbus.overlap.at",
     correlationid: command.correlationid, // Always propagate
     data: state,

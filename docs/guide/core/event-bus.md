@@ -63,8 +63,8 @@ import { getEventBus } from "@nimbus/core";
 const eventBus = getEventBus("MyEventBus");
 
 eventBus.subscribeEvent({
-    type: "at.overlap.nimbus.user-added",
-    handler: async (event: UserAddedEvent) => {
+    type: "at.overlap.nimbus.user-invited",
+    handler: async (event: UserInvitedEvent) => {
         // Process event and return result
     },
 });
@@ -103,8 +103,8 @@ import { createEvent, getEventBus } from "@nimbus/core";
 
 const eventBus = getEventBus("default");
 
-const event = createEvent<UserAddedEvent>({
-    type: "at.overlap.nimbus.user-added",
+const event = createEvent<UserInvitedEvent>({
+    type: "at.overlap.nimbus.user-invited",
     source: "nimbus.overlap.at",
     correlationid: command.correlationid,
     subject: `/users/${user.id}`,
@@ -115,7 +115,7 @@ const event = createEvent<UserAddedEvent>({
     },
 });
 
-eventBus.putEvent<UserAddedEvent>(event);
+eventBus.putEvent<UserInvitedEvent>(event);
 ```
 
 ## Retry Mechanism

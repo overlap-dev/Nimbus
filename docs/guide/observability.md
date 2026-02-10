@@ -162,16 +162,16 @@ The correlation ID is automatically:
 
 ```typescript
 // Correlation ID is passed from command to event
-const command = createCommand<AddUserCommand>({
-    type: ADD_USER_COMMAND_TYPE,
+const command = createCommand<InviteUserCommand>({
+    type: INVITE_USER_COMMAND_TYPE,
     source: "nimbus.overlap.at",
     correlationid: getCorrelationId(c), // From HTTP request
     data: body,
 });
 
 // In the handler, create event with same correlation ID
-const event = createEvent<UserAddedEvent>({
-    type: USER_ADDED_EVENT_TYPE,
+const event = createEvent<UserInvitedEvent>({
+    type: USER_INVITED_EVENT_TYPE,
     source: "nimbus.overlap.at",
     correlationid: command.correlationid, // Propagate
     data: state,
@@ -204,8 +204,8 @@ console.log("User created:", user.id);
 Always pass correlation IDs when creating events from commands:
 
 ```typescript
-const event = createEvent<UserAddedEvent>({
-    type: USER_ADDED_EVENT_TYPE,
+const event = createEvent<UserInvitedEvent>({
+    type: USER_INVITED_EVENT_TYPE,
     source: "nimbus.overlap.at",
     correlationid: command.correlationid, // Always propagate
     data: state,

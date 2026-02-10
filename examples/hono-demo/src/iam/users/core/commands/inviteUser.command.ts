@@ -3,26 +3,24 @@ import { ObjectId } from 'mongodb';
 import { z } from 'zod';
 import { UserState } from '../domain/user.ts';
 
-export const ADD_USER_COMMAND_TYPE = 'at.overlap.nimbus.add-user';
+export const INVITE_USER_COMMAND_TYPE = 'at.overlap.nimbus.invite-user';
 
-export const addUserInputSchema = z.object({
+export const inviteUserInputSchema = z.object({
     email: z.email(),
     firstName: z.string(),
     lastName: z.string(),
     group: z.string(),
 });
 
-export const addUserCommandSchema = commandSchema.extend({
-    type: z.literal(ADD_USER_COMMAND_TYPE),
-    data: addUserInputSchema,
+export const inviteUserCommandSchema = commandSchema.extend({
+    type: z.literal(INVITE_USER_COMMAND_TYPE),
+    data: inviteUserInputSchema,
 });
-export type AddUserCommand = z.infer<typeof addUserCommandSchema>;
+export type InviteUserCommand = z.infer<typeof inviteUserCommandSchema>;
 
-// TODO: rename to INVITE_USER
-
-export const addUser = (
+export const inviteUser = (
     state: UserState,
-    command: AddUserCommand,
+    command: InviteUserCommand,
 ): UserState => {
     // Always make sure to cast all user emails to lowercase
     const email = command.data.email.toLowerCase();
