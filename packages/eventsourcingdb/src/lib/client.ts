@@ -1,12 +1,6 @@
 import { GenericException, getLogger } from '@nimbus/core';
 import { Client } from 'eventsourcingdb';
-import {
-    type EventObserver,
-    initEventObserver,
-    type RetryOptions,
-} from './eventObserver.ts';
-
-export type { EventObserver, RetryOptions };
+import { type EventObserver, initEventObserver } from './eventObserver.ts';
 
 let eventSourcingDBClient: Client | null = null;
 
