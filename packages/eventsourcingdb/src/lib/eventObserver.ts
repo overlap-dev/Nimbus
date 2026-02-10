@@ -23,7 +23,7 @@ export type RetryOptions = {
     /**
      * The initial delay in milliseconds before the first retry.
      * Subsequent retries will use exponential backoff with jitter.
-     * Defaults to 1000ms.
+     * Defaults to 3000ms.
      */
     initialRetryDelayMs: number;
 };
@@ -85,7 +85,7 @@ const delay = (ms: number): Promise<void> =>
  * @param attempt - The zero-based retry attempt number.
  * @returns The backoff delay in milliseconds.
  */
-const calculateBackoffDelay = (
+export const calculateBackoffDelay = (
     initialDelayMs: number,
     attempt: number,
 ): number => {
