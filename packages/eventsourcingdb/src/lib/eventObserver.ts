@@ -112,10 +112,9 @@ const logObserverConnection = (
     retryCount: number,
     data: Record<string, unknown>,
 ): void => {
+    const retryLabel = retryCount === 1 ? 'retry' : 'retries';
     const message = retryCount > 0
-        ? `Reconnected event observer for subject "${subject}" after ${retryCount} ${
-            retryCount === 1 ? 'retry' : 'retries'
-        }`
+        ? `Reconnected event observer for subject "${subject}" after ${retryCount} ${retryLabel}`
         : `Observing events for subject "${subject}"`;
 
     getLogger().info({ category: 'Nimbus', message, data });
@@ -198,12 +197,20 @@ const observeWithRetry = async (
         eventObserver.retryOptions?.initialRetryDelayMs ?? 3000;
 
     let retryCount = 0;
-    let lowerBound: Bound | undefined = eventObserver.lowerBound;
-    let fromLatestEvent: ObserveFromLatestEvent | undefined =
-        eventObserver.fromLatestEvent;
+    let lastProcessedEventId: string | undefined;
 
     while (true) {
         try {
+            // Once we have a concrete position, use it as lower bound and
+            // drop fromLatestEvent; otherwise fall back to the original options.
+            const lowerBound: Bound | undefined = lastProcessedEventId
+                ? { id: lastProcessedEventId, type: 'exclusive' }
+                : eventObserver.lowerBound;
+            const fromLatestEvent: ObserveFromLatestEvent | undefined =
+                lastProcessedEventId
+                    ? undefined
+                    : eventObserver.fromLatestEvent;
+
             // Verify connection
             await eventSourcingDBClient.ping();
 
@@ -239,13 +246,8 @@ const observeWithRetry = async (
                     traceContext,
                 );
 
-                // Update lowerBound after each event so retries resume from here
-                lowerBound = {
-                    id: event.id,
-                    type: 'exclusive',
-                };
-                // Clear fromLatestEvent after first event, as we now have a concrete position
-                fromLatestEvent = undefined;
+                // Track last processed position so retries resume from here
+                lastProcessedEventId = event.id;
             }
 
             // If the loop completes normally (stream ended), we're done

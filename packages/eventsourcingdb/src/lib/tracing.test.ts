@@ -40,16 +40,21 @@ Deno.test('withSpan accepts an optional traceContext without error', async () =>
 // withAsyncGeneratorSpan
 // ---------------------------------------------------------------------------
 
-Deno.test('withAsyncGeneratorSpan yields all values from the inner generator', async () => {
-    async function* inner() {
-        yield 1;
-        yield 2;
-        yield 3;
-    }
+async function* threeValues() {
+    yield 1;
+    yield 2;
+    yield 3;
+}
 
+async function* failingAfterFirst(): AsyncGenerator<number, void, void> {
+    yield 1;
+    throw new Error('generator failed');
+}
+
+Deno.test('withAsyncGeneratorSpan yields all values from the inner generator', async () => {
     const values: number[] = [];
 
-    for await (const value of withAsyncGeneratorSpan('testOp', inner)) {
+    for await (const value of withAsyncGeneratorSpan('testOp', threeValues)) {
         values.push(value);
     }
 
@@ -57,17 +62,15 @@ Deno.test('withAsyncGeneratorSpan yields all values from the inner generator', a
 });
 
 Deno.test('withAsyncGeneratorSpan re-throws errors from the inner generator', async () => {
-    async function* failing(): AsyncGenerator<number, void, void> {
-        yield 1;
-        throw new Error('generator failed');
-    }
-
     const values: number[] = [];
 
     await assertRejects(
         async () => {
             for await (
-                const value of withAsyncGeneratorSpan('testOp', failing)
+                const value of withAsyncGeneratorSpan(
+                    'testOp',
+                    failingAfterFirst,
+                )
             ) {
                 values.push(value);
             }
