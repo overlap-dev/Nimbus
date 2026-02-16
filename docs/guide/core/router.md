@@ -68,20 +68,20 @@ export const registerUserMessages = () => {
 
     // Register a command
     router.register(
-        "at.overlap.nimbus.add-user",
-        async (command: AddUserCommand) => {
+        "at.overlap.nimbus.invite-user",
+        async (command: InviteUserCommand) => {
             // Process command and return result
         },
-        addUserCommandSchema
+        inviteUserCommandSchema
     );
 
     // Register an event
     router.register(
-        "at.overlap.nimbus.user-added",
-        async (event: UserAddedEvent) => {
+        "at.overlap.nimbus.user-invited",
+        async (event: UserInvitedEvent) => {
             // Process event and return result
         },
-        addUserCommandSchema
+        inviteUserCommandSchema
     );
 
     // Register a query
@@ -99,7 +99,7 @@ The `register()` method takes three arguments:
 
 | Argument      | Description                                                        |
 | ------------- | ------------------------------------------------------------------ |
-| `messageType` | The CloudEvents type string (e.g., `'at.overlap.nimbus.add-user'`) |
+| `messageType` | The CloudEvents type string (e.g., `'at.overlap.nimbus.invite-user'`) |
 | `handler`     | An async function that processes the message and returns a result  |
 | `schema`      | A Zod schema used to validate the incoming message                 |
 
@@ -110,8 +110,8 @@ Route messages to their handlers using the `route()` method:
 ```typescript
 import { createCommand, getRouter } from "@nimbus/core";
 
-const command = createCommand<AddUserCommand>({
-    type: "at.overlap.nimbus.add-user",
+const command = createCommand<InviteUserCommand>({
+    type: "at.overlap.nimbus.invite-user",
     source: "nimbus.overlap.at",
     correlationid: httpRequestCorrelationId,
     data: httpRequestBody,

@@ -35,3 +35,7 @@ jobs:
       - name: Publish utils package
         working-directory: ./packages/utils
         run: deno publish
+
+      - name: Publish eventsourcingdb package
+        working-directory: ./packages/eventsourcingdb
+        run: deno publish

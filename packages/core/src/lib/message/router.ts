@@ -34,7 +34,7 @@ export type MessageHandler<
     TOutput = unknown,
 > = (
     input: TInput,
-) => Promise<TOutput>;
+) => Promise<TOutput> | TOutput;
 
 /**
  * Options for creating a MessageRouter.

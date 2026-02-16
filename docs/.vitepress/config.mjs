@@ -91,6 +91,33 @@ export default defineConfig({
                 },
 
                 {
+                    text: "EventSourcingDB",
+                    link: "/guide/eventsourcingdb",
+                    items: [
+                        {
+                            text: "Client Setup",
+                            link: "/guide/eventsourcingdb/client-setup",
+                        },
+                        {
+                            text: "Write Events",
+                            link: "/guide/eventsourcingdb/write-events",
+                        },
+                        {
+                            text: "Read Events",
+                            link: "/guide/eventsourcingdb/read-events",
+                        },
+                        {
+                            text: "Event Observer",
+                            link: "/guide/eventsourcingdb/event-observer",
+                        },
+                        {
+                            text: "Event Mapping",
+                            link: "/guide/eventsourcingdb/event-mapping",
+                        },
+                    ],
+                },
+
+                {
                     text: "MongoDB",
                     link: "/guide/mongodb",
                     items: [

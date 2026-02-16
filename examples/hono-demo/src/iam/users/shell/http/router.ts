@@ -2,9 +2,9 @@ import { createCommand, createQuery, getRouter } from '@nimbus/core';
 import { getCorrelationId } from '@nimbus/hono';
 import { Hono } from 'hono';
 import {
-    ADD_USER_COMMAND_TYPE,
-    AddUserCommand,
-} from '../../core/commands/addUser.command.ts';
+    INVITE_USER_COMMAND_TYPE,
+    InviteUserCommand,
+} from '../../core/commands/inviteUser.command.ts';
 import {
     GET_USER_QUERY_TYPE,
     GetUserQuery,
@@ -17,13 +17,13 @@ import {
 const usersRouter = new Hono();
 
 usersRouter.post(
-    '/add-user',
+    '/invite-user',
     async (c) => {
         const body = await c.req.json();
         const correlationId = getCorrelationId(c);
 
-        const command = createCommand<AddUserCommand>({
-            type: ADD_USER_COMMAND_TYPE,
+        const command = createCommand<InviteUserCommand>({
+            type: INVITE_USER_COMMAND_TYPE,
             source: 'nimbus.overlap.at',
             correlationid: correlationId,
             data: body,

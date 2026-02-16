@@ -1,9 +1,9 @@
 import { getEventBus, getRouter } from '@nimbus/core';
 import {
-    ADD_USER_COMMAND_TYPE,
-    addUserCommandSchema,
-} from '../../core/commands/addUser.command.ts';
-import { USER_ADDED_EVENT_TYPE } from '../../core/events/userAdded.event.ts';
+    INVITE_USER_COMMAND_TYPE,
+    inviteUserCommandSchema,
+} from '../../core/commands/inviteUser.command.ts';
+import { USER_INVITED_EVENT_TYPE } from '../../core/events/userInvited.event.ts';
 import {
     GET_USER_QUERY_TYPE,
     getUserQuerySchema,
@@ -12,8 +12,8 @@ import {
     GET_USER_GROUPS_QUERY_TYPE,
     getUserGroupsQuerySchema,
 } from '../../core/queries/getUserGroups.ts';
-import { addUserCommandHandler } from './commands/addUser.command.ts';
-import { userAddedEventHandler } from './events/userAdded.event.ts';
+import { inviteUserCommandHandler } from './commands/inviteUser.command.ts';
+import { userInvitedEventHandler } from './events/userInvited.event.ts';
 import { getUserQueryHandler } from './queries/getUser.query.ts';
 import { getUserGroupsQueryHandler } from './queries/getUserGroups.query.ts';
 
@@ -22,14 +22,14 @@ export const registerUserMessages = () => {
     const router = getRouter('default');
 
     eventBus.subscribeEvent({
-        type: USER_ADDED_EVENT_TYPE,
-        handler: userAddedEventHandler,
+        type: USER_INVITED_EVENT_TYPE,
+        handler: userInvitedEventHandler,
     });
 
     router.register(
-        ADD_USER_COMMAND_TYPE,
-        addUserCommandHandler,
-        addUserCommandSchema,
+        INVITE_USER_COMMAND_TYPE,
+        inviteUserCommandHandler,
+        inviteUserCommandSchema,
     );
 
     router.register(

@@ -1,16 +1,18 @@
 import { createEvent, getEventBus, NotFoundException } from '@nimbus/core';
 import {
-    addUser,
-    AddUserCommand,
-} from '../../../core/commands/addUser.command.ts';
+    inviteUser,
+    InviteUserCommand,
+} from '../../../core/commands/inviteUser.command.ts';
 import { UserState } from '../../../core/domain/user.ts';
 import {
-    USER_ADDED_EVENT_TYPE,
-    UserAddedEvent,
-} from '../../../core/events/userAdded.event.ts';
+    USER_INVITED_EVENT_TYPE,
+    UserInvitedEvent,
+} from '../../../core/events/userInvited.event.ts';
 import { userRepository } from '../../mongodb/user.repository.ts';
 
-export const addUserCommandHandler = async (command: AddUserCommand) => {
+export const inviteUserCommandHandler = async (
+    command: InviteUserCommand,
+) => {
     const eventBus = getEventBus('default');
     let state: UserState = null;
 
@@ -26,22 +28,22 @@ export const addUserCommandHandler = async (command: AddUserCommand) => {
         }
     }
 
-    state = addUser(state, command);
+    state = inviteUser(state, command);
 
     if (state !== null) {
         state = await userRepository.insertOne({
             item: state,
         });
 
-        const event = createEvent<UserAddedEvent>({
-            type: USER_ADDED_EVENT_TYPE,
+        const event = createEvent<UserInvitedEvent>({
+            type: USER_INVITED_EVENT_TYPE,
             source: 'nimbus.overlap.at',
             correlationid: command.correlationid,
             subject: `/users/${state._id}`,
             data: state,
         });
 
-        eventBus.putEvent<UserAddedEvent>(event);
+        eventBus.putEvent<UserInvitedEvent>(event);
     }
 
     return state;

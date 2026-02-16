@@ -49,26 +49,26 @@ import { commandSchema, createCommand, getRouter } from "@nimbus/core";
 import { z } from "zod";
 
 // Define a type-safe command schema
-const addUserCommandSchema = commandSchema.extend({
-    type: z.literal("com.example.add-user"),
+const inviteUserCommandSchema = commandSchema.extend({
+    type: z.literal("com.example.invite-user"),
     data: z.object({
         email: z.string().email(),
         name: z.string(),
     }),
 });
 
-type AddUserCommand = z.infer<typeof addUserCommandSchema>;
+type InviteUserCommand = z.infer<typeof inviteUserCommandSchema>;
 
 // Register a handler with automatic validation and tracing
 const router = getRouter("MyRouter");
 
 router.register(
-    "com.example.add-user",
-    async (command: AddUserCommand) => {
+    "com.example.invite-user",
+    async (command: InviteUserCommand) => {
         // Your business logic here
         return { userId: "123", email: command.data.email };
     },
-    addUserCommandSchema
+    inviteUserCommandSchema
 );
 ```
 

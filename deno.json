@@ -10,7 +10,9 @@
     "./packages/mongodb",
     "./packages/hono",
     "./packages/utils",
-    "./examples/hono-demo"
+    "./packages/eventsourcingdb",
+    "./examples/hono-demo",
+    "./examples/eventsourcing-demo"
   ],
   "nodeModulesDir": "none",
   "fmt": {
