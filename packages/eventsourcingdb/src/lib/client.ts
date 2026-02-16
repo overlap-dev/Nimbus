@@ -84,7 +84,7 @@ export const setupEventSourcingDBClient = async (
     try {
         await eventSourcingDBClient.ping();
     } catch (error) {
-        getLogger().error({
+        getLogger().critical({
             category: 'Nimbus',
             message: 'Could not connect to EventSourcingDB',
             error: error as Error,
