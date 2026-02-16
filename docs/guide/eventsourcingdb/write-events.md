@@ -54,13 +54,6 @@ EventSourcingDB supports the following preconditions. For full details, see the 
 
 To use these preconditions, you can directly import them from the [`EventSourcingDB JavaScript SDK`](https://www.npmjs.com/package/eventsourcingdb).
 
-| Precondition         | Description                                                                                                                                                                            |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `isSubjectPristine`  | Ensures that no events have been written to a subject yet. Use this when creating a new aggregate.                                                                                     |
-| `isSubjectOnEventId` | Ensures the last event on a subject matches a specific event ID. Use this for optimistic locking.                                                                                      |
-| `isSubjectPopulated` | Ensures the subject already has at least one event. The opposite of `isSubjectPristine`.                                                                                               |
-| `isEventQlQueryTrue` | Ensures a custom [EventQL](https://docs.eventsourcingdb.io/reference/eventql/) query evaluates to `true`, allowing arbitrary conditions based on the current state of the event store. |
-
 ## OpenTelemetry Tracing
 
 Every call to `writeEvents` is automatically wrapped in an OpenTelemetry span named `eventsourcingdb.writeEvents`. The current trace context (`traceparent` and `tracestate`) is injected into each event candidate, enabling end-to-end distributed tracing from the event writer to any [event observer](/guide/eventsourcingdb/event-observer) that processes the event.
