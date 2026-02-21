@@ -10,7 +10,7 @@ Once everything is ready make a new commit with a message of this type:
 chore: release 0.0.0
 ```
 
-Push to `main` and create a new release on GitHub from there on the GitHub
+Push to a `release/<VERSION>` branch PR and merge to `main` create a new release on GitHub from there on the GitHub
 workflow will take care of the rest.
 
 ## Manually publish to JSR
