@@ -182,7 +182,7 @@ export default defineConfig({
 
         footer: {
             message:
-                'Released under the <a href="https://github.com/overlap-dev/Nimbus/blob/main/LICENSE">MIT License</a>.',
+                'Released under the <a href="https://github.com/overlap-dev/Nimbus/blob/main/LICENSE">Apache License 2.0</a>.',
             copyright:
                 'Copyright © 2024-present <a href="https://overlap.at">Overlap GmbH & Co KG</a>',
         },

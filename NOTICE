@@ -1,17 +1,6 @@
-<img 
-    src="https://raw.githubusercontent.com/overlap-dev/Nimbus/main/media/intro.png" 
-    alt="Nimbus"
-/>
+Nimbus
 
-# Nimbus Hono
-
-Adapters and useful functionality to bridge Nimbus and [Hono](https://hono.dev/).
-
-Refer to the [Nimbus main repository](https://github.com/overlap-dev/Nimbus) or the [Nimbus documentation](https://nimbus.overlap.at) for more information about the Nimbus framework.
-
-# License
-
-Copyright 2024-present Overlap GmbH & Co KG (https://overlap.at)
+Copyright 2024-present Overlap GmbH & Co KG (https://overlap.at).
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
