@@ -27,24 +27,24 @@ import Features from './components/Features.vue'
 
 const features = [
     {
-        icon: '❗️',
+        icon: { src: '/simplecore.png', width: '48px', height: '48px' },
         title: 'Simple Core Concepts',
-        details: '<p>No clunky and complex OOP or FP design principles. No Framework Magic. Just explicit code.</p> <p>Compose an application with commands, events, and queries.</p>',
+        details: 'No clunky and complex OOP or FP design principles. No Framework Magic. Just explicit code.<br><br>Compose an application with commands, events, and queries.',
     },
     {
-        icon: '❗️',
-        title: 'CQRS',
-        details: '<p>The real world doesn\'t operate in snapshots – it operates in actions, events and outcomes.</p> <p>Nimbus is a perfect fit for CQRS. Read more on <a href="https://cqrs.com/" target="_blank" rel="noopener noreferrer">cqrs.com</a>.</p>',
+        icon: { src: '/cqrs.png', width: '48px', height: '48px' },
+        title: 'Commands & Queries',
+        details: 'The real world doesn\'t operate in snapshots – instead it operates in actions, events and outcomes.<br><br>Nimbus is a perfect fit for the CQRS pattern. Read more on <a href="https://cqrs.com/" target="_blank" rel="noopener noreferrer">cqrs.com</a>.',
     },
     {
-        icon: '❗️',
+        icon: { src: '/eventsourcingdb.png', width: '48px', height: '48px' },
         title: 'Event Sourcing',
-        details: '<p>When building your application to reflect real world actions and events it is crucial to store those events properly.</p> <p>Nimbus integrates seamlessly with <a href="https://www.thenativeweb.io/products/eventsourcingdb" target="_blank" rel="noopener noreferrer">EventSourcingDB</a>.</p>',
+        details: 'When building your application to reflect real world actions and events it is crucial to store those events properly.<br><br>Nimbus integrates seamlessly with <a href="https://www.thenativeweb.io/products/eventsourcingdb" target="_blank" rel="noopener noreferrer">EventSourcingDB</a>.',
     },
     {
-        icon: '❗️',
+        icon: { src: '/opentelemetry.png', width: '48px', height: '48px' },
         title: 'Observability Built-In',
-        details: '<p>Logging, tracing, and metrics. Batteries included.</p> <p>Nimbus uses <a href="https://opentelemetry.io/" target="_blank" rel="noopener noreferrer">OpenTelemetry</a> for all relevant operations to provide a solid foundation for observability out of the box.</p>',
+        details: 'Logging, tracing, and metrics. Batteries included.<br><br>Nimbus uses <a href="https://opentelemetry.io/" target="_blank" rel="noopener noreferrer">OpenTelemetry</a> for all relevant operations to provide a solid foundation for observability out of the box.',
     },
 ]
 </script>

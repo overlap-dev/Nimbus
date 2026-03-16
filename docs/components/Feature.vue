@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { DefaultTheme } from "vitepress/theme";
-import { VPImage } from "vitepress/theme";
-import { VPLink } from "vitepress/theme";
+import { VPImage, VPLink } from "vitepress/theme";
 
 defineProps<{
     icon?: DefaultTheme.FeatureIcon;
@@ -84,21 +83,25 @@ defineProps<{
     align-items: center;
     margin-bottom: 20px;
     border-radius: 6px;
-    background-color: var(--vp-c-default-soft);
+    background-color: #ffffff;
     width: 48px;
     height: 48px;
-    font-size: 24px;
+    font-size: 36px;
     transition: background-color 0.25s;
 }
 
 .title {
-    line-height: 24px;
+    margin: 0;
+    border: none;
+    padding: 0;
+    line-height: 28px;
     font-size: 16px;
     font-weight: 600;
 }
 
 .details {
     flex-grow: 1;
+    margin: 0;
     padding-top: 8px;
     line-height: 24px;
     font-size: 14px;
