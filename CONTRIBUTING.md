@@ -63,6 +63,44 @@ deno test --allow-all
 -   Update user documentation in the `docs/` folder when adding or changing
     functionality
 
+### EventSourcingDB
+
+For additional information check the official documentation on [how to install](https://docs.eventsourcingdb.io/getting-started/installing-eventsourcingdb/) and [how to run EventSourcingDB](https://docs.eventsourcingdb.io/getting-started/running-eventsourcingdb/) on your local machine.
+
+**Install EventSourcingDB**
+
+```shell
+docker pull thenativeweb/eventsourcingdb
+```
+
+**Start EventSourcingDB with temporary data**
+
+```bash
+docker run -it -p 3000:3000 \
+  thenativeweb/eventsourcingdb run \
+  --api-token=secret \
+  --data-directory-temporary \
+  --http-enabled \
+  --https-enabled=false \
+  --with-ui
+```
+
+**Start EventSourcingDB with persistent data**
+
+The data will be stored in the `esdb-data` directory which is ignored by Git.
+
+```bash
+docker run -it \
+  -p 3000:3000 \
+  -v ./esdb-data:/var/lib/esdb \
+  thenativeweb/eventsourcingdb run \
+  --api-token=secret \
+  --data-directory=/var/lib/esdb \
+  --http-enabled \
+  --https-enabled=false \
+  --with-ui
+```
+
 ## Submitting Changes
 
 1. Commit your changes with clear, descriptive commit messages
@@ -76,3 +114,23 @@ deno test --allow-all
 By contributing to Nimbus, you agree that your contributions will be licensed
 under the [Apache License 2.0](LICENSE), and you grant Overlap GmbH & Co KG
 additional rights as described in the [CLA](CLA.md).
+
+## Release a new Version
+
+Branch from `main` into a new release branch `release/<VERSION>`.
+
+For each package make sure the version in the `packages/<PACKAGE_NAME>/deno.json` is set correctly.
+
+Stick to the [Semantic Versioning](https://semver.org/) specification.
+
+Commit, push and open a pull request to `main`.
+Squash and merge the pull request with the message `chore: release <VERSION>`.
+
+Create a new release on GitHub and the workflow will publish the new version to JSR.
+
+### Manually publish to JSR
+
+```
+cd packages/<PACKAGE_NAME>
+deno publish
+```
