@@ -63,6 +63,15 @@ deno test --allow-all
 -   Update user documentation in the `docs/` folder when adding or changing
     functionality
 
+To locally preview the documentation, run the following commands inside the `docs/` directory:
+
+```sh
+npm install
+npm run dev
+```
+
+The documentation will be available at `http://localhost:5173`.
+
 ### EventSourcingDB
 
 For additional information check the official documentation on [how to install](https://docs.eventsourcingdb.io/getting-started/installing-eventsourcingdb/) and [how to run EventSourcingDB](https://docs.eventsourcingdb.io/getting-started/running-eventsourcingdb/) on your local machine.
