@@ -27,5 +27,5 @@ jobs:
         with:
           path-to-signatures: "signatures/cla.json"
           path-to-document: "https://github.com/overlap-dev/Nimbus/blob/main/CLA.md"
-          branch: "main"
+          branch: "cla-signatures"
           allowlist: dependabot[bot],renovate[bot],overlap-dev/*
