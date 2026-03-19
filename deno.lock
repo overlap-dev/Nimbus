@@ -11,7 +11,7 @@
     "jsr:@std/ulid@1": "1.0.0",
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:eventsourcingdb@^1.8.1": "1.8.1",
-    "npm:hono@^4.12.6": "4.12.6",
+    "npm:hono@^4.12.8": "4.12.8",
     "npm:mongodb@7": "7.0.0",
     "npm:zod@^4.3.5": "4.3.6"
   },
@@ -492,8 +492,8 @@
     "graceful-fs@4.2.11": {
       "integrity": "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="
     },
-    "hono@4.12.6": {
-      "integrity": "sha512-KljEp+MeEEEIOT75qBo1UjqqB29fRMtlDEwCxcexOzdkUq6LR/vRvHk5pdROcxyOYyW1niq7Gb5pFVGy5R1eBw=="
+    "hono@4.12.8": {
+      "integrity": "sha512-VJCEvtrezO1IAR+kqEYnxUOoStaQPGrCmX3j4wDTNOcD1uRPFpGlwQUIW8niPuvHXaTUxeOUl5MMDGrl+tmO9A=="
     },
     "ieee754@1.2.1": {
       "integrity": "sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA=="
@@ -964,7 +964,7 @@
           "jsr:@std/dotenv@~0.225.6",
           "jsr:@std/ulid@1",
           "npm:eventsourcingdb@^1.8.1",
-          "npm:hono@^4.12.6",
+          "npm:hono@^4.12.8",
           "npm:mongodb@7",
           "npm:zod@^4.3.5"
         ]
@@ -973,7 +973,7 @@
         "dependencies": [
           "jsr:@std/dotenv@~0.225.6",
           "jsr:@std/ulid@1",
-          "npm:hono@^4.12.6",
+          "npm:hono@^4.12.8",
           "npm:mongodb@7",
           "npm:zod@^4.3.5"
         ]
@@ -999,7 +999,7 @@
         "dependencies": [
           "jsr:@std/ulid@1",
           "npm:@opentelemetry/api@^1.9.0",
-          "npm:hono@^4.12.6"
+          "npm:hono@^4.12.8"
         ]
       },
       "packages/mongodb": {
