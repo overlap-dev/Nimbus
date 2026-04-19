@@ -11,7 +11,7 @@ import '@std/dotenv/load';
 import process from 'node:process';
 import { app } from './shared/shell/http.ts';
 import { initMessages } from './shared/shell/messages.ts';
-import { initMongoConnectionManager } from './shared/shell/mongodb.ts';
+import { mongoManager } from './shared/shell/mongodb.ts';
 
 setupLogger({
     logLevel: parseLogLevel(process.env.LOG_LEVEL),
@@ -63,7 +63,32 @@ setupRouter('default', {
 
 initMessages();
 
-initMongoConnectionManager();
+const shutdown = async (signal: string) => {
+    getLogger().info({
+        category: 'API',
+        message: `Received ${signal}, shutting down ...`,
+    });
+
+    try {
+        await mongoManager.close();
+    } catch (error) {
+        getLogger().error({
+            category: 'API',
+            message: 'Error while closing MongoDB connection',
+            data: { error },
+        });
+    }
+
+    process.exit(0);
+};
+
+process.on('SIGTERM', () => {
+    shutdown('SIGTERM').catch(() => process.exit(1));
+});
+
+process.on('SIGINT', () => {
+    shutdown('SIGINT').catch(() => process.exit(1));
+});
 
 if (process.env.PORT) {
     const port = Number.parseInt(process.env.PORT);
