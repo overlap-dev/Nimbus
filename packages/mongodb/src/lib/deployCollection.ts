@@ -87,7 +87,7 @@ const collectionExists = async (
         .listCollections({ name: name }, { nameOnly: true })
         .toArray();
 
-    return collections.findIndex((item) => item.name === name) > -1;
+    return collections.some((item) => item.name === name);
 };
 
 /**
@@ -144,7 +144,7 @@ const updateCollection = async (
                 ...index,
                 name: Object.entries(index.key)
                     .reduce((acc: string[], [k, v]) => {
-                        return [...acc, `${k}_${v}`];
+                        return [...acc, `${k}_${String(v)}`];
                     }, [])
                     .join('_'),
             };
@@ -161,10 +161,7 @@ const updateCollection = async (
         });
 
         const indexesToDelete = existingIndexes.filter((existingIndex) => {
-            return (
-                indexesWithNames.findIndex((i) => i.name === existingIndex) ===
-                    -1
-            );
+            return !indexesWithNames.some((i) => i.name === existingIndex);
         });
 
         if (indexesToAdd.length) {
