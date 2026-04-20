@@ -34,8 +34,8 @@
     ]
   },
   "imports": {
-    "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
-    "@std/assert": "jsr:@std/assert@^1.0.0",
+    "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.1",
+    "@std/assert": "jsr:@std/assert@^1.0.19",
     "@std/ulid": "jsr:@std/ulid@^1.0.0",
     "eventsourcingdb": "npm:eventsourcingdb@^1.8.1"
   }
