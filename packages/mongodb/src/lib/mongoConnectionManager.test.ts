@@ -114,10 +114,8 @@ Deno.test('MongoConnectionManager', async (t) => {
         'getClient connects only once across concurrent calls',
         async () => {
             resetSingleton();
-            let resolveConnect: (() => void) | null = null;
-            const connectPromise = new Promise<void>((resolve) => {
-                resolveConnect = resolve;
-            });
+            const { promise: connectPromise, resolve: resolveConnect } = Promise
+                .withResolvers<void>();
 
             const { stubs, restore } = installStubs({
                 connect: { calls: 0, impl: () => connectPromise },
@@ -131,7 +129,7 @@ Deno.test('MongoConnectionManager', async (t) => {
                     manager.getClient(),
                 ]);
 
-                resolveConnect!();
+                resolveConnect();
                 const [c1, c2, c3] = await pending;
 
                 assertEquals(stubs.connect.calls, 1);
@@ -318,10 +316,8 @@ Deno.test('MongoConnectionManager', async (t) => {
         'close awaits an in-flight connect and then closes the resulting client',
         async () => {
             resetSingleton();
-            let resolveConnect: (() => void) | null = null;
-            const connectPromise = new Promise<void>((resolve) => {
-                resolveConnect = resolve;
-            });
+            const { promise: connectPromise, resolve: resolveConnect } = Promise
+                .withResolvers<void>();
 
             const { stubs, restore } = installStubs({
                 connect: { calls: 0, impl: () => connectPromise },
@@ -333,7 +329,7 @@ Deno.test('MongoConnectionManager', async (t) => {
                 const inflight = manager.getClient();
                 const closing = manager.close();
 
-                resolveConnect!();
+                resolveConnect();
 
                 await inflight;
                 await closing;
