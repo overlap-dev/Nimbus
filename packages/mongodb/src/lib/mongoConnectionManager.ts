@@ -7,138 +7,71 @@ import {
 } from 'mongodb';
 
 /**
- * Options for the MongoConnectionManager.
- */
-export type MongoConnectionManagerOptions = {
-    connectionTimeout?: number;
-    mongoClientOptions: MongoClientOptions;
-};
-
-/**
- * Singleton class to manage MongoDB connections.
+ * Singleton wrapper around a single long-lived `MongoClient`.
+ *
+ * The MongoDB Node driver already handles connection pooling, server
+ * monitoring (SDAM), automatic reconnection, retryable reads/writes and
+ * per-socket idle eviction via `maxIdleTimeMS`. This class therefore does
+ * the minimum on top of the driver: hold one `MongoClient` for the lifetime
+ * of the application and provide typed `getDatabase` / `getCollection`
+ * convenience methods.
+ *
+ * Call {@link MongoConnectionManager#close} on graceful shutdown
+ * (e.g. on `SIGTERM` / `SIGINT`) to drain the pool.
  *
  * @example
  * ```ts
- * export let mongoManager: MongoConnectionManager;
+ * import { MongoConnectionManager } from '@nimbus/mongodb';
+ * import { ServerApiVersion } from 'mongodb';
  *
- * export const initMongoConnectionManager = () => {
- *     mongoManager = MongoConnectionManager.getInstance(
- *         process.env['MONGO_URL'] ?? '',
- *         {
- *             connectionTimeout: 1000 * 60 * 5,
- *             mongoClientOptions: {
- *                 appName: 'the-expanse',
- *                 serverApi: {
- *                     version: ServerApiVersion.v1,
- *                     strict: false,
- *                     deprecationErrors: true,
- *                 },
- *                 maxPoolSize: 10,
- *                 minPoolSize: 0,
- *                 maxIdleTimeMS: 1000 * 60 * 1, // 1 minutes idle timeout
- *                 connectTimeoutMS: 1000 * 15, // 15 seconds connection timeout
- *                 socketTimeoutMS: 1000 * 30, // 30 seconds socket timeout
- *             },
+ * export const mongoManager = MongoConnectionManager.getInstance(
+ *     process.env['MONGO_URL'] ?? '',
+ *     {
+ *         appName: 'my-app',
+ *         serverApi: {
+ *             version: ServerApiVersion.v1,
+ *             strict: false,
+ *             deprecationErrors: true,
  *         },
- *     );
+ *     },
+ * );
  *
- *     setInterval(() => {
- *         mongoManager.cleanup().catch(console.error);
- *     }, 1000 * 60); // Check every minute
- * };
- *
- * initMongoConnectionManager();
+ * process.on('SIGTERM', () => {
+ *     mongoManager.close().catch(console.error);
+ * });
  * ```
  */
 export class MongoConnectionManager {
-    private static _instance: MongoConnectionManager;
+    private static _instance: MongoConnectionManager | null = null;
     private _client: MongoClient | null = null;
-    private _lastUsed: number = Date.now();
-    private _isConnecting: boolean = false;
+    private _connecting: Promise<MongoClient> | null = null;
     private readonly _uri: string;
-    private readonly _connectionTimeout: number;
-    private readonly _mongoClientOptions: MongoClientOptions;
+    private readonly _options?: MongoClientOptions;
 
     /**
      * Initialize the MongoConnectionManager.
      *
      * @param {string} uri - The MongoDB connection URI
-     * @param {MongoConnectionManagerOptions} options - The options for the MongoConnectionManager
+     * @param {MongoClientOptions} [options] - Options forwarded to the underlying `MongoClient`
      */
-    private constructor(uri: string, options: MongoConnectionManagerOptions) {
+    private constructor(uri: string, options?: MongoClientOptions) {
         this._uri = uri;
-        this._connectionTimeout = options.connectionTimeout ?? 1000 * 60 * 30; // 30 minutes
-        this._mongoClientOptions = options.mongoClientOptions;
-    }
-
-    /**
-     * Create a new MongoDB connection.
-     *
-     * @returns {Promise<MongoClient>} The MongoDB client instance
-     */
-    private async createConnection(): Promise<MongoClient> {
-        try {
-            const client = new MongoClient(this._uri, this._mongoClientOptions);
-
-            await client.connect();
-            await client.db('admin').command({ ping: 1 });
-
-            getLogger().info({
-                category: 'Nimbus',
-                message: 'MongoConnectionManger :: Successfully connected',
-            });
-
-            return client;
-        } catch (error) {
-            getLogger().critical({
-                category: 'Nimbus',
-                message: 'MongoConnectionManger :: Connection failed',
-                data: {
-                    error,
-                },
-            });
-
-            throw error;
-        }
-    }
-
-    /**
-     * Test the MongoDB connection.
-     *
-     * @returns {Promise<boolean>} True if the connection is successful, false otherwise
-     */
-    private async testConnection(): Promise<boolean> {
-        if (!this._client) return false;
-
-        try {
-            await this._client.db('admin').command({ ping: 1 });
-            return true;
-        } catch (error) {
-            getLogger().warn({
-                category: 'Nimbus',
-                message: 'MongoConnectionManger :: Connection test failed',
-                data: {
-                    error,
-                },
-            });
-
-            return false;
-        }
+        this._options = options;
     }
 
     /**
      * Get the singleton instance of the MongoConnectionManager.
      *
+     * Subsequent calls return the existing instance and ignore the arguments.
+     *
      * @param {string} uri - The MongoDB connection URI
-     * @param {MongoConnectionManagerOptions} options - The options for the MongoConnectionManager
-     * @param {MongoClientOptions} options.mongoClientOptions - The options for the MongoClient
-     * @param {number} [options.connectionTimeout] - The connection timeout in milliseconds used to close inactive connections with the cleanup method. Defaults to 30 minutes.
+     * @param {MongoClientOptions} [options] - Options forwarded to the underlying `MongoClient`
      *
      * @returns {MongoConnectionManager} The singleton instance of the MongoConnectionManager
      */
     public static getInstance(
         uri: string,
-        options: MongoConnectionManagerOptions,
+        options?: MongoClientOptions,
     ): MongoConnectionManager {
         if (!MongoConnectionManager._instance) {
             MongoConnectionManager._instance = new MongoConnectionManager(
@@ -151,34 +84,53 @@ export class MongoConnectionManager {
     }
 
     /**
-     * Get the MongoDB client instance.
+     * Get the connected MongoDB client.
+     *
+     * Lazily creates and connects a single `MongoClient` on the first call.
+     * Concurrent first-callers share the same in-flight `connect()` promise
+     * so only one connection is established.
      *
      * @returns {Promise<MongoClient>} The MongoDB client instance
      */
-    public async getClient(): Promise<MongoClient> {
-        this._lastUsed = Date.now();
-
-        if (this._client && await this.testConnection()) {
-            return this._client;
+    public getClient(): Promise<MongoClient> {
+        if (this._client !== null) {
+            return Promise.resolve(this._client);
         }
 
-        if (this._isConnecting) {
-            // Wait for existing connection attempt
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            return this.getClient();
+        if (this._connecting !== null) {
+            return this._connecting;
         }
 
-        try {
-            this._isConnecting = true;
-            this._client = await this.createConnection();
-            return this._client;
-        } finally {
-            this._isConnecting = false;
-        }
+        this._connecting = (async () => {
+            try {
+                const client = new MongoClient(this._uri, this._options);
+                await client.connect();
+                this._client = client;
+
+                getLogger().info({
+                    category: 'Nimbus',
+                    message: 'MongoConnectionManager :: Successfully connected',
+                });
+
+                return client;
+            } catch (error) {
+                getLogger().critical({
+                    category: 'Nimbus',
+                    message: 'MongoConnectionManager :: Connection failed',
+                    error: error as Error,
+                });
+
+                throw error;
+            }
+        })().finally(() => {
+            this._connecting = null;
+        });
+
+        return this._connecting;
     }
 
     /**
-     * Get a database instance from a fresh MongoDB client.
+     * Get a database instance from the connected MongoDB client.
      *
      * @param {string} dbName - The name of the database
      * @returns {Promise<Db>} The database instance
@@ -189,7 +141,7 @@ export class MongoConnectionManager {
     }
 
     /**
-     * Get a collection instance from a database instance.
+     * Get a collection instance from the connected MongoDB client.
      *
      * @param {string} dbName - The name of the database
      * @param {string} collectionName - The name of the collection
@@ -204,22 +156,17 @@ export class MongoConnectionManager {
     }
 
     /**
-     * Check the health of the MongoDB connection.
+     * Check the health of the MongoDB connection by issuing a `ping` against
+     * the `admin` database.
      *
-     * @returns {Promise<{ status: string; details?: string }>} The health status and details of the connection
+     * @returns {Promise<{ status: 'healthy' | 'error'; details?: string }>} The health status and optional error details
      */
-    public async healthCheck(): Promise<{ status: string; details?: string }> {
+    public async healthCheck(): Promise<
+        { status: 'healthy' | 'error'; details?: string }
+    > {
         try {
-            await this.getClient();
-
-            const isConnected = await this.testConnection();
-            if (!isConnected) {
-                return {
-                    status: 'error',
-                    details: 'Failed to ping MongoDB server',
-                };
-            }
-
+            const client = await this.getClient();
+            await client.db('admin').command({ ping: 1 });
             return { status: 'healthy' };
         } catch (error) {
             return {
@@ -232,31 +179,49 @@ export class MongoConnectionManager {
     }
 
     /**
-     * Close the MongoDB connection if it has been inactive for more than the defined connection timeout.
+     * Close the underlying MongoDB client and drain its connection pool.
+     *
+     * Intended for graceful shutdown handlers. After `close()` resolves, the
+     * next call to {@link MongoConnectionManager#getClient} establishes a
+     * fresh connection.
      *
      * @returns {Promise<void>}
      */
-    public async cleanup(): Promise<void> {
-        const now = Date.now();
-
-        if (this._client && (now - this._lastUsed > this._connectionTimeout)) {
+    public async close(): Promise<void> {
+        // If a connection is currently being established, wait for it to
+        // settle so we don't leave an orphaned client behind after shutdown.
+        if (this._connecting !== null) {
             try {
-                await this._client.close();
-                this._client = null;
-
-                getLogger().info({
-                    category: 'Nimbus',
-                    message:
-                        'MongoConnectionManger :: Closed inactive connection',
-                });
-            } catch (error: any) {
-                getLogger().error({
-                    category: 'Nimbus',
-                    message:
-                        'MongoConnectionManger :: Error closing inactive connection',
-                    error,
-                });
+                await this._connecting;
+            } catch {
+                // The in-flight connect failed - there is no client to close.
             }
+        }
+
+        const client = this._client;
+
+        if (client === null) {
+            return;
+        }
+
+        try {
+            await client.close();
+            this._client = null;
+
+            getLogger().info({
+                category: 'Nimbus',
+                message: 'MongoConnectionManager :: Connection closed',
+            });
+        } catch (error) {
+            // Keep `_client` so the caller can retry `close()` and we don't
+            // leak the still-open client by losing its only reference.
+            getLogger().error({
+                category: 'Nimbus',
+                message: 'MongoConnectionManager :: Error closing connection',
+                error: error as Error,
+            });
+
+            throw error;
         }
     }
 }
