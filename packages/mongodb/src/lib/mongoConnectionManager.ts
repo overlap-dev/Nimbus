@@ -93,11 +93,11 @@ export class MongoConnectionManager {
      * @returns {Promise<MongoClient>} The MongoDB client instance
      */
     public getClient(): Promise<MongoClient> {
-        if (this._client) {
+        if (this._client !== null) {
             return Promise.resolve(this._client);
         }
 
-        if (this._connecting) {
+        if (this._connecting !== null) {
             return this._connecting;
         }
 
@@ -117,9 +117,7 @@ export class MongoConnectionManager {
                 getLogger().critical({
                     category: 'Nimbus',
                     message: 'MongoConnectionManager :: Connection failed',
-                    data: {
-                        error,
-                    },
+                    error: error as Error,
                 });
 
                 throw error;
@@ -190,29 +188,40 @@ export class MongoConnectionManager {
      * @returns {Promise<void>}
      */
     public async close(): Promise<void> {
-        const client = this._client;
-        this._client = null;
-
-        if (client) {
+        // If a connection is currently being established, wait for it to
+        // settle so we don't leave an orphaned client behind after shutdown.
+        if (this._connecting !== null) {
             try {
-                await client.close();
-
-                getLogger().info({
-                    category: 'Nimbus',
-                    message: 'MongoConnectionManager :: Connection closed',
-                });
-            } catch (error) {
-                getLogger().error({
-                    category: 'Nimbus',
-                    message:
-                        'MongoConnectionManager :: Error closing connection',
-                    data: {
-                        error,
-                    },
-                });
-
-                throw error;
+                await this._connecting;
+            } catch {
+                // The in-flight connect failed - there is no client to close.
             }
+        }
+
+        const client = this._client;
+
+        if (client === null) {
+            return;
+        }
+
+        try {
+            await client.close();
+            this._client = null;
+
+            getLogger().info({
+                category: 'Nimbus',
+                message: 'MongoConnectionManager :: Connection closed',
+            });
+        } catch (error) {
+            // Keep `_client` so the caller can retry `close()` and we don't
+            // leak the still-open client by losing its only reference.
+            getLogger().error({
+                category: 'Nimbus',
+                message: 'MongoConnectionManager :: Error closing connection',
+                error: error as Error,
+            });
+
+            throw error;
         }
     }
 }

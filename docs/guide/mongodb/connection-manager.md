@@ -106,8 +106,9 @@ app.get("/health", async (c) => {
 // Healthy
 { status: "healthy" }
 
-// Error
-{ status: "error", details: "Failed to ping MongoDB server" }
+// Error - `details` is the underlying error's `message`, or
+// "Unknown error occurred" when no message is available.
+{ status: "error", details: "<error.message>" }
 ```
 
 ## Graceful Shutdown
