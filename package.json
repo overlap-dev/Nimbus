@@ -1,0 +1,13 @@
+{
+    "private": true,
+    "comment": "This file exists solely to declare npm overrides for transitive dependencies pulled in via `eventsourcingdb > testcontainers > ...`. All overrides patch known security advisories reported by `deno audit`. See https://docs.deno.com/runtime/fundamentals/node/#first-class-package.json-support and https://docs.npmjs.com/cli/v9/configuring-npm/package-json#overrides.",
+    "overrides": {
+        "brace-expansion": "^2.1.0",
+        "lodash": "^4.18.1",
+        "minimatch@5": "^5.1.8",
+        "minimatch@9": "^9.0.7",
+        "protobufjs": "^7.5.5",
+        "undici": "^7.25.0",
+        "yaml": "^2.8.3"
+    }
+}

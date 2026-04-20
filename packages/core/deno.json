@@ -39,10 +39,10 @@
     ]
   },
   "imports": {
-    "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
-    "@std/assert": "jsr:@std/assert@^1.0.10",
-    "@std/fmt": "jsr:@std/fmt@^1.0.5",
+    "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.1",
+    "@std/assert": "jsr:@std/assert@^1.0.19",
+    "@std/fmt": "jsr:@std/fmt@^1.0.9",
     "@std/ulid": "jsr:@std/ulid@^1.0.0",
-    "zod": "npm:zod@^4.3.5"
+    "zod": "npm:zod@^4.3.6"
   }
 }
