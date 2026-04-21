@@ -351,7 +351,7 @@ export class NimbusEventBus {
         onError,
         options,
     }: SubscribeEventInput<TEvent>): void {
-        getLogger().info({
+        getLogger().debug({
             category: 'Nimbus',
             message: `Subscribed to ${type} event`,
         });
