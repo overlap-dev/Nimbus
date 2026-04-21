@@ -15,10 +15,11 @@
  *     deno task build:npm 2.1.0          # override version for every package
  *     deno run -A scripts/build_npm.ts   # equivalent to the first form
  *
- * On JSR the packages live under the `@nimbus` scope; on npm they are
- * published under `@nimbus-cqrs` because the `@nimbus` scope is not owned by
- * this project. Cross-package imports written as `@nimbus/<pkg>` are
- * rewritten to depend on the corresponding `@nimbus-cqrs/<pkg>` npm package.
+ * Packages are published under the `@nimbus-cqrs` scope on both JSR and
+ * npm. Sibling cross-package imports (e.g. `@nimbus-cqrs/core` consumed by
+ * `@nimbus-cqrs/eventsourcingdb`) are rewritten in the dnt output so the
+ * published npm package depends on its sibling npm twin instead of
+ * inline-bundling the sibling source.
  */
 
 import { build, emptyDir } from 'jsr:@deno/dnt@^0.42.3';
@@ -30,15 +31,15 @@ import {
     resolve,
 } from 'jsr:@std/path@^1.0.9';
 
-const NPM_SCOPE = '@nimbus-cqrs';
+const SCOPE = '@nimbus-cqrs';
 
 const repoRoot = resolve(dirname(fromFileUrl(import.meta.url)), '..');
 
 interface PackageDef {
     /** Folder name under `packages/` */
     dir: string;
-    /** Name of the package on JSR */
-    jsrName: string;
+    /** Scoped package name (identical on JSR and npm) */
+    name: string;
     /** Description used in the generated `package.json` */
     description: string;
     /**
@@ -63,8 +64,9 @@ const SHARED_KEYWORDS = [
 const packages: PackageDef[] = [
     {
         dir: 'core',
-        jsrName: '@nimbus/core',
-        description: 'Simplify Event-Driven Applications - Core building blocks of the Nimbus framework.',
+        name: `${SCOPE}/core`,
+        description:
+            'Simplify Event-Driven Applications - Core building blocks of the Nimbus framework.',
         keywords: [
             ...SHARED_KEYWORDS,
             'command',
@@ -74,8 +76,9 @@ const packages: PackageDef[] = [
     },
     {
         dir: 'utils',
-        jsrName: '@nimbus/utils',
-        description: 'Simplify Event-Driven Applications - Utility helpers shared across the Nimbus framework.',
+        name: `${SCOPE}/utils`,
+        description:
+            'Simplify Event-Driven Applications - Utility helpers shared across the Nimbus framework.',
         keywords: [
             ...SHARED_KEYWORDS,
             'utils',
@@ -83,8 +86,9 @@ const packages: PackageDef[] = [
     },
     {
         dir: 'mongodb',
-        jsrName: '@nimbus/mongodb',
-        description: 'Simplify Event-Driven Applications - MongoDB integration for the Nimbus framework.',
+        name: `${SCOPE}/mongodb`,
+        description:
+            'Simplify Event-Driven Applications - MongoDB integration for the Nimbus framework.',
         keywords: [
             ...SHARED_KEYWORDS,
             'mongodb',
@@ -93,8 +97,9 @@ const packages: PackageDef[] = [
     },
     {
         dir: 'hono',
-        jsrName: '@nimbus/hono',
-        description: 'Simplify Event-Driven Applications - Hono integration for the Nimbus framework.',
+        name: `${SCOPE}/hono`,
+        description:
+            'Simplify Event-Driven Applications - Hono integration for the Nimbus framework.',
         keywords: [
             ...SHARED_KEYWORDS,
             'hono',
@@ -105,7 +110,7 @@ const packages: PackageDef[] = [
     },
     {
         dir: 'eventsourcingdb',
-        jsrName: '@nimbus/eventsourcingdb',
+        name: `${SCOPE}/eventsourcingdb`,
         description:
             'Simplify Event-Driven Applications - EventSourcingDB integration for the Nimbus framework.',
         keywords: [
@@ -119,9 +124,6 @@ const packages: PackageDef[] = [
 ];
 
 const cliVersion = Deno.args[0]?.replace(/^v/, '');
-
-const npmName = (jsrName: string): string =>
-    jsrName.replace(/^@nimbus\//, `${NPM_SCOPE}/`);
 
 /**
  * Walk a directory and return every `.ts` file that is not a test file.
@@ -153,8 +155,10 @@ async function detectSiblingDeps(pkgRoot: string): Promise<Set<string>> {
     // Anchor the match to the start of a line (optionally preceded by
     // whitespace) so import-like strings inside JSDoc comments (which start
     // with ` * `) are not mistakenly treated as real imports.
-    const importPattern =
-        /^\s*import\s.*?from\s+['"](@nimbus\/[a-z][a-z0-9-]*)['"]/gm;
+    const importPattern = new RegExp(
+        `^\\s*import\\s.*?from\\s+['"](${SCOPE}\\/[a-z][a-z0-9-]*)['"]`,
+        'gm',
+    );
     for (const file of sources) {
         const text = await Deno.readTextFile(file);
         for (const match of text.matchAll(importPattern)) {
@@ -180,10 +184,10 @@ async function* walkFiles(dir: string): AsyncGenerator<string> {
 
 /**
  * Rewrites every reference to a vendored Nimbus sibling package in the dnt
- * output (e.g. `../deps/jsr.io/@nimbus/core/2.0.0/src/index.js`) back to the
- * bare npm specifier (`@nimbus-cqrs/core`) so the published package depends
- * on its sibling instead of bundling a copy of it. Also deletes the
- * vendored copies once they are no longer referenced.
+ * output (e.g. `../deps/jsr.io/@nimbus-cqrs/core/2.0.0/src/index.js`) back
+ * to the bare npm specifier (`@nimbus-cqrs/core`) so the published package
+ * depends on its sibling instead of bundling a copy of it. Also deletes
+ * the vendored copies once they are no longer referenced.
  */
 async function rewriteSiblingReferences(
     npmOut: string,
@@ -193,7 +197,7 @@ async function rewriteSiblingReferences(
     if (siblings.size === 0) return;
 
     const siblingPathRegex = new RegExp(
-        `(?:\\.\\./)+deps/jsr\\.io/(@nimbus/[a-z][a-z0-9-]*)/${
+        `(?:\\.\\./)+deps/jsr\\.io/(${SCOPE}\\/[a-z][a-z0-9-]*)/${
             version.replace(/\./g, '\\.')
         }/src/index\\.(?:js|d\\.ts)`,
         'g',
@@ -211,7 +215,7 @@ async function rewriteSiblingReferences(
         const original = await Deno.readTextFile(file);
         const rewritten = original.replace(
             siblingPathRegex,
-            (_, jsr: string) => npmName(jsr),
+            (_, sibling: string) => sibling,
         );
         if (rewritten !== original) {
             await Deno.writeTextFile(file, rewritten);
@@ -221,7 +225,7 @@ async function rewriteSiblingReferences(
     // Drop the vendored copies of the sibling packages now that nothing
     // references them anymore.
     for (const subdir of ['esm', 'src']) {
-        const vendoredRoot = join(npmOut, subdir, 'deps', 'jsr.io', '@nimbus');
+        const vendoredRoot = join(npmOut, subdir, 'deps', 'jsr.io', SCOPE);
         try {
             await Deno.remove(vendoredRoot, { recursive: true });
         } catch (error) {
@@ -244,14 +248,14 @@ for (const pkg of packages) {
     const version = cliVersion ?? denoJson.version;
 
     const siblings = await detectSiblingDeps(pkgRoot);
-    siblings.delete(pkg.jsrName);
+    siblings.delete(pkg.name);
 
     // dnt's resolver delegates to Deno's module resolver, which honors the
     // root `deno.json`'s `workspace` field and would resolve bare
-    // `@nimbus/<sibling>` specifiers to local source files. To get a clean
-    // resolution that points at the published JSR packages instead, we copy
-    // the package source into a temporary directory that lives outside the
-    // workspace and run dnt from there.
+    // `@nimbus-cqrs/<sibling>` specifiers to local source files. To get a
+    // clean resolution that points at the published JSR packages instead,
+    // we copy the package source into a temporary directory that lives
+    // outside the workspace and run dnt from there.
     const tmpRoot = await Deno.makeTempDir({ prefix: 'nimbus-dnt-' });
 
     const tmpSrc = join(tmpRoot, 'src');
@@ -289,9 +293,7 @@ for (const pkg of packages) {
     // packages may not exist on the registry yet (e.g. on the first publish
     // of a new version).
 
-    console.log(
-        `\n[build_npm] Building ${npmName(pkg.jsrName)}@${version}`,
-    );
+    console.log(`\n[build_npm] Building ${pkg.name}@${version}`);
 
     await emptyDir(npmOut);
 
@@ -322,7 +324,7 @@ for (const pkg of packages) {
             },
             mappings: {},
             package: {
-                name: npmName(pkg.jsrName),
+                name: pkg.name,
                 version,
                 description: pkg.description,
                 keywords: pkg.keywords,
@@ -368,7 +370,7 @@ for (const pkg of packages) {
                 ...(generatedPkg.dependencies ?? {}),
             };
             for (const sibling of siblings) {
-                generatedPkg.dependencies[npmName(sibling)] = `^${version}`;
+                generatedPkg.dependencies[sibling] = `^${version}`;
             }
             await Deno.writeTextFile(
                 generatedPkgPath,
