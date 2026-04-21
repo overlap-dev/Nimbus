@@ -156,7 +156,7 @@ async function detectSiblingDeps(pkgRoot: string): Promise<Set<string>> {
     // whitespace) so import-like strings inside JSDoc comments (which start
     // with ` * `) are not mistakenly treated as real imports.
     const importPattern = new RegExp(
-        `^\\s*import\\s.*?from\\s+['"](${SCOPE}\\/[a-z][a-z0-9-]*)['"]`,
+        String.raw`^\s*import\s.*?from\s+['"](${SCOPE}\/[a-z][a-z0-9-]*)['"]`,
         'gm',
     );
     for (const file of sources) {
@@ -197,9 +197,9 @@ async function rewriteSiblingReferences(
     if (siblings.size === 0) return;
 
     const siblingPathRegex = new RegExp(
-        `(?:\\.\\./)+deps/jsr\\.io/(${SCOPE}\\/[a-z][a-z0-9-]*)/${
-            version.replace(/\./g, '\\.')
-        }/src/index\\.(?:js|d\\.ts)`,
+        String.raw`(?:\.\./)+deps/jsr\.io/(${SCOPE}\/[a-z][a-z0-9-]*)/${
+            version.replaceAll('.', String.raw`\.`)
+        }/src/index\.(?:js|d\.ts)`,
         'g',
     );
 
@@ -262,7 +262,7 @@ for (const pkg of packages) {
     await copy(join(pkgRoot, 'src'), tmpSrc, { overwrite: true });
 
     const tmpImports: Record<string, string> = {
-        ...(denoJson.imports ?? {}),
+        ...denoJson.imports,
     };
     for (const sibling of siblings) {
         // Pin to the exact version (no caret) so JSR cannot resolve to a
@@ -372,7 +372,7 @@ for (const pkg of packages) {
                 await Deno.readTextFile(generatedPkgPath),
             );
             generatedPkg.dependencies = {
-                ...(generatedPkg.dependencies ?? {}),
+                ...generatedPkg.dependencies,
             };
             for (const sibling of siblings) {
                 generatedPkg.dependencies[sibling] = `^${version}`;

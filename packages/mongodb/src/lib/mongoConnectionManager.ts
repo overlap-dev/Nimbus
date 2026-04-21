@@ -73,12 +73,10 @@ export class MongoConnectionManager {
         uri: string,
         options?: MongoClientOptions,
     ): MongoConnectionManager {
-        if (!MongoConnectionManager._instance) {
-            MongoConnectionManager._instance = new MongoConnectionManager(
-                uri,
-                options,
-            );
-        }
+        MongoConnectionManager._instance ??= new MongoConnectionManager(
+            uri,
+            options,
+        );
 
         return MongoConnectionManager._instance;
     }
