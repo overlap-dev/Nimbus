@@ -3,8 +3,12 @@
     "strict": true
   },
   "exclude": [
-    "docs/"
+    "docs/",
+    "dist/"
   ],
+  "tasks": {
+    "build:npm": "deno run -A scripts/build_npm.ts"
+  },
   "workspace": [
     "./packages/core",
     "./packages/mongodb",
