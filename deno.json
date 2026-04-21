@@ -9,7 +9,8 @@
     "examples/bun-demo/"
   ],
   "tasks": {
-    "build:npm": "deno run -A scripts/build_npm.ts"
+    "build:npm": "deno run -A scripts/build_npm.ts",
+    "version:set": "deno run -A scripts/set_version.ts"
   },
   "workspace": [
     "./packages/core",
