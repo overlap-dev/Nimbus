@@ -1,4 +1,4 @@
-import type { Event } from '@nimbus/core';
+import type { Event } from '@nimbus-cqrs/core';
 import { context, propagation } from '@opentelemetry/api';
 import type { EventCandidate, Precondition } from 'eventsourcingdb';
 import { getEventSourcingDBClient } from './client.ts';

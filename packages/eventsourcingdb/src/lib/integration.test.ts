@@ -1,4 +1,4 @@
-import { createEvent, type Event } from '@nimbus/core';
+import { createEvent, type Event } from '@nimbus-cqrs/core';
 import { assertEquals } from '@std/assert';
 import { Container, type Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import { setupEventSourcingDBClient } from './client.ts';

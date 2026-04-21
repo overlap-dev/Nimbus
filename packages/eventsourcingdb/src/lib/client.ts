@@ -1,4 +1,4 @@
-import { GenericException, getLogger } from '@nimbus/core';
+import { GenericException, getLogger } from '@nimbus-cqrs/core';
 import { Client } from 'eventsourcingdb';
 import { type EventObserver, initEventObserver } from './eventObserver.ts';
 
@@ -42,7 +42,7 @@ export type SetupEventSourcingDBClientInput = {
  *
  * @example
  * ```ts
- * import { setupEventSourcingDBClient } from '@nimbus/eventsourcingdb';
+ * import { setupEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
  * import type { Event } from 'eventsourcingdb';
  *
  * await setupEventSourcingDBClient({
@@ -131,7 +131,7 @@ export const setupEventSourcingDBClient = async (
  *
  * @example
  * ```ts
- * import { getEventSourcingDBClient } from '@nimbus/eventsourcingdb';
+ * import { getEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
  *
  * const client = getEventSourcingDBClient();
  * ```

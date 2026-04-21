@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nimbus/core';
+import { NotFoundException } from '@nimbus-cqrs/core';
 import { toSnakeCase } from '@std/text';
 import type {
     BulkWriteOptions,
@@ -52,8 +52,8 @@ export type WithStringId<TSchema> = Omit<TSchema, '_id'> & {
  *
  * @example
  * ```ts
- * import { MongoDBRepository } from '@nimbus/mongodb';
- * import { getEnv } from '@nimbus/utils';
+ * import { MongoDBRepository } from '@nimbus-cqrs/mongodb';
+ * import { getEnv } from '@nimbus-cqrs/utils';
  * import { mongoClient } from './mongoDBClient.ts';
  * import { User } from './user.type.ts';
  * import { USER_COLLECTION } from './user.collection.ts';

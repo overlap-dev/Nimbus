@@ -1,4 +1,4 @@
-import { createEvent, type Event } from '@nimbus/core';
+import { createEvent, type Event } from '@nimbus-cqrs/core';
 import { ulid } from '@std/ulid';
 import type {
     Event as EventSourcingDBEvent,

@@ -47,7 +47,7 @@ export type CorrelationIdOptions = {
  * @example
  * ```ts
  * import { Hono } from 'hono';
- * import { correlationId, getCorrelationId } from '@nimbus/hono';
+ * import { correlationId, getCorrelationId } from '@nimbus-cqrs/hono';
  *
  * const app = new Hono();
  * app.use(correlationId());

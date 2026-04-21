@@ -1,4 +1,4 @@
-import { GenericException, NotFoundException } from '@nimbus/core';
+import { GenericException, NotFoundException } from '@nimbus-cqrs/core';
 import type {
     Collection,
     Document,

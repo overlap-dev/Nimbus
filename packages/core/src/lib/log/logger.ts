@@ -90,7 +90,7 @@ export type LogRecord = {
  *     parseLogLevel,
  *     prettyLogFormatter,
  *     setupLogger,
- * } from '@nimbus/core';
+ * } from '@nimbus-cqrs/core';
  *
  * // Configure the logger at application startup
  * setupLogger({
@@ -168,7 +168,7 @@ export class Logger {
      *
      * @example
      * ```ts
-     * import { getLogger } from "@nimbus/core";
+     * import { getLogger } from "@nimbus-cqrs/core";
      *
      * getLogger().debug({
      *     message: 'Hello World!',
@@ -199,7 +199,7 @@ export class Logger {
      *
      * @example
      * ```ts
-     * import { getLogger } from "@nimbus/core";
+     * import { getLogger } from "@nimbus-cqrs/core";
      *
      * getLogger().info({
      *     message: 'Hello World!',
@@ -230,7 +230,7 @@ export class Logger {
      *
      * @example
      * ```ts
-     * import { getLogger } from "@nimbus/core";
+     * import { getLogger } from "@nimbus-cqrs/core";
      *
      * getLogger().warn({
      *     message: 'Hello World!',
@@ -261,7 +261,7 @@ export class Logger {
      *
      * @example
      * ```ts
-     * import { getLogger } from "@nimbus/core";
+     * import { getLogger } from "@nimbus-cqrs/core";
      *
      * getLogger().error({
      *     message: 'Hello World!',
@@ -292,7 +292,7 @@ export class Logger {
      *
      * @example
      * ```ts
-     * import { getLogger } from "@nimbus/core";
+     * import { getLogger } from "@nimbus-cqrs/core";
      *
      * getLogger().critical({
      *     message: 'Hello World!',
@@ -425,7 +425,7 @@ export class Logger {
  *     parseLogLevel,
  *     prettyLogFormatter,
  *     setupLogger,
- * } from "@nimbus/core";
+ * } from "@nimbus-cqrs/core";
  *
  * setupLogger({
  *     logLevel: parseLogLevel(process.env.LOG_LEVEL),
@@ -451,7 +451,7 @@ export const setupLogger = (options: LogOptions): void => {
  *
  * @example
  * ```ts
- * import { getLogger } from '@nimbus/core';
+ * import { getLogger } from '@nimbus-cqrs/core';
  *
  * const logger = getLogger();
  *

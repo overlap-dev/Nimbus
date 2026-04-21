@@ -1,4 +1,4 @@
-import { getLogger } from '@nimbus/core';
+import { getLogger } from '@nimbus-cqrs/core';
 import type {
     CreateCollectionOptions,
     Db,

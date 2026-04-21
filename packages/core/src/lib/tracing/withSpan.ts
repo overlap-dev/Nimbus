@@ -40,7 +40,7 @@ export type WithSpanOptions = {
  *
  * @example
  * ```ts
- * import { withSpan } from '@nimbus/core';
+ * import { withSpan } from '@nimbus-cqrs/core';
  *
  * const fetchUser = withSpan(
  *     {
