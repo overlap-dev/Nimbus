@@ -5,7 +5,7 @@ import process from 'node:process';
 export const mongoManager = MongoConnectionManager.getInstance(
     process.env['MONGO_URL'] ?? '',
     {
-        appName: 'overtools',
+        appName: 'nimbus-hono-demo',
         serverApi: {
             version: ServerApiVersion.v1,
             strict: false,

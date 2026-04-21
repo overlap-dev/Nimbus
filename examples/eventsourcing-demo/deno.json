@@ -42,7 +42,7 @@
     "@std/ulid": "jsr:@std/ulid@^1.0.0",
     "eventsourcingdb": "npm:eventsourcingdb@^1.8.1",
     "hono": "npm:hono@^4.12.14",
-    "mongodb": "npm:mongodb@^7.1.1",
+    "mongodb": "npm:mongodb@7.1.1",
     "zod": "npm:zod@^4.3.6"
   }
 }
