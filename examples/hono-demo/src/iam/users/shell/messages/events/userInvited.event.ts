@@ -1,4 +1,4 @@
-import { getLogger } from '@nimbus/core';
+import { getLogger } from '@nimbus-cqrs/core';
 import { UserInvitedEvent } from '../../../core/events/userInvited.event.ts';
 
 export const userInvitedEventHandler = async (event: UserInvitedEvent) => {

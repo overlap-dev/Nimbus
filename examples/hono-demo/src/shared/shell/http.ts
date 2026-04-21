@@ -1,4 +1,4 @@
-import { correlationId, handleError, logger } from '@nimbus/hono';
+import { correlationId, handleError, logger } from '@nimbus-cqrs/hono';
 import { Hono } from 'hono';
 import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';

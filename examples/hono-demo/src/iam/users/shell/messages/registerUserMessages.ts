@@ -1,4 +1,4 @@
-import { getEventBus, getRouter } from '@nimbus/core';
+import { getEventBus, getRouter } from '@nimbus-cqrs/core';
 import {
     INVITE_USER_COMMAND_TYPE,
     inviteUserCommandSchema,

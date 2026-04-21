@@ -2,7 +2,7 @@ import {
     commandSchema,
     createEvent,
     InvalidInputException,
-} from '@nimbus/core';
+} from '@nimbus-cqrs/core';
 import { z } from 'zod';
 import { hasPendingInvitation, UserState } from '../domain/user.state.ts';
 import {

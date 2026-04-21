@@ -2,7 +2,7 @@ import {
     eventSourcingDBEventToNimbusEvent,
     readEvents,
     writeEvents,
-} from '@nimbus/eventsourcingdb';
+} from '@nimbus-cqrs/eventsourcingdb';
 import { isSubjectOnEventId } from 'eventsourcingdb';
 import {
     acceptUserInvitation,

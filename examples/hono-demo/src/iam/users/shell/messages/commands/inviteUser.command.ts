@@ -1,4 +1,4 @@
-import { createEvent, getEventBus, NotFoundException } from '@nimbus/core';
+import { createEvent, getEventBus, NotFoundException } from '@nimbus-cqrs/core';
 import {
     inviteUser,
     InviteUserCommand,

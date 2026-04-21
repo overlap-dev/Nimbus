@@ -1,4 +1,4 @@
-import { querySchema } from '@nimbus/core';
+import { querySchema } from '@nimbus-cqrs/core';
 import { z } from 'zod';
 
 export const LIST_USERS_QUERY_TYPE = 'at.overlap.nimbus.list-users';

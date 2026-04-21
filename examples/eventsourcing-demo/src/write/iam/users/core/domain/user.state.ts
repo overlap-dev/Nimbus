@@ -1,4 +1,4 @@
-import { Event } from '@nimbus/core';
+import { Event } from '@nimbus-cqrs/core';
 import { isUserInvitedEvent } from '../events/userInvited.event.ts';
 
 export type UserState = {

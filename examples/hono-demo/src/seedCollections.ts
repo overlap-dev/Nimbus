@@ -1,4 +1,4 @@
-import { deployMongoCollection } from '@nimbus/mongodb';
+import { deployMongoCollection } from '@nimbus-cqrs/mongodb';
 import '@std/dotenv/load';
 import process from 'node:process';
 import { USERS_COLLECTION } from './iam/users/shell/mongodb/user.collection.ts';

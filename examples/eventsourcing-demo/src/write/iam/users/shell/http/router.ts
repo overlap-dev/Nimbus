@@ -1,5 +1,5 @@
-import { createCommand, getRouter } from '@nimbus/core';
-import { getCorrelationId } from '@nimbus/hono';
+import { createCommand, getRouter } from '@nimbus-cqrs/core';
+import { getCorrelationId } from '@nimbus-cqrs/hono';
 import { Hono } from 'hono';
 import {
     ACCEPT_USER_INVITATION_COMMAND_TYPE,

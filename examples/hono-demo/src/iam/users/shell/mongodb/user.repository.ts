@@ -1,5 +1,5 @@
-import { aggregate, MongoDBRepository } from '@nimbus/mongodb';
-import { getEnv } from '@nimbus/utils';
+import { aggregate, MongoDBRepository } from '@nimbus-cqrs/mongodb';
+import { getEnv } from '@nimbus-cqrs/utils';
 import { Document, ObjectId } from 'mongodb';
 import { mongoManager } from '../../../../shared/shell/mongodb.ts';
 import { User } from '../../core/domain/user.ts';

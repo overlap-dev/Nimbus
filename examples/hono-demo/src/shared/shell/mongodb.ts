@@ -1,4 +1,4 @@
-import { MongoConnectionManager } from '@nimbus/mongodb';
+import { MongoConnectionManager } from '@nimbus-cqrs/mongodb';
 import { ServerApiVersion } from 'mongodb';
 import process from 'node:process';
 

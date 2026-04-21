@@ -1,4 +1,4 @@
-import { Event } from '@nimbus/core';
+import { Event } from '@nimbus-cqrs/core';
 import { UserState } from '../domain/user.ts';
 
 export const USER_INVITED_EVENT_TYPE = 'at.overlap.nimbus.user-invited';

@@ -1,4 +1,4 @@
-import { getRouter } from '@nimbus/core';
+import { getRouter } from '@nimbus-cqrs/core';
 import {
     ACCEPT_USER_INVITATION_COMMAND_TYPE,
     acceptUserInvitationCommandSchema,
