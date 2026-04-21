@@ -1,6 +1,7 @@
 {
   "deno.enable": true,
   "deno.lint": true,
+  "deno.disablePaths": ["docs", "examples/node-demo", "examples/bun-demo"],
   "[typescript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
   },

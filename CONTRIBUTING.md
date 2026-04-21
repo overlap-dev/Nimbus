@@ -72,6 +72,25 @@ npm run dev
 
 The documentation will be available at `http://localhost:5173`.
 
+### Examples on other runtimes
+
+Two of the examples are intentionally **not** part of the Deno workspace:
+
+-   `examples/node-demo` - the `hono-demo` ported to the supported Node.js LTS, consuming the published `@nimbus-cqrs/*` npm packages. Use it to test Nimbus on Node.js.
+-   `examples/bun-demo` - the same demo running on the latest stable Bun release.
+
+Each one has its own `package.json` and `node_modules`. They are excluded from
+`deno fmt`, `deno lint`, `deno check`, and `deno test` via the root
+`deno.json`. To work on them:
+
+```sh
+cd examples/node-demo && npm install && npm run dev
+# or
+cd examples/bun-demo && bun install && bun run dev
+```
+
+Refer to each example's README for details.
+
 ### EventSourcingDB
 
 For additional information check the official documentation on [how to install](https://docs.eventsourcingdb.io/getting-started/installing-eventsourcingdb/) and [how to run EventSourcingDB](https://docs.eventsourcingdb.io/getting-started/running-eventsourcingdb/) on your local machine.
