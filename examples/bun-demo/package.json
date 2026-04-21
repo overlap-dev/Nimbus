@@ -10,10 +10,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@nimbus-cqrs/core": "^2.0.1-beta.1",
-    "@nimbus-cqrs/hono": "^2.0.1-beta.1",
-    "@nimbus-cqrs/mongodb": "^2.0.1-beta.1",
-    "@nimbus-cqrs/utils": "^2.0.1-beta.1",
+    "@nimbus-cqrs/core": "^2.0.1",
+    "@nimbus-cqrs/hono": "^2.0.1",
+    "@nimbus-cqrs/mongodb": "^2.0.1",
+    "@nimbus-cqrs/utils": "^2.0.1",
     "hono": "^4.12.14",
     "mongodb": "^7.1.1",
     "zod": "^4.3.6"

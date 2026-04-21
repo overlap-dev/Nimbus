@@ -265,7 +265,12 @@ for (const pkg of packages) {
         ...(denoJson.imports ?? {}),
     };
     for (const sibling of siblings) {
-        tmpImports[sibling] = `jsr:${sibling}@^${version}`;
+        // Pin to the exact version (no caret) so JSR cannot resolve to a
+        // newer sibling release than the one being built. This keeps the
+        // build reproducible and ensures the vendored path that dnt emits
+        // (`.../jsr.io/<sibling>/<version>/src/index.js`) matches the
+        // version-aware regex in `rewriteSiblingReferences` below.
+        tmpImports[sibling] = `jsr:${sibling}@${version}`;
     }
 
     await Deno.writeTextFile(

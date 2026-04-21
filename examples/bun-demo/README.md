@@ -1,6 +1,6 @@
 # Nimbus Bun demo
 
-A little test app with the node.js runtime.
+A little test app with the Bun runtime.
 
 ## Setup
 
