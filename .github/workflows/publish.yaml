@@ -22,8 +22,8 @@ jobs:
           deno-version: v2
 
       # The packages must be published in dependency order because
-      # @nimbus/{utils,mongodb,hono,eventsourcingdb} all depend on
-      # @nimbus/core being available on the registry.
+      # @nimbus-cqrs/{utils,mongodb,hono,eventsourcingdb} all depend on
+      # @nimbus-cqrs/core being available on the registry.
       - name: Publish core package
         working-directory: ./packages/core
         run: deno publish
@@ -66,8 +66,8 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       # Builds dist/npm/<pkg>/ for every Nimbus package using @deno/dnt.
-      # Sibling @nimbus/* imports are rewritten to depend on @nimbus-cqrs/*
-      # on npm. See scripts/build_npm.ts for details.
+      # Vendored sibling sources are stripped and replaced with bare
+      # @nimbus-cqrs/* dependencies. See scripts/build_npm.ts for details.
       - name: Build npm packages
         run: deno task build:npm
 
