@@ -60,9 +60,10 @@ jobs:
         with:
           deno-version: v2
 
+      # Node 24 LTS ships with npm 11, which is required for npm Trusted Publishers (OIDC)
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: "22"
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
       # Builds dist/npm/<pkg>/ for every Nimbus package using @deno/dnt.
