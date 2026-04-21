@@ -12,7 +12,8 @@ next:
 
 Adapters and useful functionality to bridge Nimbus and [Hono](https://hono.dev/).
 
-[https://jsr.io/@nimbus/oak](https://jsr.io/@nimbus/hono)
+-   JSR: [@nimbus/hono](https://jsr.io/@nimbus/hono)
+-   npm: [@nimbus-cqrs/hono](https://www.npmjs.com/package/@nimbus-cqrs/hono)
 
 ### Deno
 
@@ -23,11 +24,11 @@ deno add jsr:@nimbus/hono
 ### NPM
 
 ```bash
-npx jsr add @nimbus/hono
+npm install @nimbus-cqrs/hono
 ```
 
 ### Bun
 
 ```bash
-bunx jsr add @nimbus/hono
+bun add @nimbus-cqrs/hono
 ```
