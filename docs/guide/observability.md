@@ -96,7 +96,7 @@ The [Logger](/guide/core/logging) outputs structured logs to the console. When c
 For business logic that needs custom tracing, use the `withSpan()` higher-order function:
 
 ```typescript
-import { withSpan } from "@nimbus/core";
+import { withSpan } from "@nimbus-cqrs/core";
 
 const fetchUser = withSpan(
     {
@@ -119,7 +119,7 @@ const user = await fetchUser("123");
 Access the span within your function to add attributes based on runtime data:
 
 ```typescript
-import { withSpan } from "@nimbus/core";
+import { withSpan } from "@nimbus-cqrs/core";
 import { Span } from "@opentelemetry/api";
 
 const processOrder = withSpan(
@@ -185,7 +185,7 @@ const event = createEvent<UserInvitedEvent>({
 Always use the structured logger instead of `console.log`:
 
 ```typescript
-import { getLogger } from "@nimbus/core";
+import { getLogger } from "@nimbus-cqrs/core";
 
 // Good - structured and traceable
 getLogger().info({

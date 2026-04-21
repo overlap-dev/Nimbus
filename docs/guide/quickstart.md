@@ -2,12 +2,10 @@
 
 To get started with Nimbus you need to install the core package and other relevant Nimbus packages based on your needs.
 
-The packages are published on both registries:
+All packages live under the `@nimbus-cqrs` scope.
 
--   JSR: [@nimbus/core](https://jsr.io/@nimbus/core) (and the rest of the [@nimbus](https://jsr.io/@nimbus) scope)
+-   JSR: [@nimbus-cqrs/core](https://jsr.io/@nimbus-cqrs/core) (and the rest of the [@nimbus-cqrs](https://jsr.io/@nimbus-cqrs) scope)
 -   npm: [@nimbus-cqrs/core](https://www.npmjs.com/package/@nimbus-cqrs/core) (and the rest of the [@nimbus-cqrs](https://www.npmjs.com/org/nimbus-cqrs) scope)
-
-The `@nimbus` scope on JSR and `@nimbus-cqrs` on npm refer to the same library — only the scope name differs.
 
 ## Dependencies
 
@@ -24,7 +22,7 @@ Depending on your runtime you can install Nimbus with the following commands.
 ### Deno
 
 ```bash
-deno add jsr:@nimbus/core
+deno add jsr:@nimbus-cqrs/core
 ```
 
 ### NPM

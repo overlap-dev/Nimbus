@@ -12,13 +12,13 @@ next:
 
 The EventSourcingDB package provides a seamless integration between Nimbus and [EventSourcingDB](https://www.eventsourcingdb.io/). It offers a managed client, event reading and writing with automatic Nimbus event mapping, event observers with retry logic, and built-in OpenTelemetry tracing.
 
--   JSR: [@nimbus/eventsourcingdb](https://jsr.io/@nimbus/eventsourcingdb)
+-   JSR: [@nimbus-cqrs/eventsourcingdb](https://jsr.io/@nimbus-cqrs/eventsourcingdb)
 -   npm: [@nimbus-cqrs/eventsourcingdb](https://www.npmjs.com/package/@nimbus-cqrs/eventsourcingdb)
 
 ### Deno
 
 ```bash
-deno add jsr:@nimbus/eventsourcingdb
+deno add jsr:@nimbus-cqrs/eventsourcingdb
 ```
 
 ### NPM

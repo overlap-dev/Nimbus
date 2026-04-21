@@ -63,7 +63,7 @@ type Command<TData = unknown> = {
 Nimbus provides a base Zod schema for validating commands:
 
 ```typescript
-import { commandSchema } from "@nimbus/core";
+import { commandSchema } from "@nimbus-cqrs/core";
 import { z } from "zod";
 
 // Extend the base schema with your specific command type and data
@@ -84,7 +84,7 @@ type InviteUserCommand = z.infer<typeof inviteUserCommandSchema>;
 You can create commands using the `createCommand()` helper:
 
 ```typescript
-import { createCommand } from "@nimbus/core";
+import { createCommand } from "@nimbus-cqrs/core";
 import { InviteUserCommand } from "./inviteUser.command.ts";
 
 const commandForJane = createCommand<InviteUserCommand>({

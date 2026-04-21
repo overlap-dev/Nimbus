@@ -16,7 +16,7 @@ The `handleError` function is an error handler for Hono applications that conver
 
 ```typescript
 import { Hono } from "hono";
-import { handleError } from "@nimbus/hono";
+import { handleError } from "@nimbus-cqrs/hono";
 
 const app = new Hono();
 
@@ -69,8 +69,8 @@ The handler logs errors differently based on the status code:
 
 ```typescript
 import { Hono } from "hono";
-import { handleError } from "@nimbus/hono";
-import { NotFoundException, InvalidInputException } from "@nimbus/core";
+import { handleError } from "@nimbus-cqrs/hono";
+import { NotFoundException, InvalidInputException } from "@nimbus-cqrs/core";
 
 const app = new Hono();
 
@@ -137,8 +137,8 @@ app.onError(handleError);
 
 ```typescript
 import { Hono } from "hono";
-import { correlationId, handleError, logger } from "@nimbus/hono";
-import { setupLogger, parseLogLevel } from "@nimbus/core";
+import { correlationId, handleError, logger } from "@nimbus-cqrs/hono";
+import { setupLogger, parseLogLevel } from "@nimbus-cqrs/core";
 
 setupLogger({
     logLevel: parseLogLevel(process.env.LOG_LEVEL),

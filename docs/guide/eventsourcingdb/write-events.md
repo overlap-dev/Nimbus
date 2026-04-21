@@ -21,8 +21,8 @@ You can find the full example on GitHub: [eventsourcing-demo](https://github.com
 ## Basic Usage
 
 ```typescript
-import { createEvent } from "@nimbus/core";
-import { writeEvents } from "@nimbus/eventsourcingdb";
+import { createEvent } from "@nimbus-cqrs/core";
+import { writeEvents } from "@nimbus-cqrs/eventsourcingdb";
 import { isSubjectPristine } from "eventsourcingdb";
 
 const event = createEvent({

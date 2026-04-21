@@ -12,13 +12,13 @@ next:
 
 Adapters and useful functionality to bridge Nimbus and [Hono](https://hono.dev/).
 
--   JSR: [@nimbus/hono](https://jsr.io/@nimbus/hono)
+-   JSR: [@nimbus-cqrs/hono](https://jsr.io/@nimbus-cqrs/hono)
 -   npm: [@nimbus-cqrs/hono](https://www.npmjs.com/package/@nimbus-cqrs/hono)
 
 ### Deno
 
 ```bash
-deno add jsr:@nimbus/hono
+deno add jsr:@nimbus-cqrs/hono
 ```
 
 ### NPM

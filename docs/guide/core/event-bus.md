@@ -23,7 +23,7 @@ You can find the full example on GitHub: [hono-demo](https://github.com/overlap-
 Configure the event bus at application startup using `setupEventBus()`, then retrieve it anywhere using `getEventBus()`.
 
 ```typescript
-import { getLogger, setupEventBus } from "@nimbus/core";
+import { getLogger, setupEventBus } from "@nimbus-cqrs/core";
 
 setupEventBus("MyEventBus", {
     maxRetries: 2,
@@ -58,7 +58,7 @@ setupEventBus("MyEventBus", {
 Subscribe to event types using `subscribeEvent()`:
 
 ```typescript
-import { getEventBus } from "@nimbus/core";
+import { getEventBus } from "@nimbus-cqrs/core";
 
 const eventBus = getEventBus("MyEventBus");
 
@@ -99,7 +99,7 @@ The `subscribeEvent()` method accepts the following options:
 Publish events using `putEvent()`:
 
 ```typescript
-import { createEvent, getEventBus } from "@nimbus/core";
+import { createEvent, getEventBus } from "@nimbus-cqrs/core";
 
 const eventBus = getEventBus("default");
 

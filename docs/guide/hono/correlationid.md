@@ -16,7 +16,7 @@ The CorrelationID middleware extracts a correlation ID from incoming request hea
 
 ```typescript
 import { Hono } from "hono";
-import { correlationId, getCorrelationId } from "@nimbus/hono";
+import { correlationId, getCorrelationId } from "@nimbus-cqrs/hono";
 
 const app = new Hono();
 
@@ -49,7 +49,7 @@ If none of these headers are present, a new ULID is generated.
 | `responseHeaderName`   | `string`  | `"x-correlation-id"` | The header name to use in the response     |
 
 ```typescript
-import { correlationId } from "@nimbus/hono";
+import { correlationId } from "@nimbus-cqrs/hono";
 
 // Custom configuration
 app.use(
@@ -65,7 +65,7 @@ app.use(
 Use the `getCorrelationId()` helper function to retrieve the correlation ID from the Hono context:
 
 ```typescript
-import { getCorrelationId } from "@nimbus/hono";
+import { getCorrelationId } from "@nimbus-cqrs/hono";
 
 app.get("/users/:id", async (c) => {
     const correlationId = getCorrelationId(c);

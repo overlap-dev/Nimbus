@@ -12,13 +12,13 @@ next:
 
 The MongoDB package provides a simple and easy-to-use interface for working with MongoDB databases.
 
--   JSR: [@nimbus/mongodb](https://jsr.io/@nimbus/mongodb)
+-   JSR: [@nimbus-cqrs/mongodb](https://jsr.io/@nimbus-cqrs/mongodb)
 -   npm: [@nimbus-cqrs/mongodb](https://www.npmjs.com/package/@nimbus-cqrs/mongodb)
 
 ### Deno
 
 ```bash
-deno add jsr:@nimbus/mongodb
+deno add jsr:@nimbus-cqrs/mongodb
 ```
 
 ### NPM

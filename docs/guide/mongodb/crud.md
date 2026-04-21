@@ -49,7 +49,7 @@ For standard CRUD operations, prefer using the [Repository](/guide/mongodb/repos
 Functions that return typed data require `mapDocument` and `outputType` parameters for type-safe results.
 
 ```typescript
-import { find, findOne } from "@nimbus/mongodb";
+import { find, findOne } from "@nimbus-cqrs/mongodb";
 
 type User = { _id: string; email: string; name: string };
 
@@ -84,7 +84,7 @@ const user = await findOne<User>({
 ### Insert Operations
 
 ```typescript
-import { insertOne, insertMany } from "@nimbus/mongodb";
+import { insertOne, insertMany } from "@nimbus-cqrs/mongodb";
 
 // Insert a single document
 const result = await insertOne({
@@ -109,7 +109,7 @@ const results = await insertMany({
 ### Update Operations
 
 ```typescript
-import { updateOne, updateMany, replaceOne } from "@nimbus/mongodb";
+import { updateOne, updateMany, replaceOne } from "@nimbus-cqrs/mongodb";
 
 // Update a single document
 const result = await updateOne({
@@ -140,7 +140,7 @@ const replaced = await replaceOne({
 ### Delete Operations
 
 ```typescript
-import { deleteOne, deleteMany } from "@nimbus/mongodb";
+import { deleteOne, deleteMany } from "@nimbus-cqrs/mongodb";
 
 // Delete a single document
 const result = await deleteOne({
@@ -164,7 +164,7 @@ import {
     findOneAndUpdate,
     findOneAndReplace,
     findOneAndDelete,
-} from "@nimbus/mongodb";
+} from "@nimbus-cqrs/mongodb";
 
 type User = { _id: string; email: string; loginCount: number };
 
@@ -214,7 +214,7 @@ const deleted = await findOneAndDelete<User>({
 The `aggregate` function executes a pipeline and maps results to typed output.
 
 ```typescript
-import { aggregate } from "@nimbus/mongodb";
+import { aggregate } from "@nimbus-cqrs/mongodb";
 
 type CategoryCount = { category: string; count: number };
 
@@ -236,7 +236,7 @@ const results = await aggregate<CategoryCount>({
 ### Bulk Write
 
 ```typescript
-import { bulkWrite } from "@nimbus/mongodb";
+import { bulkWrite } from "@nimbus-cqrs/mongodb";
 
 const result = await bulkWrite({
     collection,
@@ -256,7 +256,7 @@ const result = await bulkWrite({
 ### Count Documents
 
 ```typescript
-import { countDocuments } from "@nimbus/mongodb";
+import { countDocuments } from "@nimbus-cqrs/mongodb";
 
 const count = await countDocuments({
     collection,

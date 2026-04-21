@@ -15,7 +15,7 @@ The `handleMongoError` function converts MongoDB errors to Nimbus exceptions bas
 ## Basic Usage
 
 ```typescript
-import { handleMongoError } from "@nimbus/mongodb";
+import { handleMongoError } from "@nimbus-cqrs/mongodb";
 
 try {
     await collection.insertOne(document);
@@ -96,7 +96,7 @@ try {
 All [CRUD functions](/guide/mongodb/crud) use `handleMongoError` internally:
 
 ```typescript
-import { insertOne } from "@nimbus/mongodb";
+import { insertOne } from "@nimbus-cqrs/mongodb";
 
 try {
     await insertOne({
@@ -116,8 +116,8 @@ try {
 You can use `handleMongoError` in your own database operations:
 
 ```typescript
-import { handleMongoError } from "@nimbus/mongodb";
-import { GenericException } from "@nimbus/core";
+import { handleMongoError } from "@nimbus-cqrs/mongodb";
+import { GenericException } from "@nimbus-cqrs/core";
 
 const customDatabaseOperation = async (collection: Collection) => {
     try {

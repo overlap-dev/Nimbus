@@ -25,7 +25,7 @@ You can find the full example on GitHub: [eventsourcing-demo](https://github.com
 Event observers are typically configured as part of the [client setup](/guide/eventsourcingdb/client-setup):
 
 ```typescript
-import { setupEventSourcingDBClient } from "@nimbus/eventsourcingdb";
+import { setupEventSourcingDBClient } from "@nimbus-cqrs/eventsourcingdb";
 import type { Event } from "eventsourcingdb";
 
 await setupEventSourcingDBClient({
@@ -46,7 +46,7 @@ await setupEventSourcingDBClient({
 You can also start an observer independently after the client has been initialized:
 
 ```typescript
-import { initEventObserver } from "@nimbus/eventsourcingdb";
+import { initEventObserver } from "@nimbus-cqrs/eventsourcingdb";
 import type { Event } from "eventsourcingdb";
 
 initEventObserver({
@@ -121,8 +121,8 @@ The observer uses **exponential backoff with jitter** for retries:
 A common use case for event observers is building read-side projections. The observer processes events and updates an in-memory or persistent view:
 
 ```typescript
-import { Event, getLogger } from "@nimbus/core";
-import { eventSourcingDBEventToNimbusEvent } from "@nimbus/eventsourcingdb";
+import { Event, getLogger } from "@nimbus-cqrs/core";
+import { eventSourcingDBEventToNimbusEvent } from "@nimbus-cqrs/eventsourcingdb";
 import { Event as EventSourcingDBEvent } from "eventsourcingdb";
 
 const USER_INVITED_EVENT_TYPE = "at.overlap.nimbus.user-invited";

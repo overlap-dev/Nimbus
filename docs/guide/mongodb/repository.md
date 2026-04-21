@@ -17,7 +17,7 @@ The `MongoDBRepository` is a type-safe base class for MongoDB CRUD operations. I
 Create a repository by extending `MongoDBRepository`:
 
 ```typescript
-import { MongoDBRepository } from "@nimbus/mongodb";
+import { MongoDBRepository } from "@nimbus-cqrs/mongodb";
 import { z } from "zod";
 import { mongoManager } from "./mongodb.ts";
 
@@ -217,7 +217,7 @@ User the [CRUD+](/guide/mongodb/crud) methods provided by Nimbus to still have o
 :::
 
 ```typescript
-import { aggregate, MongoDBRepository } from "@nimbus/mongodb";
+import { aggregate, MongoDBRepository } from "@nimbus-cqrs/mongodb";
 
 class UserRepository extends MongoDBRepository<User> {
     // ... existing code ...

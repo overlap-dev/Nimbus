@@ -67,7 +67,7 @@ type NimbusEventMetadata = {
 The `nimbusEventToEventSourcingDBEventCandidate` function converts a Nimbus event into an EventSourcingDB event candidate:
 
 ```typescript
-import { nimbusEventToEventSourcingDBEventCandidate } from "@nimbus/eventsourcingdb";
+import { nimbusEventToEventSourcingDBEventCandidate } from "@nimbus-cqrs/eventsourcingdb";
 
 const eventCandidate = nimbusEventToEventSourcingDBEventCandidate(nimbusEvent);
 ```
@@ -92,7 +92,7 @@ You typically don't need to call this function directly. The [`writeEvents`](/gu
 The `eventSourcingDBEventToNimbusEvent` function converts an EventSourcingDB event back into a Nimbus event:
 
 ```typescript
-import { eventSourcingDBEventToNimbusEvent } from "@nimbus/eventsourcingdb";
+import { eventSourcingDBEventToNimbusEvent } from "@nimbus-cqrs/eventsourcingdb";
 import type { Event } from "eventsourcingdb";
 
 const handleEvent = (eventSourcingDBEvent: Event) => {
@@ -106,8 +106,8 @@ const handleEvent = (eventSourcingDBEvent: Event) => {
 The function supports generic typing for specific event types:
 
 ```typescript
-import { Event } from "@nimbus/core";
-import { eventSourcingDBEventToNimbusEvent } from "@nimbus/eventsourcingdb";
+import { Event } from "@nimbus-cqrs/core";
+import { eventSourcingDBEventToNimbusEvent } from "@nimbus-cqrs/eventsourcingdb";
 
 const event = eventSourcingDBEventToNimbusEvent<Event>(eventSourcingDBEvent);
 ```
@@ -124,7 +124,7 @@ If the EventSourcingDB event was not written by Nimbus (i.e., it does not contai
 The `isEventData` type guard checks whether event data conforms to the `EventData` structure:
 
 ```typescript
-import { isEventData } from "@nimbus/eventsourcingdb";
+import { isEventData } from "@nimbus-cqrs/eventsourcingdb";
 
 if (isEventData(event.data)) {
     // event.data is typed as EventData
