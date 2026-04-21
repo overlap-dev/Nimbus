@@ -2,7 +2,7 @@ import {
     type Exception,
     GenericException,
     InvalidInputException,
-} from '@nimbus/core';
+} from '@nimbus-cqrs/core';
 
 /**
  * Handles MongoDB errors and converts them

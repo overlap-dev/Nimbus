@@ -1,4 +1,4 @@
-import { getRouter } from '@nimbus/core';
+import { getRouter } from '@nimbus-cqrs/core';
 import {
     GET_USER_QUERY_TYPE,
     getUserQuerySchema,

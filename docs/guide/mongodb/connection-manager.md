@@ -20,7 +20,7 @@ the lifetime of the application and provide typed `getDatabase` /
 ## Basic Usage
 
 ```typescript
-import { MongoConnectionManager } from "@nimbus/mongodb";
+import { MongoConnectionManager } from "@nimbus-cqrs/mongodb";
 import { ServerApiVersion } from "mongodb";
 
 const mongoManager = MongoConnectionManager.getInstance(
@@ -136,7 +136,7 @@ fresh connection.
 The connection manager integrates seamlessly with the `MongoDBRepository` class:
 
 ```typescript
-import { MongoDBRepository } from "@nimbus/mongodb";
+import { MongoDBRepository } from "@nimbus-cqrs/mongodb";
 import { mongoManager } from "./mongodb.ts";
 import { User, UserSchema } from "./user.ts";
 
@@ -155,7 +155,7 @@ export const userRepository = new UserRepository();
 
 ## Migration from 1.x
 
-`@nimbus/mongodb` 2.0 simplifies the connection manager. If you are
+`@nimbus-cqrs/mongodb` 2.0 simplifies the connection manager. If you are
 upgrading from 1.x:
 
 -   The constructor signature is now flattened.  

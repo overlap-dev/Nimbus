@@ -62,7 +62,7 @@ type Query<TData = unknown> = {
 Nimbus provides a base Zod schema for validating queries:
 
 ```typescript
-import { querySchema } from "@nimbus/core";
+import { querySchema } from "@nimbus-cqrs/core";
 import { z } from "zod";
 
 // Extend the base schema with your specific query type and data
@@ -81,7 +81,7 @@ type GetUserQuery = z.infer<typeof getUserQuerySchema>;
 You can create queries using the `createQuery()` helper:
 
 ```typescript
-import { createQuery } from "@nimbus/core";
+import { createQuery } from "@nimbus-cqrs/core";
 import { GetUserQuery } from "./getUser.query.ts";
 
 const query = createQuery<GetUserQuery>({

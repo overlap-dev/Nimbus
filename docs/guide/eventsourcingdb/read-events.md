@@ -26,7 +26,7 @@ You can find the full example on GitHub: [eventsourcing-demo](https://github.com
 import {
     eventSourcingDBEventToNimbusEvent,
     readEvents,
-} from "@nimbus/eventsourcingdb";
+} from "@nimbus-cqrs/eventsourcingdb";
 
 for await (const eventSourcingDBEvent of readEvents("/users/123", {
     recursive: false,
@@ -53,7 +53,7 @@ import {
     eventSourcingDBEventToNimbusEvent,
     readEvents,
     writeEvents,
-} from "@nimbus/eventsourcingdb";
+} from "@nimbus-cqrs/eventsourcingdb";
 import { isSubjectOnEventId } from "eventsourcingdb";
 
 const acceptUserInvitationCommandHandler = async (command) => {
@@ -88,7 +88,7 @@ const acceptUserInvitationCommandHandler = async (command) => {
 Use an `AbortSignal` to cancel an in-progress read:
 
 ```typescript
-import { readEvents } from "@nimbus/eventsourcingdb";
+import { readEvents } from "@nimbus-cqrs/eventsourcingdb";
 
 const controller = new AbortController();
 

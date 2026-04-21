@@ -1,4 +1,4 @@
-import { GenericException } from '@nimbus/core';
+import { GenericException } from '@nimbus-cqrs/core';
 import type { AggregateOptions, Collection, Document } from 'mongodb';
 import type { ZodType } from 'zod';
 import { handleMongoError } from '../handleMongoError.ts';

@@ -5,8 +5,8 @@ import {
     prettyLogFormatter,
     setupLogger,
     setupRouter,
-} from '@nimbus/core';
-import { setupEventSourcingDBClient } from '@nimbus/eventsourcingdb';
+} from '@nimbus-cqrs/core';
+import { setupEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
 import '@std/dotenv/load';
 import process from 'node:process';
 import { projectViews } from './read/core/projectViews.ts';

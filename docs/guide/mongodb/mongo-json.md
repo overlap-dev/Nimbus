@@ -15,7 +15,7 @@ next:
 ## Basic Usage
 
 ```typescript
-import { MongoJSON } from "@nimbus/mongodb";
+import { MongoJSON } from "@nimbus-cqrs/mongodb";
 
 // Parse a JSON string with MongoDB type prefixes
 const filter = MongoJSON.parse('{"_id": "objectId::507f1f77bcf86cd799439011"}');
@@ -40,7 +40,7 @@ The `parse` function recognizes special prefixes to convert strings to MongoDB t
 ## Parse Examples
 
 ```typescript
-import { MongoJSON } from "@nimbus/mongodb";
+import { MongoJSON } from "@nimbus-cqrs/mongodb";
 
 // ObjectId conversion
 const idFilter = MongoJSON.parse(
@@ -87,7 +87,7 @@ The default blacklist includes `$where` to prevent code injection attacks.
 `MongoJSON` is useful when accepting MongoDB filters from API requests:
 
 ```typescript
-import { MongoJSON } from "@nimbus/mongodb";
+import { MongoJSON } from "@nimbus-cqrs/mongodb";
 
 app.get("/users", async (c) => {
     const filterParam = c.req.query("filter");
@@ -111,7 +111,7 @@ app.get("/users", async (c) => {
 -   Blacklisted operators
 
 ```typescript
-import { MongoJSON } from "@nimbus/mongodb";
+import { MongoJSON } from "@nimbus-cqrs/mongodb";
 
 try {
     const filter = MongoJSON.parse('{"invalid json}');

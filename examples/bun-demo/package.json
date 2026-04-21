@@ -1,0 +1,25 @@
+{
+  "name": "nimbus-bun-demo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch run src/main.ts",
+    "start": "bun run src/main.ts",
+    "database:seed": "bun run src/seedCollections.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nimbus-cqrs/core": "^2.0.1",
+    "@nimbus-cqrs/hono": "^2.0.1",
+    "@nimbus-cqrs/mongodb": "^2.0.1",
+    "@nimbus-cqrs/utils": "^2.0.1",
+    "hono": "^4.12.14",
+    "mongodb": "^7.1.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.0",
+    "typescript": "^5.8.0"
+  }
+}

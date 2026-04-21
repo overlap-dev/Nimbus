@@ -28,7 +28,7 @@ import {
     parseLogLevel,
     prettyLogFormatter,
     setupLogger,
-} from "@nimbus/core";
+} from "@nimbus-cqrs/core";
 import process from "node:process";
 
 setupLogger({
@@ -69,7 +69,7 @@ Messages below the configured log level are silently ignored.
 Use `parseLogLevel()` to safely parse environment variables:
 
 ```typescript
-import { parseLogLevel } from "@nimbus/core";
+import { parseLogLevel } from "@nimbus-cqrs/core";
 
 // Returns 'info' if LOG_LEVEL is 'info', otherwise returns default 'silent'
 const level = parseLogLevel(process.env.LOG_LEVEL);
@@ -80,7 +80,7 @@ const level = parseLogLevel(process.env.LOG_LEVEL);
 Access the logger using `getLogger()`:
 
 ```typescript
-import { getLogger } from "@nimbus/core";
+import { getLogger } from "@nimbus-cqrs/core";
 
 const logger = getLogger();
 
@@ -138,7 +138,7 @@ Nimbus provides two built-in formatters:
 Outputs structured JSON for easy parsing by log aggregation tools:
 
 ```typescript
-import { jsonLogFormatter, setupLogger } from "@nimbus/core";
+import { jsonLogFormatter, setupLogger } from "@nimbus-cqrs/core";
 
 setupLogger({
     logLevel: "info",
@@ -154,7 +154,7 @@ setupLogger({
 Outputs human-readable colored logs for development:
 
 ```typescript
-import { prettyLogFormatter, setupLogger, getLogger } from "@nimbus/core";
+import { prettyLogFormatter, setupLogger, getLogger } from "@nimbus-cqrs/core";
 
 setupLogger({
     logLevel: "debug",

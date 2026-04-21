@@ -1,5 +1,5 @@
-import { getLogger } from '@nimbus/core';
-import { eventSourcingDBEventToNimbusEvent } from '@nimbus/eventsourcingdb';
+import { getLogger } from '@nimbus-cqrs/core';
+import { eventSourcingDBEventToNimbusEvent } from '@nimbus-cqrs/eventsourcingdb';
 import { Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import {
     isUserInvitationAcceptedEvent,

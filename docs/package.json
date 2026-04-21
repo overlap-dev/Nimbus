@@ -1,5 +1,5 @@
 {
-  "name": "@nimbus/docs",
+  "name": "@nimbus-cqrs/docs",
   "scripts": {
     "dev": "vitepress dev",
     "build": "vitepress build",

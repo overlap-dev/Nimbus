@@ -1,4 +1,4 @@
-import { commandSchema, createEvent } from '@nimbus/core';
+import { commandSchema, createEvent } from '@nimbus-cqrs/core';
 import { z } from 'zod';
 import { UserState } from '../domain/user.state.ts';
 import {

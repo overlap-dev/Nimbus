@@ -15,7 +15,7 @@ The `deployMongoCollection` function creates or updates MongoDB collections with
 ## Basic Usage
 
 ```typescript
-import { deployMongoCollection } from "@nimbus/mongodb";
+import { deployMongoCollection } from "@nimbus-cqrs/mongodb";
 import { mongoManager } from "./mongodb.ts";
 
 const USERS_COLLECTION = {
@@ -116,8 +116,8 @@ Indexes are automatically named based on their key fields if no name is provided
 Create a script to deploy all collections:
 
 ```typescript
-import { deployMongoCollection } from "@nimbus/mongodb";
-import { setupLogger, parseLogLevel } from "@nimbus/core";
+import { deployMongoCollection } from "@nimbus-cqrs/mongodb";
+import { setupLogger, parseLogLevel } from "@nimbus-cqrs/core";
 import { mongoManager } from "./mongodb.ts";
 import { USERS_COLLECTION } from "./collections/users.ts";
 import { ORDERS_COLLECTION } from "./collections/orders.ts";

@@ -1,4 +1,4 @@
-import { InvalidInputException } from '@nimbus/core';
+import { InvalidInputException } from '@nimbus-cqrs/core';
 import { ObjectId } from 'mongodb';
 
 /**
@@ -71,7 +71,7 @@ const mongoJSONParse = (
  *
  * @example
  * ```ts
- * import { MongoJSON } from '@nimbus/mongodb';
+ * import { MongoJSON } from '@nimbus-cqrs/mongodb';
  *
  * const filterString = MongoJSON.stringify({
  *     _id: 'objectId::507f1f77bcf86cd799439011',

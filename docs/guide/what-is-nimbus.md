@@ -45,7 +45,7 @@ Nimbus is a good fit if you are:
 Here's a quick look at how you define and handle a command in Nimbus:
 
 ```typescript
-import { commandSchema, createCommand, getRouter } from "@nimbus/core";
+import { commandSchema, createCommand, getRouter } from "@nimbus-cqrs/core";
 import { z } from "zod";
 
 // Define a type-safe command schema

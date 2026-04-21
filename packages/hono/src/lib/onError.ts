@@ -1,4 +1,4 @@
-import { Exception, getLogger } from '@nimbus/core';
+import { Exception, getLogger } from '@nimbus-cqrs/core';
 import type { Context } from 'hono';
 import type { HTTPResponseError } from 'hono/types';
 
@@ -12,7 +12,7 @@ import type { HTTPResponseError } from 'hono/types';
  *
  * @example
  * ```ts
- * import { handleError } from '@nimbus/hono';
+ * import { handleError } from '@nimbus-cqrs/hono';
  *
  * const app = new Hono();
  * app.onError(handleError);

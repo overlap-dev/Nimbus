@@ -6,10 +6,11 @@ on:
     types: [created]
 
 jobs:
-  publish:
+  publish-jsr:
+    name: Publish to JSR
     permissions:
       contents: read
-      id-token: write # The OIDC ID token is used for authentication with JSR.
+      id-token: write # For OIDC and provenance attestations.
 
     runs-on: ubuntu-latest
 
@@ -20,6 +21,9 @@ jobs:
         with:
           deno-version: v2
 
+      # The packages must be published in dependency order because
+      # @nimbus-cqrs/{utils,mongodb,hono,eventsourcingdb} all depend on
+      # @nimbus-cqrs/core being available on the registry.
       - name: Publish core package
         working-directory: ./packages/core
         run: deno publish
@@ -39,3 +43,53 @@ jobs:
       - name: Publish eventsourcingdb package
         working-directory: ./packages/eventsourcingdb
         run: deno publish
+
+  publish-npm:
+    name: Publish to npm
+    needs: publish-jsr
+    permissions:
+      contents: read
+      id-token: write # For OIDC and provenance attestations.
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb
+        with:
+          deno-version: v2
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      # Builds dist/npm/<pkg>/ for every Nimbus package using @deno/dnt.
+      # Vendored sibling sources are stripped and replaced with bare
+      # @nimbus-cqrs/* dependencies. See scripts/build_npm.ts for details.
+      - name: Build npm packages
+        run: deno task build:npm
+
+      # The packages must be published in dependency order because
+      # @nimbus-cqrs/{utils,mongodb,hono,eventsourcingdb} all depend on
+      # @nimbus-cqrs/core being available on the registry.
+      - name: Publish @nimbus-cqrs/core
+        working-directory: ./dist/npm/core
+        run: npm publish --access public --provenance
+
+      - name: Publish @nimbus-cqrs/utils
+        working-directory: ./dist/npm/utils
+        run: npm publish --access public --provenance
+
+      - name: Publish @nimbus-cqrs/mongodb
+        working-directory: ./dist/npm/mongodb
+        run: npm publish --access public --provenance
+
+      - name: Publish @nimbus-cqrs/hono
+        working-directory: ./dist/npm/hono
+        run: npm publish --access public --provenance
+
+      - name: Publish @nimbus-cqrs/eventsourcingdb
+        working-directory: ./dist/npm/eventsourcingdb
+        run: npm publish --access public --provenance

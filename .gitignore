@@ -2,6 +2,7 @@
 
 # environment files
 .env*
+!.env.example
 .otel_token
 
 # compiled output

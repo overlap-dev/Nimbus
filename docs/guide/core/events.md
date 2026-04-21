@@ -76,7 +76,7 @@ Events use subjects to organize and identify the entities they relate to:
 Nimbus provides a base Zod schema for validating events:
 
 ```typescript
-import { eventSchema } from "@nimbus/core";
+import { eventSchema } from "@nimbus-cqrs/core";
 import { z } from "zod";
 
 // Extend the base schema with your specific event type and data
@@ -98,7 +98,7 @@ type UserInvitedEvent = z.infer<typeof userInvitedEventSchema>;
 You can create events using the `createEvent()` helper:
 
 ```typescript
-import { createEvent } from "@nimbus/core";
+import { createEvent } from "@nimbus-cqrs/core";
 import { UserInvitedEvent } from "./userInvited.event.ts";
 
 const event = createEvent<UserInvitedEvent>({

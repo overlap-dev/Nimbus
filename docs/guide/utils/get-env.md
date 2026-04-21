@@ -13,7 +13,7 @@ The `getEnv` function retrieves environment variables with validation. It throws
 ## Basic Usage
 
 ```typescript
-import { getEnv } from "@nimbus/utils";
+import { getEnv } from "@nimbus-cqrs/utils";
 
 const env = getEnv({
     variables: ["DATABASE_URL", "API_KEY", "PORT"],
@@ -41,7 +41,7 @@ getEnv({ variables: string[] }): Record<string, string>
 If any requested variables are undefined, `getEnv` throws a `GenericException` with details about all missing variables:
 
 ```typescript
-import { getEnv } from "@nimbus/utils";
+import { getEnv } from "@nimbus-cqrs/utils";
 
 try {
     const env = getEnv({
@@ -66,7 +66,7 @@ The error is also logged before throwing:
 ### Application Configuration
 
 ```typescript
-import { getEnv } from "@nimbus/utils";
+import { getEnv } from "@nimbus-cqrs/utils";
 
 const env = getEnv({
     variables: ["NODE_ENV", "PORT", "DATABASE_URL", "REDIS_URL", "JWT_SECRET"],
@@ -84,8 +84,8 @@ export const config = {
 ### MongoDB Connection
 
 ```typescript
-import { MongoConnectionManager } from "@nimbus/mongodb";
-import { getEnv } from "@nimbus/utils";
+import { MongoConnectionManager } from "@nimbus-cqrs/mongodb";
+import { getEnv } from "@nimbus-cqrs/utils";
 
 const env = getEnv({
     variables: ["MONGO_URL", "MONGO_DB"],
@@ -102,8 +102,8 @@ export const getCollection = (name: string) =>
 ### Repository Configuration
 
 ```typescript
-import { MongoDBRepository } from "@nimbus/mongodb";
-import { getEnv } from "@nimbus/utils";
+import { MongoDBRepository } from "@nimbus-cqrs/mongodb";
+import { getEnv } from "@nimbus-cqrs/utils";
 import { mongoManager } from "./mongodb.ts";
 
 class UserRepository extends MongoDBRepository<User> {
@@ -122,7 +122,7 @@ class UserRepository extends MongoDBRepository<User> {
 ### External Service Configuration
 
 ```typescript
-import { getEnv } from "@nimbus/utils";
+import { getEnv } from "@nimbus-cqrs/utils";
 
 const env = getEnv({
     variables: ["STRIPE_API_KEY", "STRIPE_WEBHOOK_SECRET"],

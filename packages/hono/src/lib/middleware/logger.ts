@@ -1,4 +1,4 @@
-import { getLogger } from '@nimbus/core';
+import { getLogger } from '@nimbus-cqrs/core';
 import {
     context,
     propagation,
@@ -55,7 +55,7 @@ const time = (start: number) => {
  * @example
  * ```ts
  * import { Hono } from 'hono';
- * import { logger } from '@nimbus/hono';
+ * import { logger } from '@nimbus-cqrs/hono';
  *
  * const app = new Hono();
  * app.use(logger({ enableTracing: true }));

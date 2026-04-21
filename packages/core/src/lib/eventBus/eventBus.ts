@@ -114,7 +114,7 @@ export type SubscribeEventInput<TEvent extends Event> = {
  *
  * @example
  * ```ts
- * import { createEvent, NimbusEventBus } from '@nimbus/core';
+ * import { createEvent, NimbusEventBus } from '@nimbus-cqrs/core';
  *
  * const eventBus = new NimbusEventBus({
  *     name: 'orders',
@@ -179,7 +179,7 @@ export class NimbusEventBus {
      *
      * @example
      * ```ts
-     * import { getLogger, NimbusEventBus } from '@nimbus/core';
+     * import { getLogger, NimbusEventBus } from '@nimbus-cqrs/core';
      *
      * const eventBus = new NimbusEventBus({
      *     name: 'orders',
@@ -219,7 +219,7 @@ export class NimbusEventBus {
      *
      * @example
      * ```ts
-     * import { createEvent, getEventBus } from '@nimbus/core';
+     * import { createEvent, getEventBus } from '@nimbus-cqrs/core';
      *
      * const eventBus = getEventBus('default');
      *
@@ -315,7 +315,7 @@ export class NimbusEventBus {
      *
      * @example
      * ```ts
-     * import { getEventBus, getLogger } from '@nimbus/core';
+     * import { getEventBus, getLogger } from '@nimbus-cqrs/core';
      *
      * const eventBus = getEventBus('default');
      *
@@ -351,7 +351,7 @@ export class NimbusEventBus {
         onError,
         options,
     }: SubscribeEventInput<TEvent>): void {
-        getLogger().info({
+        getLogger().debug({
             category: 'Nimbus',
             message: `Subscribed to ${type} event`,
         });
@@ -584,7 +584,7 @@ const eventBusRegistry = new Map<string, NimbusEventBus>();
  *
  * @example
  * ```ts
- * import { getLogger, setupEventBus } from '@nimbus/core';
+ * import { getLogger, setupEventBus } from '@nimbus-cqrs/core';
  *
  * // At application startup, configure the event bus with all options
  * setupEventBus('default', {
@@ -622,7 +622,7 @@ export const setupEventBus = (
  *
  * @example
  * ```ts
- * import { createEvent, getEventBus } from '@nimbus/core';
+ * import { createEvent, getEventBus } from '@nimbus-cqrs/core';
  *
  * // Get the event bus configured earlier with setupEventBus
  * const eventBus = getEventBus('default');

@@ -16,7 +16,7 @@ The Logger middleware logs HTTP requests and responses with timing information u
 
 ```typescript
 import { Hono } from "hono";
-import { correlationId, logger } from "@nimbus/hono";
+import { correlationId, logger } from "@nimbus-cqrs/hono";
 
 const app = new Hono();
 
@@ -33,7 +33,7 @@ app.use(logger());
 | `tracerName`    | `string`  | `"nimbus"` | The name of the tracer for OpenTelemetry  |
 
 ```typescript
-import { logger } from "@nimbus/hono";
+import { logger } from "@nimbus-cqrs/hono";
 
 app.use(
     logger({
@@ -84,7 +84,7 @@ When `enableTracing` is set to `true`, the middleware:
 
 ```typescript
 import { Hono } from "hono";
-import { correlationId, logger } from "@nimbus/hono";
+import { correlationId, logger } from "@nimbus-cqrs/hono";
 
 const app = new Hono();
 

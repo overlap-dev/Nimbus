@@ -79,7 +79,7 @@ type HandlerRegistration = {
  *
  * @example
  * ```ts
- * import { createCommand, MessageRouter } from '@nimbus/core';
+ * import { createCommand, MessageRouter } from '@nimbus-cqrs/core';
  *
  * const messageRouter = new MessageRouter({
  *     name: 'api',
@@ -140,7 +140,7 @@ export class MessageRouter {
      *
      * @example
      * ```ts
-     * import { commandSchema, type Command, getRouter } from '@nimbus/core';
+     * import { commandSchema, type Command, getRouter } from '@nimbus-cqrs/core';
      * import { z } from 'zod';
      *
      * // Define the command type and schema
@@ -196,7 +196,7 @@ export class MessageRouter {
      *
      * @example
      * ```ts
-     * import { createCommand, getRouter } from '@nimbus/core';
+     * import { createCommand, getRouter } from '@nimbus-cqrs/core';
      *
      * const router = getRouter('default');
      *
@@ -335,7 +335,7 @@ const routerRegistry = new Map<string, MessageRouter>();
  *
  * @example
  * ```ts
- * import { getLogger, setupRouter } from '@nimbus/core';
+ * import { getLogger, setupRouter } from '@nimbus-cqrs/core';
  *
  * // At application startup, configure the router with all options
  * setupRouter('default', {
@@ -376,7 +376,7 @@ export const setupRouter = (
  *
  * @example
  * ```ts
- * import { createCommand, getRouter } from '@nimbus/core';
+ * import { createCommand, getRouter } from '@nimbus-cqrs/core';
  *
  * // Get the router configured earlier with setupRouter
  * const router = getRouter('default');

@@ -1,4 +1,4 @@
-import { writeEvents } from '@nimbus/eventsourcingdb';
+import { writeEvents } from '@nimbus-cqrs/eventsourcingdb';
 import { ulid } from '@std/ulid';
 import { isSubjectPristine } from 'eventsourcingdb';
 import {

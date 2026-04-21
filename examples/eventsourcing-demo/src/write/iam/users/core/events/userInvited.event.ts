@@ -1,4 +1,4 @@
-import { eventSchema } from '@nimbus/core';
+import { eventSchema } from '@nimbus-cqrs/core';
 import z from 'zod';
 
 export const USER_INVITED_EVENT_TYPE = 'at.overlap.nimbus.user-invited';

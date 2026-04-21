@@ -1,4 +1,4 @@
-import { getLogger } from '@nimbus/core';
+import { getLogger } from '@nimbus-cqrs/core';
 import {
     type Collection,
     type Db,
@@ -21,7 +21,7 @@ import {
  *
  * @example
  * ```ts
- * import { MongoConnectionManager } from '@nimbus/mongodb';
+ * import { MongoConnectionManager } from '@nimbus-cqrs/mongodb';
  * import { ServerApiVersion } from 'mongodb';
  *
  * export const mongoManager = MongoConnectionManager.getInstance(
@@ -73,12 +73,10 @@ export class MongoConnectionManager {
         uri: string,
         options?: MongoClientOptions,
     ): MongoConnectionManager {
-        if (!MongoConnectionManager._instance) {
-            MongoConnectionManager._instance = new MongoConnectionManager(
-                uri,
-                options,
-            );
-        }
+        MongoConnectionManager._instance ??= new MongoConnectionManager(
+            uri,
+            options,
+        );
 
         return MongoConnectionManager._instance;
     }

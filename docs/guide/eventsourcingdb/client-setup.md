@@ -21,7 +21,7 @@ You can find the full example on GitHub: [eventsourcing-demo](https://github.com
 ## Basic Usage
 
 ```typescript
-import { setupEventSourcingDBClient } from "@nimbus/eventsourcingdb";
+import { setupEventSourcingDBClient } from "@nimbus-cqrs/eventsourcingdb";
 
 await setupEventSourcingDBClient({
     url: new URL(process.env.ESDB_URL ?? ""),
@@ -53,7 +53,7 @@ If the connection or authentication fails, a `GenericException` is thrown and th
 You can provide event observers that will automatically start observing events after the client is initialized:
 
 ```typescript
-import { setupEventSourcingDBClient } from "@nimbus/eventsourcingdb";
+import { setupEventSourcingDBClient } from "@nimbus-cqrs/eventsourcingdb";
 import type { Event } from "eventsourcingdb";
 
 await setupEventSourcingDBClient({
@@ -78,7 +78,7 @@ See the [Event Observer](/guide/eventsourcingdb/event-observer) documentation fo
 After initialization, use `getEventSourcingDBClient` to access the singleton client instance anywhere in your application:
 
 ```typescript
-import { getEventSourcingDBClient } from "@nimbus/eventsourcingdb";
+import { getEventSourcingDBClient } from "@nimbus-cqrs/eventsourcingdb";
 
 const client = getEventSourcingDBClient();
 ```
@@ -97,7 +97,7 @@ The setup function throws a `GenericException` in two cases:
 | Invalid API token  | The provided API token could not be verified |
 
 ```typescript
-import { setupEventSourcingDBClient } from "@nimbus/eventsourcingdb";
+import { setupEventSourcingDBClient } from "@nimbus-cqrs/eventsourcingdb";
 
 try {
     await setupEventSourcingDBClient({

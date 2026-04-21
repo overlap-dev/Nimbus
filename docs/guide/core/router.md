@@ -23,7 +23,7 @@ You can find the full example on GitHub: [hono-demo](https://github.com/overlap-
 Configure the router at application startup using `setupRouter()`, then retrieve it anywhere using `getRouter()`.
 
 ```typescript
-import { getLogger, setupRouter } from "@nimbus/core";
+import { getLogger, setupRouter } from "@nimbus-cqrs/core";
 
 setupRouter("MyRouter", {
     logInput: (input) => {
@@ -61,7 +61,7 @@ setupRouter("MyRouter", {
 Register handlers for message types using the `register()` method:
 
 ```typescript
-import { getRouter } from "@nimbus/core";
+import { getRouter } from "@nimbus-cqrs/core";
 
 export const registerUserMessages = () => {
     const router = getRouter("MyRouter");
@@ -108,7 +108,7 @@ The `register()` method takes three arguments:
 Route messages to their handlers using the `route()` method:
 
 ```typescript
-import { createCommand, getRouter } from "@nimbus/core";
+import { createCommand, getRouter } from "@nimbus-cqrs/core";
 
 const command = createCommand<InviteUserCommand>({
     type: "at.overlap.nimbus.invite-user",

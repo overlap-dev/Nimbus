@@ -1,4 +1,4 @@
-import { GenericException, getLogger } from '@nimbus/core';
+import { GenericException, getLogger } from '@nimbus-cqrs/core';
 import process from 'node:process';
 
 type GetEnvInput = {

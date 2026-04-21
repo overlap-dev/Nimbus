@@ -40,7 +40,7 @@ import {
     InvalidInputException,
     NotFoundException,
     UnauthorizedException,
-} from "@nimbus/core";
+} from "@nimbus-cqrs/core";
 
 // Generic server error (500)
 throw new GenericException("Something went wrong");
@@ -69,7 +69,7 @@ throw new NotFoundException("User not found", {
 Use `fromError()` to convert a standard JavaScript error while preserving the stack trace:
 
 ```typescript
-import { GenericException } from "@nimbus/core";
+import { GenericException } from "@nimbus-cqrs/core";
 
 try {
     await someExternalService.call();
@@ -85,7 +85,7 @@ try {
 If you need to manually handle Zod validation:
 
 ```typescript
-import { InvalidInputException } from "@nimbus/core";
+import { InvalidInputException } from "@nimbus-cqrs/core";
 import { z } from "zod";
 
 const UserSchema = z.object({
@@ -107,7 +107,7 @@ try {
 Create custom exceptions by extending the base `Exception` class:
 
 ```typescript
-import { Exception } from "@nimbus/core";
+import { Exception } from "@nimbus-cqrs/core";
 
 export class RateLimitException extends Exception {
     constructor(message?: string, details?: Record<string, unknown>) {
@@ -129,10 +129,10 @@ throw new RateLimitException("Too many requests", {
 
 ## HTTP Integration
 
-When using the `@nimbus/hono` package, exceptions are automatically converted to HTTP responses:
+When using the `@nimbus-cqrs/hono` package, exceptions are automatically converted to HTTP responses:
 
 ```typescript
-import { onError } from "@nimbus/hono";
+import { onError } from "@nimbus-cqrs/hono";
 import { Hono } from "hono";
 
 const app = new Hono();

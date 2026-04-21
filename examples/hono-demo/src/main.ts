@@ -6,7 +6,7 @@ import {
     setupEventBus,
     setupLogger,
     setupRouter,
-} from '@nimbus/core';
+} from '@nimbus-cqrs/core';
 import '@std/dotenv/load';
 import process from 'node:process';
 import { app } from './shared/shell/http.ts';

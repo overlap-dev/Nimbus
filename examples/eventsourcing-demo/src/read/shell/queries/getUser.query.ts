@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nimbus/core';
+import { NotFoundException } from '@nimbus-cqrs/core';
 import { GetUserQuery } from '../../core/queries/getUser.query.ts';
 import { usersMemoryStore } from '../memoryStore/usersMemoryStore.ts';
 

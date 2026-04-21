@@ -3,8 +3,14 @@
     "strict": true
   },
   "exclude": [
-    "docs/"
+    "docs/",
+    "dist/",
+    "examples/node-demo/",
+    "examples/bun-demo/"
   ],
+  "tasks": {
+    "build:npm": "deno run -A scripts/build_npm.ts"
+  },
   "workspace": [
     "./packages/core",
     "./packages/mongodb",
@@ -19,24 +25,40 @@
     "include": [
       "examples/",
       "packages/"
+    ],
+    "exclude": [
+      "examples/node-demo/",
+      "examples/bun-demo/"
     ]
   },
   "lint": {
     "include": [
       "examples/",
       "packages/"
+    ],
+    "exclude": [
+      "examples/node-demo/",
+      "examples/bun-demo/"
     ]
   },
   "check": {
     "include": [
       "examples/",
       "packages/"
+    ],
+    "exclude": [
+      "examples/node-demo/",
+      "examples/bun-demo/"
     ]
   },
   "test": {
     "include": [
       "examples/",
       "packages/"
+    ],
+    "exclude": [
+      "examples/node-demo/",
+      "examples/bun-demo/"
     ]
   }
 }

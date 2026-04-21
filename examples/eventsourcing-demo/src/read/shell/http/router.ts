@@ -1,5 +1,5 @@
-import { createQuery, getRouter } from '@nimbus/core';
-import { getCorrelationId } from '@nimbus/hono';
+import { createQuery, getRouter } from '@nimbus-cqrs/core';
+import { getCorrelationId } from '@nimbus-cqrs/hono';
 import { Hono } from 'hono';
 import {
     GET_USER_QUERY_TYPE,
