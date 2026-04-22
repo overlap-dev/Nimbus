@@ -4,8 +4,8 @@ prev:
     link: "/guide/quickstart"
 
 next:
-    text: "Observability"
-    link: "/guide/observability"
+    text: "Commands"
+    link: "/guide/core/commands"
 ---
 
 # Nimbus Core Package
@@ -25,7 +25,6 @@ You can find the full example on GitHub: [hono-demo](https://github.com/overlap-
 
 The core package provides:
 
--   **[Observability](/guide/observability)** - Built-in logging, tracing, and metrics using OpenTelemetry
 -   **[Commands](/guide/core/commands)** - Write operations following the CloudEvents specification
 -   **[Queries](/guide/core/queries)** - Read operations for fetching data
 -   **[Events](/guide/core/events)** - Domain events for reactive architectures
@@ -33,6 +32,7 @@ The core package provides:
 -   **[Event Bus](/guide/core/event-bus)** - Publish/subscribe for in-process events
 -   **[Exceptions](/guide/core/exceptions)** - Structured error handling with HTTP status codes
 -   **[Logging](/guide/core/logging)** - Structured logging with configurable formatters
+-   **[Observability](/guide/core/observability)** - Built-in logging, tracing, and metrics using OpenTelemetry
 
 ## Installation
 

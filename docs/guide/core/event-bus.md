@@ -1,13 +1,3 @@
----
-prev:
-    text: "Router"
-    link: "/guide/core/router"
-
-next:
-    text: "Exceptions"
-    link: "/guide/core/exceptions"
----
-
 # Event Bus
 
 The NimbusEventBus enables publish/subscribe messaging for [events](/guide/core/events) within your application. Events are delivered asynchronously to all registered handlers with automatic retry on failure.

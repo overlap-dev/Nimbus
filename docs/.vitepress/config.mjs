@@ -19,7 +19,7 @@ export default defineConfig({
 
         nav: [
             { text: "Home", link: "/" },
-            { text: "Guide", link: "/guide/quickstart" },
+            { text: "Guide", link: "/guide/what-is-nimbus" },
         ],
 
         sidebar: {
@@ -29,12 +29,21 @@ export default defineConfig({
                     link: "/guide/what-is-nimbus",
                 },
                 {
-                    text: "Quickstart",
-                    link: "/guide/quickstart",
+                    text: "Philosophy",
+                    link: "/guide/philosophy",
                 },
                 {
-                    text: "Observability",
-                    link: "/guide/observability",
+                    text: "The Era of AI",
+                    link: "/guide/era-of-ai",
+                },
+                {
+                    text: "Architecture",
+                    link: "/guide/architecture-recommendation",
+                },
+
+                {
+                    text: "Quickstart",
+                    link: "/guide/quickstart",
                 },
                 {
                     text: "Core",
@@ -61,13 +70,18 @@ export default defineConfig({
                             link: "/guide/core/event-bus",
                         },
                         {
-                            text: "Logging",
-                            link: "/guide/core/logging",
-                        },
-                        {
                             text: "Exceptions",
                             link: "/guide/core/exceptions",
                         },
+                        {
+                            text: "Observability",
+                            link: "/guide/core/observability",
+                        },
+                        {
+                            text: "Logging",
+                            link: "/guide/core/logging",
+                        },
+
                     ],
                 },
 

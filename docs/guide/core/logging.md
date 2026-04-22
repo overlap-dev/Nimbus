@@ -1,8 +1,4 @@
 ---
-prev:
-    text: "Event Bus"
-    link: "/guide/core/event-bus"
-
 next:
     text: "Exceptions"
     link: "/guide/core/exceptions"

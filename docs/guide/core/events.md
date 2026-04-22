@@ -1,13 +1,3 @@
----
-prev:
-    text: "Queries"
-    link: "/guide/core/queries"
-
-next:
-    text: "Router"
-    link: "/guide/core/router"
----
-
 # Events
 
 Events represent facts - things that have already happened in the system.
@@ -46,18 +36,18 @@ type Event<TData = unknown> = {
 };
 ```
 
-| Property          | Description                                                                        |
-| ----------------- | ---------------------------------------------------------------------------------- |
-| `specversion`     | The CloudEvents specification version (always `'1.0'`)                             |
-| `id`              | A globally unique identifier for the event                                         |
-| `correlationid`   | A unique identifier to correlate this event with related messages                  |
-| `time`            | ISO 8601 timestamp when the event was created                                      |
-| `source`          | A URI reference identifying the system creating the event                          |
+| Property          | Description                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------ |
+| `specversion`     | The CloudEvents specification version (always `'1.0'`)                               |
+| `id`              | A globally unique identifier for the event                                           |
+| `correlationid`   | A unique identifier to correlate this event with related messages                    |
+| `time`            | ISO 8601 timestamp when the event was created                                        |
+| `source`          | A URI reference identifying the system creating the event                            |
 | `type`            | The event type following CloudEvents naming (e.g., `at.overlap.nimbus.user-invited`) |
-| `subject`         | An identifier for the entity the event is about (e.g., `/users/123`)               |
-| `data`            | The event payload containing the business data                                     |
-| `datacontenttype` | Optional MIME type of the data (defaults to `application/json`)                    |
-| `dataschema`      | Optional URL to the schema the data adheres to                                     |
+| `subject`         | An identifier for the entity the event is about (e.g., `/users/123`)                 |
+| `data`            | The event payload containing the business data                                       |
+| `datacontenttype` | Optional MIME type of the data (defaults to `application/json`)                      |
+| `dataschema`      | Optional URL to the schema the data adheres to                                       |
 
 ## Event Subjects
 

@@ -1,13 +1,3 @@
----
-prev:
-    text: "Commands"
-    link: "/guide/core/commands"
-
-next:
-    text: "Events"
-    link: "/guide/core/events"
----
-
 # Queries
 
 Queries represent read operations - requests for information without changing application state.

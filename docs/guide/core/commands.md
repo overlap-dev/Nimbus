@@ -1,11 +1,7 @@
 ---
 prev:
-    text: "Observability"
-    link: "/guide/core/observability"
-
-next:
-    text: "Queries"
-    link: "/guide/core/queries"
+    text: "Core"
+    link: "/guide/core"
 ---
 
 # Commands

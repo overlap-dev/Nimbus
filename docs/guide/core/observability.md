@@ -1,20 +1,8 @@
----
-prev:
-    text: "Quickstart"
-    link: "/guide/quickstart"
-
-next:
-    text: "Commands"
-    link: "/guide/core/commands"
----
-
 # Observability
 
 Observability is a first-class citizen in Nimbus. The framework is designed so that developers can focus on business logic without implementing logging, tracing, and metrics from the ground up.
 
-## Philosophy
-
-Nimbus follows the principle that observability should be built-in, not bolted-on. Every core component - from message routing to event handling - comes with automatic instrumentation. This means:
+Every core component - from message routing to event handling - comes with automatic instrumentation. This means:
 
 -   **Zero boilerplate** - Tracing spans and metrics are created automatically
 -   **Consistent structure** - All logs follow the same format across your application

@@ -1,13 +1,3 @@
----
-prev:
-    text: "Events"
-    link: "/guide/core/events"
-
-next:
-    text: "Event Bus"
-    link: "/guide/core/event-bus"
----
-
 # Router
 
 The MessageRouter is responsible for routing incoming messages (commands, queries, and events) to their registered handlers. It provides automatic validation, type safety, and observability for all routed messages.
@@ -97,11 +87,11 @@ export const registerUserMessages = () => {
 
 The `register()` method takes three arguments:
 
-| Argument      | Description                                                        |
-| ------------- | ------------------------------------------------------------------ |
+| Argument      | Description                                                           |
+| ------------- | --------------------------------------------------------------------- |
 | `messageType` | The CloudEvents type string (e.g., `'at.overlap.nimbus.invite-user'`) |
-| `handler`     | An async function that processes the message and returns a result  |
-| `schema`      | A Zod schema used to validate the incoming message                 |
+| `handler`     | An async function that processes the message and returns a result     |
+| `schema`      | A Zod schema used to validate the incoming message                    |
 
 ## Routing Messages
 

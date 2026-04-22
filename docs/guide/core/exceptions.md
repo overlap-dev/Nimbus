@@ -1,13 +1,3 @@
----
-prev:
-    text: "Logging"
-    link: "/guide/core/logging"
-
-next:
-    text: "Nimbus Hono"
-    link: "/guide/hono"
----
-
 # Exceptions
 
 Nimbus provides a set of structured exceptions for handling errors in your application. These exceptions
