@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nimbus-cqrs/core';
+import { updateOne } from '@nimbus-cqrs/mongodb';
 import { toSnakeCase } from '@std/text';
 import type {
     BulkWriteOptions,
@@ -11,6 +12,8 @@ import type {
     InsertOneOptions,
     ReplaceOptions,
     Sort,
+    UpdateFilter,
+    UpdateOptions,
 } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import type { ZodType } from 'zod';
@@ -245,6 +248,39 @@ export class MongoDBRepository<
         });
 
         return items;
+    }
+
+    /**
+     * Update a single document.
+     */
+    public async updateOne({
+        filter,
+        update,
+        options,
+    }: {
+        filter: Filter<Document>;
+        update: UpdateFilter<Document> | Document[];
+        options?: UpdateOptions;
+    }): Promise<void> {
+        const collection = await this._getCollection();
+
+        const res = await updateOne({
+            collection,
+            filter,
+            update,
+            options,
+        });
+
+        if (res.matchedCount === 0) {
+            throw new NotFoundException(
+                `${this._entityName} not found`,
+                {
+                    errorCode: 'DOCUMENT_NOT_FOUND',
+                    reason: 'Could not find document matching the given filter',
+                    filter,
+                },
+            );
+        }
     }
 
     /**

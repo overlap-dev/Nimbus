@@ -1,18 +1,15 @@
 import { createQuery, getRouter } from '@nimbus-cqrs/core';
 import { getCorrelationId } from '@nimbus-cqrs/hono';
 import { Hono } from 'hono';
-import {
-    GET_USER_QUERY_TYPE,
-    GetUserQuery,
-} from '../../core/queries/getUser.query.ts';
+import { GET_USER_QUERY_TYPE, GetUserQuery } from './queries/getUser.query.ts';
 import {
     LIST_USERS_QUERY_TYPE,
     ListUsersQuery,
-} from '../../core/queries/listUsers.query.ts';
+} from './queries/listUsers.query.ts';
 
-const readRouter = new Hono();
+const httpUsersQueryRouter = new Hono();
 
-readRouter.get(
+httpUsersQueryRouter.get(
     '/list-users',
     async (c) => {
         const correlationId = getCorrelationId(c);
@@ -24,13 +21,13 @@ readRouter.get(
             data: {},
         });
 
-        const result = await getRouter('readRouter').route(query);
+        const result = await getRouter('queryRouter').route(query);
 
         return c.json(result);
     },
 );
 
-readRouter.get(
+httpUsersQueryRouter.get(
     '/get-user-by-id/:id',
     async (c) => {
         const id = c.req.param('id');
@@ -45,10 +42,10 @@ readRouter.get(
             },
         });
 
-        const result = await getRouter('readRouter').route(query);
+        const result = await getRouter('queryRouter').route(query);
 
         return c.json(result);
     },
 );
 
-export default readRouter;
+export default httpUsersQueryRouter;

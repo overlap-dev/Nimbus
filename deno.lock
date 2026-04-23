@@ -12,6 +12,7 @@
     "npm:eventsourcingdb@^1.8.1": "1.8.1",
     "npm:hono@^4.12.14": "4.12.14",
     "npm:mongodb@7.1.1": "7.1.1",
+    "npm:mongodb@^7.1.1": "7.1.1",
     "npm:zod@^4.3.6": "4.3.6"
   },
   "jsr": {
@@ -1025,7 +1026,7 @@
           "jsr:@std/assert@^1.0.19",
           "jsr:@std/text@^1.0.17",
           "npm:@opentelemetry/api@^1.9.1",
-          "npm:mongodb@7.1.1",
+          "npm:mongodb@^7.1.1",
           "npm:zod@^4.3.6"
         ]
       }

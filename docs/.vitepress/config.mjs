@@ -33,17 +33,20 @@ export default defineConfig({
                     link: "/guide/philosophy",
                 },
                 {
+                    text: "Architecture",
+                    link: "/guide/architecture",
+                },
+                {
                     text: "The Era of AI",
                     link: "/guide/era-of-ai",
                 },
                 {
-                    text: "Architecture",
-                    link: "/guide/architecture-recommendation",
-                },
-
-                {
                     text: "Quickstart",
                     link: "/guide/quickstart",
+                },
+                {
+                    text: "Example App",
+                    link: "/guide/example-app",
                 },
                 {
                     text: "Core",

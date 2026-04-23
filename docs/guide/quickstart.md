@@ -1,9 +1,3 @@
----
-next:
-    text: "Core"
-    link: "/guide/core"
----
-
 # Quickstart
 
 To get started with Nimbus you need to install the core package and other relevant Nimbus packages based on your needs.

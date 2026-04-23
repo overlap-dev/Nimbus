@@ -8,6 +8,7 @@ You should pick the parts you need for the problem you are trying to solve.
 -   Event Sourcing
 -   Domain Driven Design
 -   Hexagonal Architecture
+-   Modular Monolith
 -   Microservices
 -   ...
 

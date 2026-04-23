@@ -1,17 +1,17 @@
 import { getRouter } from '@nimbus-cqrs/core';
 import {
     GET_USER_QUERY_TYPE,
+    getUserQueryHandler,
     getUserQuerySchema,
-} from '../core/queries/getUser.query.ts';
+} from './getUser.query.ts';
 import {
     LIST_USERS_QUERY_TYPE,
+    listUsersQueryHandler,
     listUsersQuerySchema,
-} from '../core/queries/listUsers.query.ts';
-import { getUserQueryHandler } from './queries/getUser.query.ts';
-import { listUsersQueryHandler } from './queries/listUsers.query.ts';
+} from './listUsers.query.ts';
 
-export const registerViews = () => {
-    const router = getRouter('readRouter');
+export const registerUserQueries = () => {
+    const router = getRouter('queryRouter');
 
     router.register(
         GET_USER_QUERY_TYPE,
