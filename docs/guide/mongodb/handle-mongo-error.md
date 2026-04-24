@@ -12,6 +12,12 @@ next:
 
 The `handleMongoError` function converts MongoDB errors to Nimbus exceptions based on the error code. This provides consistent error handling across your application.
 
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
+
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
+:::
+
 ## Basic Usage
 
 ```typescript

@@ -1,20 +1,8 @@
----
-prev:
-    text: "Quickstart"
-    link: "/guide/quickstart"
-
-next:
-    text: "Commands"
-    link: "/guide/core/commands"
----
-
 # Observability
 
 Observability is a first-class citizen in Nimbus. The framework is designed so that developers can focus on business logic without implementing logging, tracing, and metrics from the ground up.
 
-## Philosophy
-
-Nimbus follows the principle that observability should be built-in, not bolted-on. Every core component - from message routing to event handling - comes with automatic instrumentation. This means:
+Every core component - from message routing to event handling - comes with automatic instrumentation. This means:
 
 -   **Zero boilerplate** - Tracing spans and metrics are created automatically
 -   **Consistent structure** - All logs follow the same format across your application
@@ -25,6 +13,12 @@ The three pillars of observability in Nimbus:
 1. **Logging** - Structured console output with configurable formatters
 2. **Tracing** - Distributed traces via OpenTelemetry spans
 3. **Metrics** - Counters and histograms for monitoring
+
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
+
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
+:::
 
 ## OpenTelemetry Standards
 

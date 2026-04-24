@@ -15,7 +15,7 @@ import { withSpan } from '../tracing.ts';
 export type UpdateManyInput = {
     collection: Collection<Document>;
     filter: Filter<Document>;
-    update: UpdateFilter<Document>;
+    update: UpdateFilter<Document> | Document[];
     options?: UpdateOptions;
 };
 

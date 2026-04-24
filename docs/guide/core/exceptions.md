@@ -1,17 +1,13 @@
----
-prev:
-    text: "Logging"
-    link: "/guide/core/logging"
-
-next:
-    text: "Nimbus Hono"
-    link: "/guide/hono"
----
-
 # Exceptions
 
 Nimbus provides a set of structured exceptions for handling errors in your application. These exceptions
 have and optional status code and can include additional details for debugging.
+
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
+
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
+:::
 
 ## Status Codes
 

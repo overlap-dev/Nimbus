@@ -17,46 +17,57 @@ eviction, so the manager only adds the minimum on top: hold one client for
 the lifetime of the application and provide typed `getDatabase` /
 `getCollection` convenience methods.
 
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
+
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
+:::
+
 ## Basic Usage
 
 ```typescript
-import { MongoConnectionManager } from "@nimbus-cqrs/mongodb";
+import { setupMongoConnectionManager } from "@nimbus-cqrs/mongodb";
+import { getEnv } from "@nimbus-cqrs/utils";
 import { ServerApiVersion } from "mongodb";
 
-const mongoManager = MongoConnectionManager.getInstance(
-    process.env.MONGO_URL ?? "",
-    {
-        appName: "my-app",
-        serverApi: {
-            version: ServerApiVersion.v1,
-            strict: false,
-            deprecationErrors: true,
-        },
-    }
-);
+export const initMongoDB = () => {
+    const env = getEnv({
+        variables: ["MONGO_URL"],
+    });
 
-// Get a collection
-const collection = await mongoManager.getCollection("myDatabase", "users");
+    setupMongoConnectionManager({
+        name: "default",
+        uri: env["MONGO_URL"],
+        options: {
+            appName: "nimbus-eventsourcing-demo",
+            serverApi: {
+                version: ServerApiVersion.v1,
+                strict: false,
+                deprecationErrors: true,
+            },
+        },
+    });
+};
+
+const mongoManager = getMongoConnectionManager("default");
 ```
 
 ## Configuration
 
-`getInstance(uri, options?)` takes a MongoDB connection URI and an optional
+`setupMongoConnectionManager` takes a MongoDB connection URI and an optional
 [`MongoClientOptions`](https://mongodb.github.io/node-mongodb-native/) object
 that is forwarded as-is to the underlying `MongoClient`.
 
-We do not recommend specific timeout or pool values. Refer to the
-[MongoDB driver options reference](https://mongodb.github.io/node-mongodb-native/)
-and pick values that fit your workload. In particular, note that
-`socketTimeoutMS` is a per-operation budget — if you set it, make sure it is
-generous enough for your longest legitimate operation (e.g. large bulk
-writes), or leave it unset to use the driver default.
+Optionally you can also specify a name for the connection manager. This is useful if you want to have multiple connections to different databases. If no name is specified, the connection manager will be named "default".
+
+Refer to the [MongoDB driver options reference](https://mongodb.github.io/node-mongodb-native/) for more information on the available options.
+
+Use `getMongoConnectionManager` to get the connection manager instance.
 
 ## Available Methods
 
 | Method                              | Return Type                                           | Description                                                   |
 | ----------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------- |
-| `getInstance(uri, options?)`        | `MongoConnectionManager`                              | Get the singleton instance                                    |
 | `getClient()`                       | `Promise<MongoClient>`                                | Get the connected MongoDB client (lazy-connect on first call) |
 | `getDatabase(dbName)`               | `Promise<Db>`                                         | Get a database instance                                       |
 | `getCollection(dbName, collection)` | `Promise<Collection>`                                 | Get a collection instance                                     |
@@ -76,13 +87,16 @@ delegated to the driver.
 
 ```typescript
 // Get a connected client
-const client = await mongoManager.getClient();
+const client = await getMongoConnectionManager().getClient();
 
 // Get a database
-const db = await mongoManager.getDatabase("myDatabase");
+const db = await getMongoConnectionManager().getDatabase("myDatabase");
 
 // Get a collection (most common)
-const usersCollection = await mongoManager.getCollection("myDatabase", "users");
+const usersCollection = await getMongoConnectionManager().getCollection(
+    "myDatabase",
+    "users"
+);
 ```
 
 ## Health Checks
@@ -91,7 +105,7 @@ Use `healthCheck()` to verify the database connection:
 
 ```typescript
 app.get("/health", async (c) => {
-    const dbHealth = await mongoManager.healthCheck();
+    const dbHealth = await getMongoConnectionManager().healthCheck();
 
     return c.json({
         status: dbHealth.status === "healthy" ? "ok" : "error",
@@ -120,7 +134,7 @@ the pool cleanly:
 import process from "node:process";
 
 const shutdown = async () => {
-    await mongoManager.close();
+    await getMongoConnectionManager().close();
     process.exit(0);
 };
 
@@ -143,7 +157,11 @@ import { User, UserSchema } from "./user.ts";
 class UserRepository extends MongoDBRepository<User> {
     constructor() {
         super(
-            () => mongoManager.getCollection("myDatabase", "users"),
+            () =>
+                getMongoConnectionManager().getCollection(
+                    "myDatabase",
+                    "users"
+                ),
             UserSchema,
             "User"
         );
@@ -159,7 +177,10 @@ export const userRepository = new UserRepository();
 upgrading from 1.x:
 
 -   The constructor signature is now flattened.  
-    Replace `MongoConnectionManager.getInstance(uri, { mongoClientOptions: { ... } })` with `MongoConnectionManager.getInstance(uri, { ... })`.
+    From `MongoConnectionManager.getInstance(uri, { mongoClientOptions: { ... } })` to `MongoConnectionManager.getInstance(uri, { ... })`.
+
+    Use the new functions `setupMongoConnectionManager` and `getMongoConnectionManager` instead.
+
 -   The `connectionTimeout` option has been removed. The driver handles socket lifecycle via `maxIdleTimeMS` on the pool.
 -   The `cleanup()` method has been removed.  
     Delete any `setInterval(() => mongoManager.cleanup(), ...)` you set up.

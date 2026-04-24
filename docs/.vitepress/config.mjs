@@ -1,7 +1,8 @@
 import { defineConfig } from "vitepress";
+import { withMermaid } from "vitepress-plugin-mermaid";
 
 // https://vitepress.dev/reference/site-config
-export default defineConfig({
+export default withMermaid(defineConfig({
     title: "Nimbus",
     description: "Build event-driven applications with typescript.",
     themeConfig: {
@@ -19,7 +20,7 @@ export default defineConfig({
 
         nav: [
             { text: "Home", link: "/" },
-            { text: "Guide", link: "/guide/quickstart" },
+            { text: "Guide", link: "/guide/what-is-nimbus" },
         ],
 
         sidebar: {
@@ -29,12 +30,24 @@ export default defineConfig({
                     link: "/guide/what-is-nimbus",
                 },
                 {
+                    text: "Philosophy",
+                    link: "/guide/philosophy",
+                },
+                {
+                    text: "Architecture",
+                    link: "/guide/architecture",
+                },
+                {
+                    text: "The Era of AI",
+                    link: "/guide/era-of-ai",
+                },
+                {
                     text: "Quickstart",
                     link: "/guide/quickstart",
                 },
                 {
-                    text: "Observability",
-                    link: "/guide/observability",
+                    text: "In Depth Example",
+                    link: "/guide/in-depth-example",
                 },
                 {
                     text: "Core",
@@ -61,13 +74,18 @@ export default defineConfig({
                             link: "/guide/core/event-bus",
                         },
                         {
-                            text: "Logging",
-                            link: "/guide/core/logging",
-                        },
-                        {
                             text: "Exceptions",
                             link: "/guide/core/exceptions",
                         },
+                        {
+                            text: "Observability",
+                            link: "/guide/core/observability",
+                        },
+                        {
+                            text: "Logging",
+                            link: "/guide/core/logging",
+                        },
+
                     ],
                 },
 
@@ -186,5 +204,13 @@ export default defineConfig({
             copyright:
                 'Copyright © 2024-present <a href="https://overlap.at">Overlap GmbH & Co KG</a>',
         },
+    },
+}), {
+    mermaid: {
+        look: "handDrawn",
+        theme: "default",
+    },
+    mermaidPlugin: {
+        class: "mermaid",
     },
 });

@@ -6,25 +6,54 @@ import {
     UserInvitedEvent,
 } from '../events/userInvited.event.ts';
 
+// Each message needs its unique type.
+// We want to stick to the CloudEvents naming convention
+// and use a reversed domain name as a namespace,
+// followed by command name.
 export const INVITE_USER_COMMAND_TYPE = 'at.overlap.nimbus.invite-user';
 
+// We define a schema for the commands data object.
 export const inviteUserInputSchema = z.object({
     email: z.email(),
     firstName: z.string().min(1),
     lastName: z.string().min(1),
 });
 
+// To create the schema and type for the invite user command
+// we extend the Nimbus base command schema with the specific
+// type and the data schema.
 export const inviteUserCommandSchema = commandSchema.extend({
     type: z.literal(INVITE_USER_COMMAND_TYPE),
     data: inviteUserInputSchema,
 });
 export type InviteUserCommand = z.infer<typeof inviteUserCommandSchema>;
 
+// This is the core logic for the invite user command.
+//
+// Based on the current state and the command data
+// we create the resulting events.
+//
+// As mentioned in the architecture section of the guide
+// we keep the core logic pure and without side effects.
+//
+// This way we can easily define all the business rules and constraints
+// in one place. This is the purpose the application exists for.
+//
+// The function arguments define the information necessary to apply the
+// business rules and constraints. Most often the state and command will
+// be enough. But in this case it could also be important to know if the
+// requested email address is still pristine in the system.
+//
+// Test all business scenarios dead simple with unit tests.
+//
+// GIVEN: state = A
+//   AND: command = B
+// WHEN: inviteUser(state, command)
+// THEN: [EventA, EventB]
 export const inviteUser = (
     state: UserState,
     command: InviteUserCommand,
 ): [UserInvitedEvent] => {
-    // Always make sure to cast all user emails to lowercase
     const email = command.data.email.toLowerCase();
 
     const userInvitedEvent = createEvent<UserInvitedEvent>({

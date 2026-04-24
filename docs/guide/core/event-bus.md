@@ -1,21 +1,11 @@
----
-prev:
-    text: "Router"
-    link: "/guide/core/router"
-
-next:
-    text: "Exceptions"
-    link: "/guide/core/exceptions"
----
-
 # Event Bus
 
 The NimbusEventBus enables publish/subscribe messaging for [events](/guide/core/events) within your application. Events are delivered asynchronously to all registered handlers with automatic retry on failure.
 
-::: info Example Application
-The examples on this page reference the hono-demo application.
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
 
-You can find the full example on GitHub: [hono-demo](https://github.com/overlap-dev/Nimbus/tree/main/examples/hono-demo)
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
 :::
 
 ## Setup and Configuration

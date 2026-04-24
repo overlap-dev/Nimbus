@@ -12,6 +12,12 @@ next:
 
 The CorrelationID middleware extracts a correlation ID from incoming request headers or generates a new one using ULID. This ID is stored in the Hono context and optionally added to response headers, enabling request tracing across your application.
 
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
+
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
+:::
+
 ## Basic Usage
 
 ```typescript

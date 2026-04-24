@@ -14,10 +14,10 @@ The `initEventObserver` function starts a background event observation loop that
 
 For full details on observing events, including resuming after connection loss and observing from the last event of a given type, see the [Observing Events](https://docs.eventsourcingdb.io/getting-started/observing-events/) section in the EventSourcingDB documentation.
 
-::: info Example Application
-The examples on this page reference the eventsourcing-demo application.
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
 
-You can find the full example on GitHub: [eventsourcing-demo](https://github.com/overlap-dev/Nimbus/tree/main/examples/eventsourcing-demo)
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
 :::
 
 ## Basic Usage

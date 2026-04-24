@@ -10,6 +10,12 @@ next: false
 
 The `getEnv` function retrieves environment variables with validation. It throws an exception if any requested variables are missing, ensuring your application fails fast with clear error messages.
 
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
+
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
+:::
+
 ## Basic Usage
 
 ```typescript

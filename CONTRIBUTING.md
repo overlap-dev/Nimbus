@@ -147,14 +147,27 @@ additional rights as described in the [CLA](CLA.md).
 
 Branch from `main` into a new release branch `release/<VERSION>`.
 
-For each package make sure the version in the `packages/<PACKAGE_NAME>/deno.json` is set correctly.
-
 Stick to the [Semantic Versioning](https://semver.org/) specification.
+
+Bump the version across the repo with the helper task:
+
+```sh
+deno task version:set <VERSION>
+# e.g.
+deno task version:set 2.0.2
+deno task version:set 3.0.0-rc.1
+```
+
+This updates the `version` field in every `packages/<PACKAGE_NAME>/deno.json`
+and rewrites the `@nimbus-cqrs/*` dependencies in
+`examples/node-demo/package.json` and `examples/bun-demo/package.json` to the
+new caret range.
 
 Commit, push and open a pull request to `main`.
 Squash and merge the pull request with the message `chore: release <VERSION>`.
 
-Create a new release on GitHub and the workflow will publish the new version to JSR.
+Create a new release on GitHub and the workflow will publish the new version
+to JSR and npm.
 
 ### Manually publish to JSR
 

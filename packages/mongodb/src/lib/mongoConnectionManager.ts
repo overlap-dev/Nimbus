@@ -223,3 +223,91 @@ export class MongoConnectionManager {
         }
     }
 }
+
+/**
+ * Registry to store named MongoConnectionManager instances.
+ */
+const mongoConnectionManagerRegistry = new Map<
+    string,
+    MongoConnectionManager
+>();
+
+/**
+ * Setup a named MongoConnectionManager instance and register it for later retrieval.
+ *
+ * Use this function to configure a MongoConnectionManager at application
+ * startup, then retrieve it later with {@link getMongoConnectionManager}.
+ *
+ * @param {object} params - The setup parameters.
+ * @param {string} params.uri - The MongoDB connection URI.
+ * @param {MongoClientOptions} [params.options] - Options forwarded to the underlying `MongoClient`.
+ * @param {string} [params.name] - The unique name for this MongoConnectionManager instance. Defaults to 'default'.
+ *
+ * @example
+ * ```ts
+ * import { setupMongoConnectionManager } from '@nimbus-cqrs/mongodb';
+ * import { getEnv } from '@nimbus-cqrs/utils';
+ * import { ServerApiVersion } from 'mongodb';
+ *
+ * const env = getEnv({ variables: ['MONGO_URL'] });
+ *
+ * setupMongoConnectionManager({
+ *     uri: env.MONGO_URL,
+ *     options: {
+ *         appName: 'my-app',
+ *         serverApi: {
+ *             version: ServerApiVersion.v1,
+ *             strict: false,
+ *             deprecationErrors: true,
+ *         },
+ *     },
+ * });
+ * ```
+ */
+export const setupMongoConnectionManager = (
+    { uri, options, name = 'default' }: {
+        uri: string;
+        options?: MongoClientOptions;
+        name?: string;
+    },
+): void => {
+    mongoConnectionManagerRegistry.set(
+        name,
+        MongoConnectionManager.getInstance(uri, options),
+    );
+};
+
+/**
+ * Get a named MongoConnectionManager instance.
+ *
+ * Returns the instance previously registered via
+ * {@link setupMongoConnectionManager}. Throws if no manager has been
+ * registered under the given `name` yet.
+ *
+ * @param {string} [name] - The name of the MongoConnectionManager instance to retrieve. Defaults to 'default'.
+ *
+ * @returns {MongoConnectionManager} The registered MongoConnectionManager instance.
+ *
+ * @throws {Error} If no MongoConnectionManager has been registered under `name`.
+ *
+ * @example
+ * ```ts
+ * import { getMongoConnectionManager } from '@nimbus-cqrs/mongodb';
+ *
+ * const mongoManager = getMongoConnectionManager();
+ * const collection = await mongoManager.getCollection('my-db', 'users');
+ * ```
+ */
+export const getMongoConnectionManager = (
+    name: string = 'default',
+): MongoConnectionManager => {
+    const instance = mongoConnectionManagerRegistry.get(name);
+
+    if (!instance) {
+        throw new Error(
+            `MongoConnectionManager "${name}" has not been initialized. Call setupMongoConnectionManager({ name: "${name}", uri, options }) first.`,
+        );
+    }
+
+    return instance;
+};

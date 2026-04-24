@@ -4,14 +4,19 @@ import {
     parseLogLevel,
     prettyLogFormatter,
     setupLogger,
-    setupRouter,
 } from '@nimbus-cqrs/core';
-import { setupEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
+import { getMongoConnectionManager } from '@nimbus-cqrs/mongodb';
+import { getEnv } from '@nimbus-cqrs/utils';
 import '@std/dotenv/load';
 import process from 'node:process';
-import { projectViews } from './read/core/projectViews.ts';
-import { app } from './shared/shell/http.ts';
-import { initMessages } from './shared/shell/messages.ts';
+import { initEventSourcingDB } from './eventsourcingdb.ts';
+import { startHttpServer } from './http.ts';
+import { initMongoDB } from './mongodb.ts';
+import { initQueryRouter } from './read/queryRouter.ts';
+import { initCommandRouter } from './write/commandRouter.ts';
+
+// Set up the logger first to have it available
+// throughout the application with getLogger().
 
 setupLogger({
     logLevel: parseLogLevel(process.env.LOG_LEVEL),
@@ -21,85 +26,63 @@ setupLogger({
     useConsoleColors: process.env.LOG_FORMAT === 'pretty',
 });
 
-await setupEventSourcingDBClient(
-    {
-        url: new URL(process.env.ESDB_URL ?? ''),
-        apiToken: process.env.ESDB_API_TOKEN ?? '',
-        eventObservers: [
-            {
-                subject: '/',
-                recursive: true,
-                eventHandler: projectViews,
-            },
-        ],
-    },
-);
+// Make sure Database connections are established first.
+// In this example we use EventSourcingDB for the write side of the application.
+// and MongoDB to store the read projections.
 
-setupRouter('writeRouter', {
-    logInput: (input) => {
-        getLogger().debug({
-            category: 'MessageRouter',
-            message: 'Received input',
-            data: { input },
-            ...(input?.correlationid
-                ? { correlationId: input.correlationid }
-                : {}),
-        });
-    },
-    logOutput: (output) => {
-        getLogger().debug({
-            category: 'MessageRouter',
-            message: 'Output',
-            data: { output },
-            ...(output?.correlationid
-                ? { correlationId: output.correlationid }
-                : {}),
-        });
-    },
-});
+initMongoDB();
 
-setupRouter('readRouter', {
-    logInput: (input) => {
-        getLogger().debug({
-            category: 'MessageRouter',
-            message: 'Received input',
-            data: { input },
-            ...(input?.correlationid
-                ? { correlationId: input.correlationid }
-                : {}),
-        });
-    },
-    logOutput: (output) => {
-        getLogger().debug({
-            category: 'MessageRouter',
-            message: 'Output',
-            data: { output },
-            ...(output?.correlationid
-                ? { correlationId: output.correlationid }
-                : {}),
-        });
-    },
-});
+await initEventSourcingDB();
 
-initMessages();
+// We use the CQRS pattern
+// and divide the write and read sides of the application.
 
-if (process.env.PORT) {
-    const port = Number.parseInt(process.env.PORT);
+initCommandRouter();
 
-    Deno.serve({
-        hostname: '0.0.0.0',
-        port,
-        onListen: ({ port, hostname }) => {
-            getLogger().info({
-                category: 'API',
-                message: `Started HTTP API on http://${hostname}:${port}`,
-            });
-        },
-    }, app.fetch);
-} else {
-    getLogger().critical({
-        category: 'API',
-        message:
-            `Could not start the HTTP API! Please define a valid port environment variable.`,
+initQueryRouter();
+
+// In this example we use build an HTTP API
+// to interact with the application.
+//
+// But this would be the place to also start
+// other servers like WebSocket, gRPC, etc.
+
+const server = startHttpServer();
+
+// We want to shutdown gracefully
+
+const shutdown = async (signal: string) => {
+    const env = getEnv({
+        variables: ['NODE_ENV'],
     });
-}
+
+    // We skip graceful shutdown in development mode to avoid
+    // having to restart the application manually each time
+    // we change something in the code and hot reloads are triggered.
+
+    if (env.NODE_ENV === 'development') {
+        getLogger().info({
+            message:
+                `Received ${signal}, skipping graceful shutdown in development mode...`,
+        });
+
+        return;
+    }
+
+    getLogger().info({
+        message: `Received ${signal}, shutting down gracefully...`,
+    });
+
+    await server.shutdown();
+    await getMongoConnectionManager('default').close();
+
+    Deno.exit(0);
+};
+
+Deno.addSignalListener('SIGTERM', async () => {
+    await shutdown('SIGTERM');
+});
+
+Deno.addSignalListener('SIGINT', async () => {
+    await shutdown('SIGINT');
+});

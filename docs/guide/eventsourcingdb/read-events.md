@@ -14,10 +14,10 @@ The `readEvents` function reads events from EventSourcingDB for a given subject.
 
 For full details on reading events, including reading from multiple subjects, reading in reverse order, reading specific ranges, and reading from the last event of a given type, see the [Reading Events](https://docs.eventsourcingdb.io/getting-started/reading-events/) section in the EventSourcingDB documentation.
 
-::: info Example Application
-The examples on this page reference the eventsourcing-demo application.
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
 
-You can find the full example on GitHub: [eventsourcing-demo](https://github.com/overlap-dev/Nimbus/tree/main/examples/eventsourcing-demo)
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
 :::
 
 ## Basic Usage

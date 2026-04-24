@@ -12,6 +12,12 @@ next:
 
 The Logger middleware logs HTTP requests and responses with timing information using the Nimbus logger. It optionally integrates with OpenTelemetry for distributed tracing.
 
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
+
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
+:::
+
 ## Basic Usage
 
 ```typescript
