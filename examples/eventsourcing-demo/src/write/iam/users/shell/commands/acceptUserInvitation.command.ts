@@ -54,7 +54,7 @@ export const acceptUserInvitationCommandHandler = async (
     // by another command in the meantime.
     //
     // TODO: Handle the error properly to inform the client about the conflict.
-    // TODO: Can error handling be implemented in Nimbus to throw dedicated exceptions out of the box?
+    // Can error handling be implemented in Nimbus to throw dedicated exceptions out of the box?
     await writeEvents(events, [
         isSubjectOnEventId(
             events[0].subject,

@@ -18,8 +18,6 @@ export const User = z.object({
     //
     // See also getUserProjectionLowerBound() in users.projection.ts
     // for additional details on this.
-    //
-    // TODO: Should we make this part of Nimbus with a type or interface?
     revision: z.string(),
 
     email: z.string(),

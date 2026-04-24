@@ -22,8 +22,6 @@ import {
 // or websockets you could simply add them to the same
 // Nimbus message router to make commands available
 // through multiple channels.
-//
-// TODO: Maybe add an adapter function in the Hono package.
 
 const httpUserCommandRouter = new Hono();
 
