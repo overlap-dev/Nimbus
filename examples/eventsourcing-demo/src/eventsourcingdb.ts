@@ -10,8 +10,6 @@ export const initEventSourcingDB = async () => {
         variables: ['ESDB_URL', 'ESDB_API_TOKEN'],
     });
 
-    // TODO: check retry logic for the observer it currently runs indefinitely
-    // Test with lower bound passed as integer
     await setupEventSourcingDBClient(
         {
             url: new URL(env.ESDB_URL),
