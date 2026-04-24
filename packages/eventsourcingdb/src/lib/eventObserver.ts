@@ -211,15 +211,11 @@ const observeWithRetry = async (
                     ? undefined
                     : eventObserver.fromLatestEvent;
 
-            // Verify connection
-            await eventSourcingDBClient.ping();
-
             logObserverConnection(eventObserver.subject, retryCount, {
                 recursive: eventObserver.recursive ?? false,
                 lowerBound,
                 fromLatestEvent,
             });
-            retryCount = 0;
 
             for await (
                 const event of eventSourcingDBClient.observeEvents(
@@ -231,6 +227,9 @@ const observeWithRetry = async (
                     },
                 )
             ) {
+                // Reset the retry count as soon as we successfully receive an event
+                retryCount = 0;
+
                 const traceContext: TraceContext | undefined = event.traceparent
                     ? {
                         traceparent: event.traceparent,
