@@ -1,7 +1,9 @@
-import { MongoDBRepository } from '@nimbus-cqrs/mongodb';
+import {
+    getMongoConnectionManager,
+    MongoDBRepository,
+} from '@nimbus-cqrs/mongodb';
 import { getEnv } from '@nimbus-cqrs/utils';
 import { Document, ObjectId } from 'mongodb';
-import { mongoManager } from '../../../../mongodb.ts';
 import { User, USERS_COLLECTION } from './users.collection.ts';
 
 class UserRepository extends MongoDBRepository<User> {
@@ -10,7 +12,7 @@ class UserRepository extends MongoDBRepository<User> {
 
         super(
             () => {
-                return mongoManager.getCollection(
+                return getMongoConnectionManager().getCollection(
                     env.MONGO_DB,
                     USERS_COLLECTION.name,
                 );

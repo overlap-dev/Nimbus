@@ -165,12 +165,19 @@ Once `setupLogger` has run, anywhere else in the app we can call `getLogger()` a
 We use MongoDB to store the read-side projections. The `MongoConnectionManager` is a small singleton that owns the connection so every repository in the app can grab the same client.
 
 ```typescript
-mongoManager = MongoConnectionManager.getInstance(env["MONGO_URL"], {
-    appName: "nimbus-eventsourcing-demo",
-    serverApi: {
-        /* ... */
-    },
-});
+export const initMongoDB = () => {
+    const env = getEnv({
+        variables: ["MONGO_URL"],
+    });
+
+    setupMongoConnectionManager({
+        name: "default",
+        uri: env["MONGO_URL"],
+        options: {
+            /* ... */
+        },
+    });
+};
 ```
 
 The pattern is documented in [Connection Manager](/guide/mongodb/connection-manager). The little [`getEnv`](/guide/utils/get-env) helper next to it is what reads `MONGO_URL` from the environment with a friendly error if it is missing.

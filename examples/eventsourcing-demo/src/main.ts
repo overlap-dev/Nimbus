@@ -1,13 +1,16 @@
 import {
+    getLogger,
     jsonLogFormatter,
     parseLogLevel,
     prettyLogFormatter,
     setupLogger,
 } from '@nimbus-cqrs/core';
+import { getMongoConnectionManager } from '@nimbus-cqrs/mongodb';
+import { getEnv } from '@nimbus-cqrs/utils';
 import '@std/dotenv/load';
 import process from 'node:process';
 import { initEventSourcingDB } from './eventsourcingdb.ts';
-import { shutdownHttpServer, startHttpServer } from './http.ts';
+import { startHttpServer } from './http.ts';
 import { initMongoDB } from './mongodb.ts';
 import { initQueryRouter } from './read/queryRouter.ts';
 import { initCommandRouter } from './write/commandRouter.ts';
@@ -48,14 +51,38 @@ const server = startHttpServer();
 
 // We want to shutdown gracefully
 
-Deno.addSignalListener('SIGTERM', () => {
-    shutdownHttpServer(server, 'SIGTERM');
+const shutdown = async (signal: string) => {
+    const env = getEnv({
+        variables: ['NODE_ENV'],
+    });
+
+    // We skip graceful shutdown in development mode to avoid
+    // having to restart the application manually each time
+    // we change something in the code and hot reloads are triggered.
+
+    if (env.NODE_ENV === 'development') {
+        getLogger().info({
+            message:
+                `Received ${signal}, skipping graceful shutdown in development mode...`,
+        });
+
+        return;
+    }
+
+    getLogger().info({
+        message: `Received ${signal}, shutting down gracefully...`,
+    });
+
+    await server.shutdown();
+    await getMongoConnectionManager('default').close();
+
+    Deno.exit(0);
+};
+
+Deno.addSignalListener('SIGTERM', async () => {
+    await shutdown('SIGTERM');
 });
 
-Deno.addSignalListener('SIGINT', () => {
-    shutdownHttpServer(server, 'SIGINT');
+Deno.addSignalListener('SIGINT', async () => {
+    await shutdown('SIGINT');
 });
-
-// Clean up this APP.
-// Add MongoDB as persistent storage on the read side.
-// Queries vs. Views can one view have multiple queries? - Yes a users view e.g. can have GET_USER and LIST_USERS

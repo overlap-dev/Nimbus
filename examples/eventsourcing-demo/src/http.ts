@@ -5,12 +5,12 @@ import {
     handleError,
     logger,
 } from '@nimbus-cqrs/hono';
+import { getMongoConnectionManager } from '@nimbus-cqrs/mongodb';
 import { getEnv } from '@nimbus-cqrs/utils';
 import { Hono } from 'hono';
 import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
-import { mongoManager } from './mongodb.ts';
 import httpQueryRouter from './read/http.ts';
 import httpCommandRouter from './write/http.ts';
 
@@ -32,7 +32,7 @@ app.use(secureHeaders({
 app.use(compress());
 
 app.get('/health', async (c) => {
-    const mongoDbHealth = await mongoManager.healthCheck();
+    const mongoDbHealth = await getMongoConnectionManager().healthCheck();
 
     // TODO: Add a health check function for EventSourcingDB
 
@@ -50,47 +50,6 @@ app.route('/command', httpCommandRouter);
 app.route('/query', httpQueryRouter);
 
 app.onError(handleError);
-
-export const shutdownHttpServer = async (
-    server: Deno.HttpServer<Deno.NetAddr>,
-    signal: string,
-) => {
-    const env = getEnv({
-        variables: ['NODE_ENV'],
-    });
-
-    if (env.NODE_ENV === 'development') {
-        getLogger().info({
-            category: 'HttpApi',
-            message:
-                `Received ${signal}, skipping shutdown in development mode...`,
-        });
-
-        return;
-    }
-
-    getLogger().info({
-        category: 'HttpApi',
-        message: `Received ${signal}, shutting down gracefully...`,
-    });
-
-    try {
-        await server.shutdown();
-
-        getLogger().info({
-            category: 'HttpApi',
-            message: 'HTTP API shutdown complete',
-        });
-        Deno.exit(0);
-    } catch (error) {
-        getLogger().error({
-            category: 'HttpApi',
-            message: 'Error during HTTP API shutdown',
-            error: error as Error,
-        });
-        Deno.exit(1);
-    }
-};
 
 export const startHttpServer = () => {
     let port: number;
