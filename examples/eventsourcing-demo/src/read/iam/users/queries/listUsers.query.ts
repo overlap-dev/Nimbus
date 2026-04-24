@@ -17,5 +17,8 @@ export const listUsersQueryHandler = async (_query: ListUsersQuery) => {
         skip: 0,
     });
 
-    return users;
+    return users.map((user) => {
+        const { _id, ...userWithoutId } = user;
+        return userWithoutId;
+    });
 };

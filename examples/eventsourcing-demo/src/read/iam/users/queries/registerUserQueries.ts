@@ -5,6 +5,11 @@ import {
     getUserQuerySchema,
 } from './getUser.query.ts';
 import {
+    LIST_PENDING_USERS_EMAILS_QUERY_TYPE,
+    listPendingUsersEmailsQueryHandler,
+    listPendingUsersEmailsQuerySchema,
+} from './listPendingUsersEmails.ts';
+import {
     LIST_USERS_QUERY_TYPE,
     listUsersQueryHandler,
     listUsersQuerySchema,
@@ -23,5 +28,11 @@ export const registerUserQueries = () => {
         LIST_USERS_QUERY_TYPE,
         listUsersQueryHandler,
         listUsersQuerySchema,
+    );
+
+    router.register(
+        LIST_PENDING_USERS_EMAILS_QUERY_TYPE,
+        listPendingUsersEmailsQueryHandler,
+        listPendingUsersEmailsQuerySchema,
     );
 };

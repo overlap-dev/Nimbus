@@ -2,6 +2,14 @@ import { querySchema } from '@nimbus-cqrs/core';
 import { z } from 'zod';
 import { userRepository } from '../projections/users.repository.ts';
 
+// Here we define the "get user" query by assigning a unique type
+// based on the CloudEvents naming convention.
+//
+// We also define the query schema by extending the base query schema.
+//
+// The handler then gets the user from the MongoDB collection using the
+// user repository.
+
 export const GET_USER_QUERY_TYPE = 'at.overlap.nimbus.get-user';
 
 export const getUserQuerySchema = querySchema.extend({
@@ -17,5 +25,7 @@ export const getUserQueryHandler = async (query: GetUserQuery) => {
         filter: { id: query.data.id },
     });
 
-    return user;
+    const { _id, ...userWithoutId } = user;
+
+    return userWithoutId;
 };
