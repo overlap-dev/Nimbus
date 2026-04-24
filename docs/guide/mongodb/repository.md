@@ -12,6 +12,12 @@ next:
 
 The `MongoDBRepository` is a type-safe base class for MongoDB CRUD operations. It provides a consistent interface for interacting with MongoDB collections while handling validation, error conversion, and document mapping.
 
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
+
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
+:::
+
 ## Basic Usage
 
 Create a repository by extending `MongoDBRepository`:

@@ -15,12 +15,6 @@ The core package is the foundation of the entire framework. It provides the esse
 -   JSR: [@nimbus-cqrs/core](https://jsr.io/@nimbus-cqrs/core)
 -   npm: [@nimbus-cqrs/core](https://www.npmjs.com/package/@nimbus-cqrs/core)
 
-::: info Example Application
-The examples throughout the core documentation reference the hono-demo application.
-
-You can find the full example on GitHub: [hono-demo](https://github.com/overlap-dev/Nimbus/tree/main/examples/hono-demo)
-:::
-
 ## What's Included
 
 The core package provides:
@@ -53,3 +47,11 @@ npm install @nimbus-cqrs/core
 ```bash
 bun add @nimbus-cqrs/core
 ```
+
+## Example Application
+
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
+
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
+:::

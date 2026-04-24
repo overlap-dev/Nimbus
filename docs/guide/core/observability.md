@@ -14,6 +14,12 @@ The three pillars of observability in Nimbus:
 2. **Tracing** - Distributed traces via OpenTelemetry spans
 3. **Metrics** - Counters and histograms for monitoring
 
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
+
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
+:::
+
 ## OpenTelemetry Standards
 
 Nimbus uses the [OpenTelemetry API](https://opentelemetry.io/) (`@opentelemetry/api`) for all observability instrumentation. This provides:

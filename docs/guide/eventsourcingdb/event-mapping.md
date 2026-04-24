@@ -12,6 +12,12 @@ next:
 
 The event mapping utilities convert between Nimbus events and EventSourcingDB events. When writing events, Nimbus metadata (correlation ID, data schema) is preserved alongside the payload. When reading events back, the original Nimbus event structure is restored.
 
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
+
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
+:::
+
 ## How Events Are Stored
 
 When a Nimbus event is written to EventSourcingDB, its `data` field is wrapped in a structure that preserves Nimbus-specific metadata:

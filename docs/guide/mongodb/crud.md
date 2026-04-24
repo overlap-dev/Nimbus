@@ -12,6 +12,12 @@ next:
 
 The MongoDB package provides low-level CRUD functions for direct database operations. These functions are fully instrumented with OpenTelemetry tracing and metrics, and handle errors using Nimbus exceptions.
 
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
+
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
+:::
+
 ## When to Use
 
 Use these low-level functions when:

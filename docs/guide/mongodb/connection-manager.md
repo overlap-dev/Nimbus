@@ -17,6 +17,12 @@ eviction, so the manager only adds the minimum on top: hold one client for
 the lifetime of the application and provide typed `getDatabase` /
 `getCollection` convenience methods.
 
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
+
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
+:::
+
 ## Basic Usage
 
 ```typescript

@@ -4,10 +4,10 @@ Events represent facts - things that have already happened in the system.
 
 Events are immutable records of state changes that occurred in the application. They enable event-driven architectures, event sourcing, and asynchronous processing.
 
-::: info Example Application
-The examples on this page reference the hono-demo application.
+::: tip An in Depth Example
+This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
 
-You can find the full example on GitHub: [hono-demo](https://github.com/overlap-dev/Nimbus/tree/main/examples/hono-demo)
+Check out the [In Depth Example](/guide/in-depth-example) page to learn how everything is connected and works out in a real-world application.
 :::
 
 ## Key Characteristics
