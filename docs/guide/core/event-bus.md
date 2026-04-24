@@ -127,7 +127,7 @@ The event bus enforces the CloudEvents specification size limit of 64KB. If you 
 
 ## Observability
 
-The event bus is fully instrumented with OpenTelemetry tracing and metrics. See the [Observability](/guide/observability) documentation for details.
+The event bus is fully instrumented with OpenTelemetry tracing and metrics. See the [Observability](/guide/core/observability) documentation for details.
 
 **Tracing:**
 

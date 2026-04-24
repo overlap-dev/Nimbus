@@ -173,7 +173,7 @@ getLogger().debug({
 
 ## OpenTelemetry Integration
 
-When combined with Deno's native OpenTelemetry support, logs are automatically exported alongside traces and metrics. See the [Observability](/guide/observability) documentation for details on enabling OTEL export.
+When combined with Deno's native OpenTelemetry support, logs are automatically exported alongside traces and metrics. See the [Observability](/guide/core/observability) documentation for details on enabling OTEL export.
 
 ```bash
 export OTEL_DENO=true

@@ -149,7 +149,7 @@ The router throws appropriate exceptions for different error conditions:
 
 ## Observability
 
-The router is fully instrumented with OpenTelemetry tracing and metrics. See the [Observability](/guide/observability) documentation for details.
+The router is fully instrumented with OpenTelemetry tracing and metrics. See the [Observability](/guide/core/observability) documentation for details.
 
 **Tracing**:
 

@@ -947,15 +947,3 @@ Two layers, and they pay off very differently.
 | **Router**           | The Nimbus piece that maps a message `type` to its schema + handler and dispatches to it.                      |
 | **Handler**          | The function that runs for a given command or query type.                                                      |
 | **Observer**         | A function the event store calls once per matching event, both during replay and live.                         |
-
-## Where to Go Next
-
-You now have the full picture. From here, dive into whichever package you want to know in detail:
-
--   [Quickstart](/guide/quickstart) - install the Nimbus packages in your own project.
--   [Example Walkthrough](/guide/example-walkthrough) - the same demo, condensed into a quick tour.
--   **Core**: [Commands](/guide/core/commands), [Queries](/guide/core/queries), [Events](/guide/core/events), [Router](/guide/core/router), [Exceptions](/guide/core/exceptions), [Logging](/guide/core/logging), [Observability](/guide/core/observability).
--   **Hono**: [CorrelationID Middleware](/guide/hono/correlationid), [Logger Middleware](/guide/hono/logger), [onError Handler](/guide/hono/on-error).
--   **EventSourcingDB**: [Client Setup](/guide/eventsourcingdb/client-setup), [Write Events](/guide/eventsourcingdb/write-events), [Read Events](/guide/eventsourcingdb/read-events), [Event Observer](/guide/eventsourcingdb/event-observer), [Event Mapping](/guide/eventsourcingdb/event-mapping).
--   **MongoDB**: [Connection Manager](/guide/mongodb/connection-manager), [Repository](/guide/mongodb/repository), [CRUD+](/guide/mongodb/crud), [Deploy Collection](/guide/mongodb/deploy-collection).
--   **Utils**: [getEnv](/guide/utils/get-env).
