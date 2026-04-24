@@ -1,5 +1,4 @@
 import { NotFoundException } from '@nimbus-cqrs/core';
-import { updateOne } from '@nimbus-cqrs/mongodb';
 import { toSnakeCase } from '@std/text';
 import type {
     BulkWriteOptions,
@@ -14,6 +13,7 @@ import type {
     Sort,
     UpdateFilter,
     UpdateOptions,
+    UpdateResult,
 } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import type { ZodType } from 'zod';
@@ -26,6 +26,8 @@ import { findOne } from './crud/findOne.ts';
 import { insertMany } from './crud/insertMany.ts';
 import { insertOne } from './crud/insertOne.ts';
 import { replaceOne } from './crud/replaceOne.ts';
+import { updateMany } from './crud/updateMany.ts';
+import { updateOne } from './crud/updateOne.ts';
 
 /**
  * Type for entities that have a string id.
@@ -141,7 +143,7 @@ export class MongoDBRepository<
 
             return res;
         } catch (error: any) {
-            if (error.name === 'NOT_FOUND_EXCEPTION') {
+            if (error.name === 'NOT_FOUND') {
                 throw new NotFoundException(
                     `${this._entityName} not found`,
                     {
@@ -261,7 +263,7 @@ export class MongoDBRepository<
         filter: Filter<Document>;
         update: UpdateFilter<Document> | Document[];
         options?: UpdateOptions;
-    }): Promise<void> {
+    }): Promise<UpdateResult<Document>> {
         const collection = await this._getCollection();
 
         const res = await updateOne({
@@ -275,12 +277,40 @@ export class MongoDBRepository<
             throw new NotFoundException(
                 `${this._entityName} not found`,
                 {
-                    errorCode: 'DOCUMENT_NOT_FOUND',
-                    reason: 'Could not find document matching the given filter',
-                    filter,
+                    errorCode: `${
+                        toSnakeCase(this._entityName).toUpperCase()
+                    }_NOT_FOUND`,
+                    reason:
+                        `Could not find ${this._entityName} matching the given filter`,
                 },
             );
         }
+
+        return res;
+    }
+
+    /**
+     * Update multiple documents.
+     */
+    public async updateMany({
+        filter,
+        update,
+        options,
+    }: {
+        filter: Filter<Document>;
+        update: UpdateFilter<Document> | Document[];
+        options?: UpdateOptions;
+    }): Promise<UpdateResult<Document>> {
+        const collection = await this._getCollection();
+
+        const res = await updateMany({
+            collection,
+            filter,
+            update,
+            options,
+        });
+
+        return res;
     }
 
     /**
