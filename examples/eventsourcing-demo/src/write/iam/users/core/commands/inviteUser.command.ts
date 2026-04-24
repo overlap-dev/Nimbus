@@ -19,7 +19,7 @@ export const inviteUserInputSchema = z.object({
     lastName: z.string().min(1),
 });
 
-// To create the schema and tye for the invite user command
+// To create the schema and type for the invite user command
 // we extend the Nimbus base command schema with the specific
 // type and the data schema.
 export const inviteUserCommandSchema = commandSchema.extend({
@@ -34,7 +34,7 @@ export type InviteUserCommand = z.infer<typeof inviteUserCommandSchema>;
 // we create the resulting events.
 //
 // As mentioned in the architecture section of the guide
-// we keep the core logic pure and and without side effects.
+// we keep the core logic pure and without side effects.
 //
 // This way we can easily define all the business rules and constraints
 // in one place. This is the purpose the application exists for.

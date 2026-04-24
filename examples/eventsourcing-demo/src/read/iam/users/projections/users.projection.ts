@@ -64,7 +64,7 @@ export const projectUsers = async (
             return;
         } catch (error) {
             getLogger().error({
-                category: 'ProjectViews',
+                category: 'ProjectUsers',
                 message: `Could not project event ${event.type} to users view.`,
                 error: error as Error,
             });
@@ -88,7 +88,7 @@ export const projectUsers = async (
             return;
         } catch (error) {
             getLogger().error({
-                category: 'ProjectViews',
+                category: 'ProjectUsers',
                 message: `Could not project event ${event.type} to users view.`,
                 error: error as Error,
             });
@@ -101,7 +101,7 @@ export const projectUsers = async (
     // it is good to at least make this visible.
 
     getLogger().warn({
-        category: 'ProjectViews',
+        category: 'ProjectUsers',
         message: `Unknown event type ${(event as { type: string }).type}`,
     });
 };
