@@ -270,7 +270,7 @@ export const setupMongoConnectionManager = (
         options?: MongoClientOptions;
         name?: string;
     },
-) => {
+): void => {
     mongoConnectionManagerRegistry.set(
         name,
         MongoConnectionManager.getInstance(uri, options),
