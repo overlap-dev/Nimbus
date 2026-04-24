@@ -1,4 +1,5 @@
 import { Event } from '@nimbus-cqrs/core';
+import { isUserInvitationAcceptedEvent } from '../events/userInvitationAccepted.event.ts';
 import { isUserInvitedEvent } from '../events/userInvited.event.ts';
 
 // This is the definition of the state for the user entity.
@@ -13,6 +14,7 @@ import { isUserInvitedEvent } from '../events/userInvited.event.ts';
 export type UserState = {
     id: string;
     invitedAt?: string;
+    acceptedAt?: string;
 };
 
 export const applyEventToUserState = (
@@ -26,6 +28,13 @@ export const applyEventToUserState = (
         };
     }
 
+    if (isUserInvitationAcceptedEvent(event)) {
+        return {
+            ...state,
+            acceptedAt: event.data.acceptedAt,
+        };
+    }
+
     return state;
 };
 
@@ -33,5 +42,5 @@ export const applyEventToUserState = (
 // that are directly coupled to the state.
 
 export const hasPendingInvitation = (state: UserState): boolean => {
-    return state.invitedAt !== undefined;
+    return state.invitedAt !== undefined && state.acceptedAt === undefined;
 };

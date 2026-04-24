@@ -1,7 +1,8 @@
 import { defineConfig } from "vitepress";
+import { withMermaid } from "vitepress-plugin-mermaid";
 
 // https://vitepress.dev/reference/site-config
-export default defineConfig({
+export default withMermaid(defineConfig({
     title: "Nimbus",
     description: "Build event-driven applications with typescript.",
     themeConfig: {
@@ -45,8 +46,8 @@ export default defineConfig({
                     link: "/guide/quickstart",
                 },
                 {
-                    text: "Example App",
-                    link: "/guide/example-app",
+                    text: "In Depth Example",
+                    link: "/guide/in-depth-example",
                 },
                 {
                     text: "Core",
@@ -203,5 +204,13 @@ export default defineConfig({
             copyright:
                 'Copyright © 2024-present <a href="https://overlap.at">Overlap GmbH & Co KG</a>',
         },
+    },
+}), {
+    mermaid: {
+        look: "handDrawn",
+        theme: "default",
+    },
+    mermaidPlugin: {
+        class: "mermaid",
     },
 });
