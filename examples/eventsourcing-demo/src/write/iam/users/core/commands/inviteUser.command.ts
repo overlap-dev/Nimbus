@@ -1,4 +1,4 @@
-import { commandSchema, createEvent } from '@nimbus-cqrs/core';
+import { commandSchema, createEvent, Exception } from '@nimbus-cqrs/core';
 import { z } from 'zod';
 import { UserState } from '../domain/user.state.ts';
 import {
@@ -53,8 +53,21 @@ export type InviteUserCommand = z.infer<typeof inviteUserCommandSchema>;
 export const inviteUser = (
     state: UserState,
     command: InviteUserCommand,
+    isEmailPristine: boolean,
 ): [UserInvitedEvent] => {
     const email = command.data.email.toLowerCase();
+
+    if (!isEmailPristine) {
+        throw new Exception(
+            'CONFLICT',
+            'The email address is already used',
+            {
+                errorCode: 'EMAIL_ALREADY_USED',
+                email: command.data.email,
+            },
+            409,
+        );
+    }
 
     const userInvitedEvent = createEvent<UserInvitedEvent>({
         type: USER_INVITED_EVENT_TYPE,

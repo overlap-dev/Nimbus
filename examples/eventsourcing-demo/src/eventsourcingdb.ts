@@ -1,6 +1,10 @@
 import { setupEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
 import { getEnv } from '@nimbus-cqrs/utils';
 import {
+    getContactProjectionLowerBound,
+    projectContacts,
+} from './read/iam/users/projections/contacts.projection.ts';
+import {
     getUserProjectionLowerBound,
     projectUsers,
 } from './read/iam/users/projections/users.projection.ts';
@@ -36,6 +40,12 @@ export const initEventSourcingDB = async () => {
                     recursive: true,
                     eventHandler: projectUsers,
                     lowerBound: await getUserProjectionLowerBound() as any,
+                },
+                {
+                    subject: '/users',
+                    recursive: true,
+                    eventHandler: projectContacts,
+                    lowerBound: await getContactProjectionLowerBound() as any,
                 },
             ],
         },

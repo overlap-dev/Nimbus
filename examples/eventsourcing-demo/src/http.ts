@@ -1,4 +1,5 @@
 import { getLogger } from '@nimbus-cqrs/core';
+import { getEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
 import {
     correlationId,
     getCorrelationId,
@@ -34,7 +35,12 @@ app.use(compress());
 app.get('/health', async (c) => {
     const mongoDbHealth = await getMongoConnectionManager().healthCheck();
 
-    // TODO: Add a health check function for EventSourcingDB
+    let eventSourcingDBHealth = 'OK';
+    try {
+        await getEventSourcingDBClient().ping();
+    } catch (_error) {
+        eventSourcingDBHealth = 'ERROR';
+    }
 
     return c.json({
         timestamp: new Date().toISOString(),
@@ -42,6 +48,7 @@ app.get('/health', async (c) => {
         status: {
             httpApi: 'OK',
             mongoDb: mongoDbHealth.status === 'healthy' ? 'OK' : 'ERROR',
+            eventSourcingDB: eventSourcingDBHealth,
         },
     });
 });
