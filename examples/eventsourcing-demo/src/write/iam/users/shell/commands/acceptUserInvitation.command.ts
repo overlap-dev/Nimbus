@@ -1,3 +1,4 @@
+import { Exception, getLogger } from '@nimbus-cqrs/core';
 import {
     eventSourcingDBEventToNimbusEvent,
     readEvents,
@@ -52,15 +53,41 @@ export const acceptUserInvitationCommandHandler = async (
     // subject (the user) the expected revision is still the same.
     // If not, the write will fail as the user was modified
     // by another command in the meantime.
-    //
-    // TODO: Handle the error properly to inform the client about the conflict.
-    // Can error handling be implemented in Nimbus to throw dedicated exceptions out of the box?
-    await writeEvents(events, [
-        isSubjectOnEventId(
-            events[0].subject,
-            command.data.expectedRevision,
-        ),
-    ]);
+    // In this case we throw a proper exception and the
+    // client need to handle it.
+
+    try {
+        await writeEvents(events, [
+            isSubjectOnEventId(
+                events[0].subject,
+                command.data.expectedRevision,
+            ),
+        ]);
+    } catch (error) {
+        const isStateConflict = error &&
+            (error as any).message.includes(`code '409'`);
+
+        getLogger().error({
+            category: 'AcceptUserInvitationCommandHandler',
+            message: 'Error accepting user invitation',
+            error: error as Error,
+        });
+
+        if (isStateConflict) {
+            throw new Exception(
+                'CONFLICT',
+                'The expected revision does not match the current revision anymore',
+                {
+                    errorCode: 'REVISION_CONFLICT',
+                    userId: state.id,
+                    expectedRevision: command.data.expectedRevision,
+                },
+                409,
+            );
+        } else {
+            throw error;
+        }
+    }
 
     return {
         userId: state.id,
