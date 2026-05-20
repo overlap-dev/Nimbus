@@ -3,8 +3,8 @@ import { withMermaid } from "vitepress-plugin-mermaid";
 
 // https://vitepress.dev/reference/site-config
 export default withMermaid(defineConfig({
-    title: "Nimbus",
-    description: "Build event-driven applications with typescript.",
+    title: "Nimbus CQRS Framework",
+    description: "Nimbus is an open-source application framework for building event-driven systems using CQRS and Event Sourcing in TypeScript.",
     head: [
         ["link", {
             rel: "icon",
@@ -28,6 +28,27 @@ export default withMermaid(defineConfig({
             content: "Nimbus",
         }],
         ["link", { rel: "manifest", href: "/site.webmanifest" }],
+
+        ["meta", { property: "og:site_name", content: "Nimbus" }],
+        ["meta", { property: "og:title", content: "Nimbus CQRS Framework" }],
+        ["meta", {
+            property: "og:description",
+            content: "Nimbus is an open-source application framework for building event-driven systems using CQRS and Event Sourcing in TypeScript.",
+        }],
+        ["meta", { property: "og:type", content: "website" }],
+        ["meta", { property: "og:image", content: "https://nimbus.overlap.at/nimbus-cqrs-og.png" }],
+        ["meta", { property: "og:image:alt", content: "Nimbus logo and tagline" }],
+        ["meta", { property: "og:image:type", content: "image/png" }],
+        ["meta", { property: "og:image:width", content: "1200" }],
+        ["meta", { property: "og:image:height", content: "630" }],
+
+        ["meta", { name: "twitter:card", content: "summary_large_image" }],
+        ["meta", { name: "twitter:title", content: "Nimbus CQRS Framework" }],
+        ["meta", {
+            name: "twitter:description",
+            content: "Nimbus is an open-source application framework for building event-driven systems using CQRS and Event Sourcing in TypeScript." }],
+        ["meta", { name: "twitter:image", content: "https://nimbus.overlap.at/nimbus-cqrs-og.png" }],
+        ["meta", { name: "twitter:image:alt", content: "Nimbus logo and tagline" }],
     ],
     themeConfig: {
         // https://vitepress.dev/reference/default-theme-config
