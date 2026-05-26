@@ -20,7 +20,7 @@ Refer to the [Nimbus main repository](https://github.com/overlap-dev/Nimbus) or 
 
 ```bash
 # Deno
-deno add jsr:@nimbus-cqrs/mongodb
+deno add npm:@nimbus-cqrs/mongodb
 
 # NPM
 npm install @nimbus-cqrs/mongodb

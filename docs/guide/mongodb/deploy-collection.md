@@ -1,4 +1,5 @@
 ---
+description: deployMongoCollection declaratively creates or updates collections with JSON schema validation and indexes.
 prev:
     text: "handleMongoError"
     link: "/guide/mongodb/handle-mongo-error"

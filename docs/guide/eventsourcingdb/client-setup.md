@@ -1,4 +1,5 @@
 ---
+description: setupEventSourcingDBClient initializes a singleton EventSourcingDB client with connectivity checks and auth.
 prev:
     text: "Nimbus EventSourcingDB"
     link: "/guide/eventsourcingdb"

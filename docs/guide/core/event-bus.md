@@ -1,3 +1,7 @@
+---
+description: NimbusEventBus provides in-process publish/subscribe for events with async delivery and retry on handler failure.
+---
+
 # Event Bus
 
 The NimbusEventBus enables publish/subscribe messaging for [events](/guide/core/events) within your application. Events are delivered asynchronously to all registered handlers with automatic retry on failure.

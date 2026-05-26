@@ -1,11 +1,15 @@
+---
+description: Install @nimbus-cqrs packages from npm or JSR for Deno, Node, or Bun; core is required, other packages are optional by need.
+---
+
 # Quickstart
 
 To get started with Nimbus you need to install the core package and other relevant Nimbus packages based on your needs.
 
 All packages live under the `@nimbus-cqrs` scope.
 
--   JSR: [@nimbus-cqrs/core](https://jsr.io/@nimbus-cqrs/core) (and the rest of the [@nimbus-cqrs](https://jsr.io/@nimbus-cqrs) scope)
 -   npm: [@nimbus-cqrs/core](https://www.npmjs.com/package/@nimbus-cqrs/core) (and the rest of the [@nimbus-cqrs](https://www.npmjs.com/org/nimbus-cqrs) scope)
+-   JSR: [@nimbus-cqrs/core](https://jsr.io/@nimbus-cqrs/core) (and the rest of the [@nimbus-cqrs](https://jsr.io/@nimbus-cqrs) scope)
 
 ## Dependencies
 
@@ -22,7 +26,7 @@ Depending on your runtime you can install Nimbus with the following commands.
 ### Deno
 
 ```bash
-deno add jsr:@nimbus-cqrs/core
+deno add npm:@nimbus-cqrs/core
 ```
 
 ### NPM

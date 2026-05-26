@@ -1,4 +1,5 @@
 ---
+description: Commands are CloudEvents-shaped write messages expressing intent to change state; validated and routed to handlers.
 prev:
     text: "Core"
     link: "/guide/core"

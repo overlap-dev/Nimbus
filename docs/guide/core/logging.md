@@ -1,4 +1,5 @@
 ---
+description: Structured console logging with JSON or pretty formatters and OpenTelemetry log export via Deno.
 next:
     text: "Exceptions"
     link: "/guide/core/exceptions"

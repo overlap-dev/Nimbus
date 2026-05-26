@@ -1,3 +1,7 @@
+---
+description: Queries are CloudEvents-shaped read messages that fetch data without mutating application state.
+---
+
 # Queries
 
 Queries represent read operations - requests for information without changing application state.

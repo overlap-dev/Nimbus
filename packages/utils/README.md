@@ -13,7 +13,7 @@ Refer to the [Nimbus main repository](https://github.com/overlap-dev/Nimbus) or 
 
 ```bash
 # Deno
-deno add jsr:@nimbus-cqrs/utils
+deno add npm:@nimbus-cqrs/utils
 
 # NPM
 npm install @nimbus-cqrs/utils
@@ -31,13 +31,13 @@ For detailed documentation, please refer to the [Nimbus documentation](https://n
 `getEnv` reads a list of environment variables from `process.env` and returns them as a plain object. If any of the requested variables are missing it logs the missing names through the Nimbus logger and throws a `GenericException`, so misconfiguration fails loudly at startup instead of leaking through as `undefined` later.
 
 ```typescript
-import { getEnv } from '@nimbus-cqrs/utils';
+import { getEnv } from "@nimbus-cqrs/utils";
 
 const env = getEnv({
-    variables: ['MONGO_URI', 'MONGO_DB_NAME'],
+    variables: ["MONGO_URI", "MONGO_DB_NAME"],
 });
 
-console.log(env.MONGO_URI);     // "mongodb://localhost:27017"
+console.log(env.MONGO_URI); // "mongodb://localhost:27017"
 console.log(env.MONGO_DB_NAME); // "my-app"
 ```
 
@@ -56,11 +56,11 @@ If, for example, `MONGO_DB_NAME` is not set, the call throws a `GenericException
 A typical pattern is to call `getEnv` once at application startup, before any subsystem that needs those values is initialized:
 
 ```typescript
-import { getEnv } from '@nimbus-cqrs/utils';
-import { MongoConnectionManager } from '@nimbus-cqrs/mongodb';
+import { getEnv } from "@nimbus-cqrs/utils";
+import { MongoConnectionManager } from "@nimbus-cqrs/mongodb";
 
 const env = getEnv({
-    variables: ['MONGO_URI', 'MONGO_DB_NAME'],
+    variables: ["MONGO_URI", "MONGO_DB_NAME"],
 });
 
 const mongo = new MongoConnectionManager({

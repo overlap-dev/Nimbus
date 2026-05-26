@@ -1,4 +1,5 @@
 ---
+description: handleMongoError maps MongoDB driver error codes to Nimbus exceptions for consistent application error handling.
 prev:
     text: "MongoJSON"
     link: "/guide/mongodb/mongo-json"

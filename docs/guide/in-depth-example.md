@@ -1,7 +1,8 @@
 ---
+description: Walkthrough of eventsourcing-demo — CQRS, Event Sourcing, pure core vs shell, projections, and queries with links to source files.
 next:
-    text: "Core"
-    link: "/guide/core"
+    text: "Glossary"
+    link: "/guide/glossary"
 ---
 
 # An in Depth Example
@@ -19,6 +20,30 @@ The demo itself is small. About 25 short, well-commented files. The most rewardi
 ::: tip Open the code while you read
 [examples/eventsourcing-demo](https://github.com/overlap-dev/Nimbus/tree/main/examples/eventsourcing-demo) is the repo. Keep it open in a second window.
 :::
+
+## Source code map
+
+All paths below are under [`examples/eventsourcing-demo`](https://github.com/overlap-dev/Nimbus/tree/main/examples/eventsourcing-demo) on `main`. Line ranges point at the symbols discussed on this page.
+
+| Area                 | File                                                                                                                                                                                                | Lines                      |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| Bootstrap            | [`src/main.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/main.ts#L1-L88)                                                                                     | App startup order          |
+| HTTP                 | [`src/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/http.ts#L18-L92)                                                                                    | Hono app and server        |
+| Event store          | [`src/eventsourcingdb.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/eventsourcingdb.ts#L12-L53)                                                              | Client + observers         |
+| MongoDB              | [`src/mongodb.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/mongodb.ts#L5-L22)                                                                               | Connection setup           |
+| Write router         | [`src/write/commandRouter.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/commandRouter.ts#L4-L30)                                                       | Command router             |
+| Read router          | [`src/read/queryRouter.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/queryRouter.ts#L4-L30)                                                             | Query router               |
+| Invite HTTP          | [`src/write/iam/users/shell/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/http.ts#L28-L44)                                        | `/invite-user` route       |
+| Invite shell handler | [`inviteUser.command.ts` (shell)](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/inviteUser.command.ts#L23-L70)                     | `inviteUserCommandHandler` |
+| Invite core          | [`inviteUser.command.ts` (core)](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/core/commands/inviteUser.command.ts#L53-L87)                       | `inviteUser`               |
+| Accept shell handler | [`acceptUserInvitation.command.ts` (shell)](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/acceptUserInvitation.command.ts#L17-L46) | Replay + persist           |
+| State reducer        | [`user.state.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/core/domain/user.state.ts#L20-L44)                                                | `applyEventToUserState`    |
+| Users projection     | [`users.projection.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.projection.ts#L28-L117)                                    | `projectUsers`             |
+| Users collection     | [`users.collection.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.collection.ts#L7-L76)                                      | Schema and indexes         |
+| Users repository     | [`users.repository.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.repository.ts#L1-L63)                                      | `UserRepository`           |
+| Get user query       | [`getUser.query.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/queries/getUser.query.ts#L23-L31)                                               | `getUserQueryHandler`      |
+| Register commands    | [`registerUserCommands.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/registerUserCommands.ts#L19-L33)                         | Router registration        |
+| Register queries     | [`registerUserQueries.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/queries/registerUserQueries.ts#L18-L38)                                   | Router registration        |
 
 ## The Mental Model in Five Minutes
 
@@ -141,7 +166,7 @@ Second, on the **read side** there is no `core/shell` split. Why? Because the re
 
 ## Setting the Stage: Bootstrap, Dependency by Dependency
 
-`src/main.ts` is short on purpose. It is a linear list of "start this, then start that", because everything later in the file depends on everything earlier in the file. Open it now and read along - we will go through it from top to bottom.
+[`src/main.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/main.ts#L1-L88) is short on purpose. It is a linear list of "start this, then start that", because everything later in the file depends on everything earlier in the file. Open it now and read along - we will go through it from top to bottom.
 
 ### Logging First
 
@@ -243,7 +268,7 @@ Nothing exotic, but it is the kind of detail that pays off the moment your app g
 
 ## The HTTP Front Door
 
-`src/http.ts` builds the [Hono](https://hono.dev/) app and lines up middlewares before mounting the two sub-routers. Let us walk through them in order.
+[`src/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/http.ts#L18-L92) builds the [Hono](https://hono.dev/) app and lines up middlewares before mounting the two sub-routers. Let us walk through them in order.
 
 ```typescript
 app.use(correlationId());
@@ -277,7 +302,7 @@ Time to follow a single request from end to end. We will pretend we are an admin
 
 ### Step 1 - The HTTP Request Arrives
 
-The route lives in `src/write/iam/users/shell/http.ts`. From this point on, we are inside Nimbus territory.
+The route lives in [`src/write/iam/users/shell/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/http.ts#L28-L44). From this point on, we are inside Nimbus territory.
 
 ```typescript
 httpUserCommandRouter.post("/invite-user", async (c) => {
@@ -337,7 +362,7 @@ If validation fails, the router throws - and remember, our `onError` handler tur
 
 ### Step 4 - The Handler Lives in the Shell
 
-The handler for `inviteUser` is in `src/write/iam/users/shell/commands/inviteUser.command.ts`. Its job is _coordination_, not business logic:
+The handler for `inviteUser` is in [`src/write/iam/users/shell/commands/inviteUser.command.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/inviteUser.command.ts#L23-L70). Its job is _coordination_, not business logic:
 
 ```typescript
 export const inviteUserCommandHandler = async (command: InviteUserCommand) => {
@@ -359,7 +384,7 @@ Three lines of meaningful work:
 
 ### Step 5 - The Pure Core Does the Thinking
 
-The core function lives in `src/write/iam/users/core/commands/inviteUser.command.ts`. It is the entire business definition of "what does it mean to invite a user".
+The core function lives in [`src/write/iam/users/core/commands/inviteUser.command.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/core/commands/inviteUser.command.ts#L53-L87). It is the entire business definition of "what does it mean to invite a user".
 
 ```typescript
 // GIVEN: state = A
@@ -449,7 +474,7 @@ Now we are the invitee. We received the email, clicked the link, and our client 
 
 ### Loading State From History
 
-The handler is in `src/write/iam/users/shell/commands/acceptUserInvitation.command.ts`. Unlike the invite handler, it cannot start from an empty state - "accepting" only makes sense if there is something to accept. So the first thing it does is replay the user's history into a fresh `UserState`:
+The handler is in [`src/write/iam/users/shell/commands/acceptUserInvitation.command.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/acceptUserInvitation.command.ts#L17-L46). Unlike the invite handler, it cannot start from an empty state - "accepting" only makes sense if there is something to accept. So the first thing it does is replay the user's history into a fresh `UserState`:
 
 ```typescript
 let state: UserState = { id: command.data.id };
@@ -465,7 +490,7 @@ for await (const eventSourcingDBEvent of readEvents(
 
 This is the "state is a fold over events" idea, made concrete. We ask EventSourcingDB for every event under `/users/{id}` ([Read Events](/guide/eventsourcingdb/read-events)), convert each one back into a typed Nimbus event ([Event Mapping](/guide/eventsourcingdb/event-mapping)), and feed it into the reducer one by one.
 
-The reducer itself lives in `src/write/iam/users/core/domain/user.state.ts`:
+The reducer itself lives in [`src/write/iam/users/core/domain/user.state.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/core/domain/user.state.ts#L20-L44):
 
 ```typescript
 export type UserState = {
@@ -577,13 +602,13 @@ We are leaving the write side now. Take a breath. The hard architectural ideas a
 
 ### Observers in Plain English
 
-Remember the `eventObservers` array we passed to `setupEventSourcingDBClient` back in `src/eventsourcingdb.ts`? An **observer** is just a function that EventSourcingDB calls _once for every event matching a subject_. It runs during the startup replay (catching up on history), and then it keeps running for every new event written from that point on.
+Remember the `eventObservers` array we passed to `setupEventSourcingDBClient` back in [`src/eventsourcingdb.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/eventsourcingdb.ts#L12-L53)? An **observer** is just a function that EventSourcingDB calls _once for every event matching a subject_. It runs during the startup replay (catching up on history), and then it keeps running for every new event written from that point on.
 
 Our observer is `projectUsers`, registered on the subject `/users` with `recursive: true` so it picks up everything under `/users/abc`, `/users/xyz`, and so on. The full mechanics are at [Event Observer](/guide/eventsourcingdb/event-observer).
 
 ### The Projection Function
 
-`projectUsers` is in `src/read/iam/users/projections/users.projection.ts`. It is a reducer, just like `applyEventToUserState` - except the state lives in MongoDB instead of in memory:
+`projectUsers` is in [`src/read/iam/users/projections/users.projection.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.projection.ts#L28-L117). It is a reducer, just like `applyEventToUserState` - except the state lives in MongoDB instead of in memory:
 
 ```typescript
 export const projectUsers = async (
@@ -693,7 +718,7 @@ The MongoDB pieces are split across two files: a **collection definition** and a
 
 ### The Collection Definition
 
-`src/read/iam/users/projections/users.collection.ts` describes the shape of the documents and the indexes we want:
+[`src/read/iam/users/projections/users.collection.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.collection.ts#L7-L76) describes the shape of the documents and the indexes we want:
 
 ```typescript
 export const USERS_COLLECTION: MongoCollectionDefinition = {
@@ -723,7 +748,7 @@ You provision these collections in your environments with [Deploy Collection](/g
 
 ### The Repository
 
-`src/read/iam/users/projections/users.repository.ts` extends Nimbus's [`MongoDBRepository`](/guide/mongodb/repository) with two concrete responsibilities: mapping between BSON documents and the `User` Zod type, and exposing the small helper that the projection lower-bound calculation needs.
+[`src/read/iam/users/projections/users.repository.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.repository.ts#L1-L63) extends Nimbus's [`MongoDBRepository`](/guide/mongodb/repository) with two concrete responsibilities: mapping between BSON documents and the `User` Zod type, and exposing the small helper that the projection lower-bound calculation needs.
 
 ```typescript
 class UserRepository extends MongoDBRepository<User> {
@@ -759,7 +784,7 @@ With the projection in place, queries become almost embarrassingly small. That i
 
 ### `getUser`
 
-`src/read/iam/users/queries/getUser.query.ts`:
+[`src/read/iam/users/queries/getUser.query.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/queries/getUser.query.ts#L23-L31):
 
 ```typescript
 export const GET_USER_QUERY_TYPE = "at.overlap.nimbus.get-user";
@@ -915,14 +940,14 @@ The fastest way to lock in everything above is to add something. Here is the rec
 
 1. Create `*.command.ts` in `core/commands/`: define the `_COMMAND_TYPE` constant, the input Zod schema (`commandSchema.extend({...})`), the inferred TypeScript type, and the pure function that takes `(state, command)` and returns events.
 2. Create the matching handler in `shell/commands/`: load state, call the core, write events with the appropriate precondition.
-3. Register the type, handler, and schema in `registerUserCommands.ts`.
-4. Expose an HTTP route in `shell/http.ts` that builds the typed command and calls `getRouter('commandRouter').route(...)`.
+3. Register the type, handler, and schema in [`registerUserCommands.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/registerUserCommands.ts#L19-L33).
+4. Expose an HTTP route in [`shell/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/http.ts#L28-L44) that builds the typed command and calls `getRouter('commandRouter').route(...)`.
 
 ### Add a new query
 
 1. Create `*.query.ts` in `read/.../queries/`: define the `_QUERY_TYPE` constant, the schema (`querySchema.extend({...})`), the inferred type, and the handler that reads from the projection.
-2. Register it in `registerUserQueries.ts`.
-3. Expose an HTTP route in `read/.../http.ts` that builds the typed query and calls `getRouter('queryRouter').route(...)`.
+2. Register it in [`registerUserQueries.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/queries/registerUserQueries.ts#L18-L38).
+3. Expose an HTTP route in [`read/iam/users/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/http.ts#L1-L73) that builds the typed query and calls `getRouter('queryRouter').route(...)`.
 
 ### Where do tests fit?
 

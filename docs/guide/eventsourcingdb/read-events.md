@@ -1,4 +1,5 @@
 ---
+description: readEvents streams events for a subject from EventSourcingDB; use event mapping to restore Nimbus event shapes.
 prev:
     text: "Write Events"
     link: "/guide/eventsourcingdb/write-events"
@@ -38,11 +39,11 @@ for await (const eventSourcingDBEvent of readEvents("/users/123", {
 
 ## Function Parameters
 
-| Parameter | Type                | Description                                      |
-| --------- | ------------------- | ------------------------------------------------ |
-| `subject` | `string`            | The subject to read events for                   |
-| `options` | `ReadEventsOptions` | Options to control which events are read         |
-| `signal`  | `AbortSignal`       | Optional abort signal to cancel the read         |
+| Parameter | Type                | Description                              |
+| --------- | ------------------- | ---------------------------------------- |
+| `subject` | `string`            | The subject to read events for           |
+| `options` | `ReadEventsOptions` | Options to control which events are read |
+| `signal`  | `AbortSignal`       | Optional abort signal to cancel the read |
 
 ## Rebuilding Aggregate State
 
@@ -60,12 +61,10 @@ const acceptUserInvitationCommandHandler = async (command) => {
     let state: UserState = { id: command.data.id };
 
     // Replay all events to rebuild the current state
-    for await (
-        const eventSourcingDBEvent of readEvents(
-            `/users/${command.data.id}`,
-            { recursive: false },
-        )
-    ) {
+    for await (const eventSourcingDBEvent of readEvents(
+        `/users/${command.data.id}`,
+        { recursive: false }
+    )) {
         const event = eventSourcingDBEventToNimbusEvent(eventSourcingDBEvent);
         state = applyEventToUserState(state, event);
     }
@@ -75,10 +74,7 @@ const acceptUserInvitationCommandHandler = async (command) => {
 
     // Write new events with optimistic concurrency
     await writeEvents(events, [
-        isSubjectOnEventId(
-            events[0].subject,
-            command.data.expectedRevision,
-        ),
+        isSubjectOnEventId(events[0].subject, command.data.expectedRevision),
     ]);
 };
 ```
@@ -98,7 +94,7 @@ setTimeout(() => controller.abort(), 5000);
 for await (const event of readEvents(
     "/users",
     { recursive: true },
-    controller.signal,
+    controller.signal
 )) {
     console.log(event);
 }
@@ -108,7 +104,7 @@ for await (const event of readEvents(
 
 Every call to `readEvents` is automatically wrapped in an OpenTelemetry span named `eventsourcingdb.readEvents`. The following metrics are recorded:
 
-| Metric                                       | Type      | Labels               | Description                               |
-| -------------------------------------------- | --------- | -------------------- | ----------------------------------------- |
-| `eventsourcingdb_operation_total`             | Counter   | `operation`, `status` | Total number of read operations           |
-| `eventsourcingdb_operation_duration_seconds`  | Histogram | `operation`          | Duration of read operations in seconds    |
+| Metric                                       | Type      | Labels                | Description                            |
+| -------------------------------------------- | --------- | --------------------- | -------------------------------------- |
+| `eventsourcingdb_operation_total`            | Counter   | `operation`, `status` | Total number of read operations        |
+| `eventsourcingdb_operation_duration_seconds` | Histogram | `operation`           | Duration of read operations in seconds |

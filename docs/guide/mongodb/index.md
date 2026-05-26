@@ -1,4 +1,5 @@
 ---
+description: Hub for @nimbus-cqrs/mongodb — connection manager, repository, CRUD+, MongoJSON, and collection deployment.
 prev:
     text: "Event Mapping"
     link: "/guide/eventsourcingdb/event-mapping"
@@ -12,13 +13,13 @@ next:
 
 The MongoDB package provides a simple and easy-to-use interface for working with MongoDB databases.
 
--   JSR: [@nimbus-cqrs/mongodb](https://jsr.io/@nimbus-cqrs/mongodb)
 -   npm: [@nimbus-cqrs/mongodb](https://www.npmjs.com/package/@nimbus-cqrs/mongodb)
+-   JSR: [@nimbus-cqrs/mongodb](https://jsr.io/@nimbus-cqrs/mongodb)
 
 ### Deno
 
 ```bash
-deno add jsr:@nimbus-cqrs/mongodb
+deno add npm:@nimbus-cqrs/mongodb
 ```
 
 ### NPM

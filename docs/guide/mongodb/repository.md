@@ -1,4 +1,5 @@
 ---
+description: MongoDBRepository is a type-safe base for collection CRUD with Zod validation, error mapping, and tracing.
 prev:
     text: "Connection Manager"
     link: "/guide/mongodb/connection-manager"

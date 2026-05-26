@@ -1,4 +1,5 @@
 ---
+description: MongoJSON parse/stringify preserves MongoDB extended types (ObjectId, Date, etc.) in JSON round-trips.
 prev:
     text: "CRUD+"
     link: "/guide/mongodb/crud"

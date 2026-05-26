@@ -1,4 +1,5 @@
 ---
+description: Hub for @nimbus-cqrs/hono — middleware and handlers bridging Nimbus observability and errors to Hono HTTP apps.
 prev:
     text: "Exceptions"
     link: "/guide/core/exceptions"
@@ -12,13 +13,13 @@ next:
 
 Adapters and useful functionality to bridge Nimbus and [Hono](https://hono.dev/).
 
--   JSR: [@nimbus-cqrs/hono](https://jsr.io/@nimbus-cqrs/hono)
 -   npm: [@nimbus-cqrs/hono](https://www.npmjs.com/package/@nimbus-cqrs/hono)
+-   JSR: [@nimbus-cqrs/hono](https://jsr.io/@nimbus-cqrs/hono)
 
 ### Deno
 
 ```bash
-deno add jsr:@nimbus-cqrs/hono
+deno add npm:@nimbus-cqrs/hono
 ```
 
 ### NPM

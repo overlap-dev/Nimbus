@@ -1,3 +1,7 @@
+---
+description: Nimbus favors simplicity, explicit code, no framework magic, and a flat learning curve over heavy OOP or DI-heavy frameworks.
+---
+
 # The Philosophy behind Nimbus
 
 Nimbus is built on a few core principles that set it apart from other TypeScript frameworks.

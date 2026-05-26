@@ -11,6 +11,8 @@ Find all packages and installation instructions at [jsr.io](https://jsr.io/@nimb
 
 Find the full documentation at [https://nimbus.overlap.at/](https://nimbus.overlap.at/).
 
+For coding agents and LLM tools, the site also publishes [llms.txt](https://nimbus.overlap.at/llms.txt) (guide index) and [llms-full.txt](https://nimbus.overlap.at/llms-full.txt) (full guide in one file), following the [llms.txt specification](https://llmstxt.org/).
+
 In addition code documentation is automatically generated and can be found for
 each package at [jsr.io](https://jsr.io/@nimbus-cqrs).
 
