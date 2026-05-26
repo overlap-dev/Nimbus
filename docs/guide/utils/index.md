@@ -13,13 +13,13 @@ next:
 
 The Utils package provides various utility functions.
 
--   JSR: [@nimbus-cqrs/utils](https://jsr.io/@nimbus-cqrs/utils)
 -   npm: [@nimbus-cqrs/utils](https://www.npmjs.com/package/@nimbus-cqrs/utils)
+-   JSR: [@nimbus-cqrs/utils](https://jsr.io/@nimbus-cqrs/utils)
 
 ### Deno
 
 ```bash
-deno add jsr:@nimbus-cqrs/utils
+deno add npm:@nimbus-cqrs/utils
 ```
 
 ### NPM

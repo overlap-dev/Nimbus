@@ -76,13 +76,17 @@ npm install
 npm run dev
 ```
 
+The documentation will be available at `http://localhost:5173` when using `npm run dev`.
+
 To verify the production build (including `llms.txt`):
 
 ```sh
 npm run build
+npm run preview
 ```
 
-The documentation will be available at `http://localhost:5173` when using `npm run dev`.
+The preview of the build will be available at `http://localhost:4173`.  
+You can check the `llms.txt` and `llms-full.txt` under `http://localhost:4173/llms.txt` and `http://localhost:4173/llms-full.txt`.
 
 ### Examples on other runtimes
 

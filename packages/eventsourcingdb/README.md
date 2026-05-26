@@ -19,7 +19,7 @@ Also refer to the [EventSourcingDB documentation](https://docs.eventsourcingdb.i
 
 ```bash
 # Deno
-deno add jsr:@nimbus-cqrs/eventsourcingdb
+deno add npm:@nimbus-cqrs/eventsourcingdb
 
 # NPM
 npm install @nimbus-cqrs/eventsourcingdb
