@@ -62,6 +62,12 @@ deno test --allow-all
 -   Add JSDoc comments to all publicly exported elements
 -   Update user documentation in the `docs/` folder when adding or changing
     functionality
+-   For new or updated guide pages, add YAML `description` frontmatter (1–3
+    sentences summarizing the page for humans, SEO, and LLM index files)
+-   When changing `examples/eventsourcing-demo`, update GitHub line-range links in
+    [docs/guide/in-depth-example.md](docs/guide/in-depth-example.md) if affected symbols moved
+
+The docs site generates LLM-friendly artifacts on build (`llms.txt`, `llms-full.txt`, and per-page `.md` mirrors) via `vitepress-plugin-llms`.
 
 To locally preview the documentation, run the following commands inside the `docs/` directory:
 
@@ -70,7 +76,13 @@ npm install
 npm run dev
 ```
 
-The documentation will be available at `http://localhost:5173`.
+To verify the production build (including `llms.txt`):
+
+```sh
+npm run build
+```
+
+The documentation will be available at `http://localhost:5173` when using `npm run dev`.
 
 ### Examples on other runtimes
 

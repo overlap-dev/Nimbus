@@ -1,4 +1,5 @@
 ---
+description: Hub for @nimbus-cqrs/eventsourcingdb — client setup, read/write events, observers, and Nimbus event mapping.
 prev:
     text: "onError Handler"
     link: "/guide/hono/on-error"

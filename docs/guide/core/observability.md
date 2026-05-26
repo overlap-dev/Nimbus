@@ -1,3 +1,7 @@
+---
+description: Built-in logging, tracing, and metrics via OpenTelemetry with zero boilerplate on routers, handlers, and messages.
+---
+
 # Observability
 
 Observability is a first-class citizen in Nimbus. The framework is designed so that developers can focus on business logic without implementing logging, tracing, and metrics from the ground up.

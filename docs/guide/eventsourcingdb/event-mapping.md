@@ -1,4 +1,5 @@
 ---
+description: Utilities convert between Nimbus CloudEvents and EventSourcingDB records, preserving correlation ID and schemas.
 prev:
     text: "Event Observer"
     link: "/guide/eventsourcingdb/event-observer"
@@ -80,14 +81,14 @@ const eventCandidate = nimbusEventToEventSourcingDBEventCandidate(nimbusEvent);
 
 The conversion maps the following properties:
 
-| Nimbus Event     | EventSourcingDB Event Candidate |
-| ---------------- | ------------------------------- |
-| `source`         | `source`                        |
-| `subject`        | `subject`                       |
-| `type`           | `type`                          |
-| `data`           | `data.payload`                  |
-| `correlationid`  | `data.nimbusMeta.correlationid` |
-| `dataschema`     | `data.nimbusMeta.dataschema`    |
+| Nimbus Event    | EventSourcingDB Event Candidate |
+| --------------- | ------------------------------- |
+| `source`        | `source`                        |
+| `subject`       | `subject`                       |
+| `type`          | `type`                          |
+| `data`          | `data.payload`                  |
+| `correlationid` | `data.nimbusMeta.correlationid` |
+| `dataschema`    | `data.nimbusMeta.dataschema`    |
 
 ::: tip
 You typically don't need to call this function directly. The [`writeEvents`](/guide/eventsourcingdb/write-events) function handles the conversion internally.
@@ -122,8 +123,8 @@ const event = eventSourcingDBEventToNimbusEvent<Event>(eventSourcingDBEvent);
 
 If the EventSourcingDB event was not written by Nimbus (i.e., it does not contain the `nimbusMeta` wrapper), the function gracefully handles this by:
 
-- Treating the entire `data` field as the payload
-- Generating a new correlation ID using ULID
+-   Treating the entire `data` field as the payload
+-   Generating a new correlation ID using ULID
 
 ## Type Guard
 

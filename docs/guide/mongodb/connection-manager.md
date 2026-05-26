@@ -1,4 +1,5 @@
 ---
+description: MongoConnectionManager holds one long-lived MongoClient singleton with typed getDatabase and getCollection helpers.
 prev:
     text: "Nimbus MongoDB"
     link: "/guide/mongodb"

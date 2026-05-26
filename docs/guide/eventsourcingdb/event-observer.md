@@ -1,4 +1,5 @@
 ---
+description: initEventObserver runs a resilient background loop for new events — ideal for projections with automatic reconnect.
 prev:
     text: "Read Events"
     link: "/guide/eventsourcingdb/read-events"
@@ -60,14 +61,14 @@ initEventObserver({
 
 ## EventObserver Options
 
-| Option             | Type                       | Default     | Description                                                  |
-| ------------------ | -------------------------- | ----------- | ------------------------------------------------------------ |
-| `subject`          | `string`                   | _(required)_ | The subject to observe events for                            |
-| `recursive`        | `boolean`                  | `false`     | Whether to observe events recursively for all sub-subjects   |
-| `lowerBound`       | `Bound`                    | `undefined` | The starting position for observation                        |
-| `fromLatestEvent`  | `ObserveFromLatestEvent`   | `undefined` | Start observation from a specific latest event               |
-| `eventHandler`     | `(event: Event) => void`   | _(required)_ | Handler function called for each observed event              |
-| `retryOptions`     | `RetryOptions`             | see below   | Options for retry behavior on connection failure             |
+| Option            | Type                     | Default      | Description                                                |
+| ----------------- | ------------------------ | ------------ | ---------------------------------------------------------- |
+| `subject`         | `string`                 | _(required)_ | The subject to observe events for                          |
+| `recursive`       | `boolean`                | `false`      | Whether to observe events recursively for all sub-subjects |
+| `lowerBound`      | `Bound`                  | `undefined`  | The starting position for observation                      |
+| `fromLatestEvent` | `ObserveFromLatestEvent` | `undefined`  | Start observation from a specific latest event             |
+| `eventHandler`    | `(event: Event) => void` | _(required)_ | Handler function called for each observed event            |
+| `retryOptions`    | `RetryOptions`           | see below    | Options for retry behavior on connection failure           |
 
 ### Bound
 
@@ -80,9 +81,9 @@ The `lowerBound` option defines where observation starts:
 }
 ```
 
-| Property | Type                          | Description                             |
-| -------- | ----------------------------- | --------------------------------------- |
-| `id`     | `string`                      | The event ID to start from              |
+| Property | Type                           | Description                              |
+| -------- | ------------------------------ | ---------------------------------------- |
+| `id`     | `string`                       | The event ID to start from               |
 | `type`   | `"inclusive"` \| `"exclusive"` | Whether to include or exclude this event |
 
 ### ObserveFromLatestEvent
@@ -97,24 +98,24 @@ The `fromLatestEvent` option starts observation from the latest event matching s
 }
 ```
 
-| Property           | Type                                       | Description                                          |
-| ------------------ | ------------------------------------------ | ---------------------------------------------------- |
-| `subject`          | `string`                                   | The subject to find the latest event for             |
-| `type`             | `string`                                   | The event type to match                              |
-| `ifEventIsMissing` | `"read-everything"` \| `"wait-for-event"`  | What to do if no matching event exists               |
+| Property           | Type                                      | Description                              |
+| ------------------ | ----------------------------------------- | ---------------------------------------- |
+| `subject`          | `string`                                  | The subject to find the latest event for |
+| `type`             | `string`                                  | The event type to match                  |
+| `ifEventIsMissing` | `"read-everything"` \| `"wait-for-event"` | What to do if no matching event exists   |
 
 ## Retry Options
 
-| Option               | Type     | Default | Description                                              |
-| -------------------- | -------- | ------- | -------------------------------------------------------- |
-| `maxRetries`         | `number` | `3`     | Maximum number of retry attempts before giving up        |
-| `initialRetryDelayMs`| `number` | `3000`  | Initial delay in milliseconds before the first retry     |
+| Option                | Type     | Default | Description                                          |
+| --------------------- | -------- | ------- | ---------------------------------------------------- |
+| `maxRetries`          | `number` | `3`     | Maximum number of retry attempts before giving up    |
+| `initialRetryDelayMs` | `number` | `3000`  | Initial delay in milliseconds before the first retry |
 
 The observer uses **exponential backoff with jitter** for retries:
 
-- Base delay doubles with each attempt: `initialDelayMs * 2^attempt`
-- Random jitter of 0-30% is added to avoid thundering-herd effects
-- After `maxRetries` consecutive failures, a critical error is logged and the observer stops
+-   Base delay doubles with each attempt: `initialDelayMs * 2^attempt`
+-   Random jitter of 0-30% is added to avoid thundering-herd effects
+-   After `maxRetries` consecutive failures, a critical error is logged and the observer stops
 
 ## Building Projections
 
@@ -131,12 +132,9 @@ const USER_INVITATION_ACCEPTED_EVENT_TYPE =
 
 const usersStore = new Map();
 
-export const projectViews = (
-    eventSourcingDBEvent: EventSourcingDBEvent,
-) => {
-    const event = eventSourcingDBEventToNimbusEvent<Event>(
-        eventSourcingDBEvent,
-    );
+export const projectViews = (eventSourcingDBEvent: EventSourcingDBEvent) => {
+    const event =
+        eventSourcingDBEventToNimbusEvent<Event>(eventSourcingDBEvent);
 
     switch (event.type) {
         case USER_INVITED_EVENT_TYPE: {

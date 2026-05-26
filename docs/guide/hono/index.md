@@ -1,4 +1,5 @@
 ---
+description: Hub for @nimbus-cqrs/hono — middleware and handlers bridging Nimbus observability and errors to Hono HTTP apps.
 prev:
     text: "Exceptions"
     link: "/guide/core/exceptions"

@@ -1,3 +1,7 @@
+---
+description: Event Sourcing gives AI systems rich, time-ordered domain history; Nimbus and llms.txt help agents learn the framework accurately.
+---
+
 # The Era of AI
 
 The conversation around AI today is dominated by ever larger models and increasingly autonomous agents. It is easy to get caught up in the hype and lose sight of what actually makes these systems useful.
@@ -13,3 +17,12 @@ If you'd like to dive deeper into the topic of AI and Event Sourcing, check out 
 Nimbus is meant to build applications based on messages: [Commands](/guide/core/commands), [Events](/guide/core/events), and [Queries](/guide/core/queries). This is the perfect fit to combine it with Domain Driven Design and Event Sourcing.
 
 This way you are building the data foundation that makes future AI use cases - from analytics and forecasting to agentic workflows - viable rather than aspirational.
+
+## Documentation for coding agents
+
+Coding agents can load the full Nimbus guide from a single URL:
+
+-   [llms.txt](https://nimbus.overlap.at/llms.txt) — link-rich index of every guide page (Markdown)
+-   [llms-full.txt](https://nimbus.overlap.at/llms-full.txt) — entire guide in one file
+
+Use the [Glossary](/guide/glossary) to pin terminology and reduce hallucinations. Per-page Markdown mirrors are available at the same path with a `.md` suffix (for example `/guide/core/commands.md`).

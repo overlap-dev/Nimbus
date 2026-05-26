@@ -1,9 +1,42 @@
 import { defineConfig } from "vitepress";
+import llmstxt from "vitepress-plugin-llms";
 import { withMermaid } from "vitepress-plugin-mermaid";
 
 // https://vitepress.dev/reference/site-config
 export default withMermaid(defineConfig({
     title: "Nimbus CQRS Framework",
+    vite: {
+        plugins: [
+            llmstxt({
+                domain: "https://nimbus.overlap.at",
+                customTemplateVariables: {
+                    title: "Nimbus CQRS Framework",
+                    description:
+                        "TypeScript framework for event-driven apps: CQRS, Event Sourcing, CloudEvents messaging, OpenTelemetry.",
+                    details:
+                        "Start with /guide/glossary.md and /guide/in-depth-example.md for terminology and a full walkthrough. Package API reference: https://jsr.io/@nimbus-cqrs",
+                },
+                customLLMsTxtTemplate: `# {title}
+
+{description}
+
+{details}
+
+## Guide
+
+{toc}
+
+## Optional
+
+- [eventsourcing-demo](https://github.com/overlap-dev/Nimbus/tree/main/examples/eventsourcing-demo): Full CQRS + Event Sourcing example application
+- [JSR @nimbus-cqrs](https://jsr.io/@nimbus-cqrs): Generated API documentation for all packages
+- [EventSourcingDB docs](https://docs.eventsourcingdb.io/): Event store used by the EventSourcingDB package
+- [CloudEvents](https://cloudevents.io/): Message format used by Commands, Events, and Queries
+`,
+                excludeIndexPage: true,
+            }),
+        ],
+    },
     description: "Nimbus is an open-source application framework for building event-driven systems using CQRS and Event Sourcing in TypeScript.",
     head: [
         ["link", {
@@ -93,6 +126,10 @@ export default withMermaid(defineConfig({
                 {
                     text: "In Depth Example",
                     link: "/guide/in-depth-example",
+                },
+                {
+                    text: "Glossary",
+                    link: "/guide/glossary",
                 },
                 {
                     text: "Core",

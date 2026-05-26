@@ -1,3 +1,7 @@
+---
+description: Events are immutable CloudEvents facts about what already happened; they power event-driven and event-sourced designs.
+---
+
 # Events
 
 Events represent facts - things that have already happened in the system.

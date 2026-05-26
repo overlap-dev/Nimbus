@@ -1,4 +1,5 @@
 ---
+description: getEnv loads and validates required environment variables, failing fast with clear errors when any are missing.
 prev:
     text: "Nimbus Utils"
     link: "/guide/utils"

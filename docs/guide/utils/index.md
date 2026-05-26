@@ -1,4 +1,5 @@
 ---
+description: Hub for @nimbus-cqrs/utils — small helpers such as validated environment variable loading.
 prev:
     text: "handleMongoError"
     link: "/guide/mongodb/handle-mongo-error"

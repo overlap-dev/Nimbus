@@ -1,4 +1,5 @@
 ---
+description: Hono onError handler that maps Nimbus exceptions to structured JSON HTTP responses with correct status codes.
 prev:
     text: "Logger Middleware"
     link: "/guide/hono/logger"
@@ -42,34 +43,34 @@ When a Nimbus exception is thrown, the handler returns a JSON response with the 
 }
 ```
 
-| Field     | Description                                              |
-| --------- | -------------------------------------------------------- |
-| `error`   | The exception name (e.g., `NOT_FOUND`, `INVALID_INPUT`)  |
-| `message` | The error message provided when throwing the exception   |
-| `details` | Optional additional details (only included if provided)  |
+| Field     | Description                                             |
+| --------- | ------------------------------------------------------- |
+| `error`   | The exception name (e.g., `NOT_FOUND`, `INVALID_INPUT`) |
+| `message` | The error message provided when throwing the exception  |
+| `details` | Optional additional details (only included if provided) |
 
 ## Status Code Mapping
 
 The HTTP status code is taken directly from the exception's `statusCode` property:
 
-| Exception               | Status Code | Response `error`        |
-| ----------------------- | ----------- | ----------------------- |
-| `GenericException`      | 500         | `GENERIC_EXCEPTION`     |
-| `InvalidInputException` | 400         | `INVALID_INPUT`         |
-| `NotFoundException`     | 404         | `NOT_FOUND`             |
-| `UnauthorizedException` | 401         | `UNAUTHORIZED`          |
-| `ForbiddenException`    | 403         | `FORBIDDEN`             |
-| Custom exceptions       | (custom)    | (custom name)           |
+| Exception               | Status Code | Response `error`    |
+| ----------------------- | ----------- | ------------------- |
+| `GenericException`      | 500         | `GENERIC_EXCEPTION` |
+| `InvalidInputException` | 400         | `INVALID_INPUT`     |
+| `NotFoundException`     | 404         | `NOT_FOUND`         |
+| `UnauthorizedException` | 401         | `UNAUTHORIZED`      |
+| `ForbiddenException`    | 403         | `FORBIDDEN`         |
+| Custom exceptions       | (custom)    | (custom name)       |
 
 ## Logging Behavior
 
 The handler logs errors differently based on the status code:
 
-| Status Code | Log Level  | Description                              |
-| ----------- | ---------- | ---------------------------------------- |
-| 5xx         | `error`    | Server errors that need investigation    |
-| 4xx         | `debug`    | Client errors, typically expected        |
-| Unhandled   | `critical` | Non-Nimbus errors, unexpected failures   |
+| Status Code | Log Level  | Description                            |
+| ----------- | ---------- | -------------------------------------- |
+| 5xx         | `error`    | Server errors that need investigation  |
+| 4xx         | `debug`    | Client errors, typically expected      |
+| Unhandled   | `critical` | Non-Nimbus errors, unexpected failures |
 
 ## Example: Exception Handling
 
@@ -111,6 +112,7 @@ app.onError(handleError);
 ### Response Examples
 
 **NotFoundException (404):**
+
 ```json
 {
     "error": "NOT_FOUND",
@@ -122,6 +124,7 @@ app.onError(handleError);
 ```
 
 **InvalidInputException (400):**
+
 ```json
 {
     "error": "INVALID_INPUT",
@@ -133,6 +136,7 @@ app.onError(handleError);
 ```
 
 **Unhandled Error (500):**
+
 ```json
 {
     "error": "INTERNAL_SERVER_ERROR"

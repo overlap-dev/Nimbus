@@ -1,3 +1,7 @@
+---
+description: MessageRouter routes commands, queries, and events to handlers with Zod validation and OpenTelemetry tracing.
+---
+
 # Router
 
 The MessageRouter is responsible for routing incoming messages (commands, queries, and events) to their registered handlers. It provides automatic validation, type safety, and observability for all routed messages.

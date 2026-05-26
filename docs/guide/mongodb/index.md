@@ -1,4 +1,5 @@
 ---
+description: Hub for @nimbus-cqrs/mongodb — connection manager, repository, CRUD+, MongoJSON, and collection deployment.
 prev:
     text: "Event Mapping"
     link: "/guide/eventsourcingdb/event-mapping"

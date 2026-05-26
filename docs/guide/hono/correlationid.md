@@ -1,4 +1,5 @@
 ---
+description: Hono middleware that reads or generates a ULID correlation ID per request for distributed tracing.
 prev:
     text: "Nimbus Hono"
     link: "/guide/hono"

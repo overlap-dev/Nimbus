@@ -1,3 +1,7 @@
+---
+description: Structured Nimbus exceptions carry optional HTTP status codes and details for consistent API error responses.
+---
+
 # Exceptions
 
 Nimbus provides a set of structured exceptions for handling errors in your application. These exceptions

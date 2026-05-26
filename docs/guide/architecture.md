@@ -1,3 +1,7 @@
+---
+description: Recommended foundation — Pure Core (side-effect-free domain logic) inside an Imperative Shell (HTTP, DB, I/O), aligned with CQRS and Event Sourcing.
+---
+
 # Architecture
 
 Nimbus tries to not be too opinionated and does not enforce a specific architecture or design pattern.

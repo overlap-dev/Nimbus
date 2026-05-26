@@ -1,7 +1,8 @@
 ---
+description: Hub for @nimbus-cqrs/core — commands, queries, events, router, event bus, exceptions, logging, and observability.
 prev:
-    text: "Quickstart"
-    link: "/guide/quickstart"
+    text: "Glossary"
+    link: "/guide/glossary"
 
 next:
     text: "Commands"

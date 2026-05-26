@@ -1,4 +1,5 @@
 ---
+description: Hono middleware that logs HTTP requests and responses with timing and optional OpenTelemetry spans.
 prev:
     text: "CorrelationID Middleware"
     link: "/guide/hono/correlationid"

@@ -1,3 +1,7 @@
+---
+description: Nimbus is a lightweight TypeScript framework for event-driven apps with CloudEvents messaging, CQRS patterns, and built-in OpenTelemetry observability.
+---
+
 # What is Nimbus?
 
 Nimbus is a lightweight TypeScript framework for building event-driven applications. It provides type-safe messaging patterns (Commands, Queries, Events) following the [CloudEvents](https://cloudevents.io/) specification, with built-in observability powered by [OpenTelemetry](https://opentelemetry.io/).
@@ -7,6 +11,7 @@ Nimbus is a lightweight TypeScript framework for building event-driven applicati
 -   [The Philosophy behind Nimbus](/guide/philosophy)
 -   [The Era of AI](/guide/era-of-ai)
 -   [Architecture Recommendation](/guide/architecture)
+-   [Glossary](/guide/glossary) — pinned terminology for humans and AI agents
 
 ## Who Is This For?
 

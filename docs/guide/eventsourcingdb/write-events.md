@@ -1,4 +1,5 @@
 ---
+description: writeEvents appends Nimbus events to EventSourcingDB with mapping, trace context, and optional preconditions.
 prev:
     text: "Client Setup"
     link: "/guide/eventsourcingdb/client-setup"

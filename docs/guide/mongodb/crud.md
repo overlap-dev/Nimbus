@@ -1,4 +1,5 @@
 ---
+description: Low-level traced MongoDB CRUD helpers with Nimbus exceptions — use directly or via MongoDBRepository.
 prev:
     text: "Repository"
     link: "/guide/mongodb/repository"
@@ -278,20 +279,20 @@ All CRUD functions are automatically instrumented with OpenTelemetry tracing and
 
 Each operation creates a span with the following attributes:
 
-| Attribute               | Description                              |
-| ----------------------- | ---------------------------------------- |
-| `db.system`             | Always `mongodb`                         |
-| `db.operation`          | The operation name (e.g., `find`)        |
-| `db.mongodb.collection` | The collection name                      |
+| Attribute               | Description                       |
+| ----------------------- | --------------------------------- |
+| `db.system`             | Always `mongodb`                  |
+| `db.operation`          | The operation name (e.g., `find`) |
+| `db.mongodb.collection` | The collection name               |
 
 ### Metrics
 
 Two metrics are recorded for every operation:
 
-| Metric                              | Type      | Labels                           | Description                        |
-| ----------------------------------- | --------- | -------------------------------- | ---------------------------------- |
-| `mongodb_operation_total`           | Counter   | `operation`, `collection`, `status` | Total number of operations      |
-| `mongodb_operation_duration_seconds`| Histogram | `operation`, `collection`        | Duration of operations in seconds  |
+| Metric                               | Type      | Labels                              | Description                       |
+| ------------------------------------ | --------- | ----------------------------------- | --------------------------------- |
+| `mongodb_operation_total`            | Counter   | `operation`, `collection`, `status` | Total number of operations        |
+| `mongodb_operation_duration_seconds` | Histogram | `operation`, `collection`           | Duration of operations in seconds |
 
 The `status` label is either `success` or `error`.
 
