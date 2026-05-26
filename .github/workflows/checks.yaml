@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  check:
+  checks:
     name: Format, Lint, Type Check & Test
     runs-on: ubuntu-latest
     steps:
