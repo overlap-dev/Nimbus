@@ -17,12 +17,12 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
-      - uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb
+      - uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282
         with:
-          deno-version: v2
+          deno-version: v2.8
 
       - name: Install dependencies
-        run: deno install --frozen
+        run: deno ci
 
       - name: Check formatting
         run: deno fmt --check
@@ -33,32 +33,7 @@ jobs:
       - name: Type check
         run: deno check
 
-      # Workaround for https://github.com/denoland/deno/issues/27675:
-      # Deno's node:http does not honor `socketPath`, so npm packages such as
-      # `dockerode` (used transitively by `testcontainers`, which the
-      # eventsourcingdb integration test relies on) cannot reach the Docker
-      # daemon via /var/run/docker.sock. We expose the Unix socket over TCP
-      # via socat and point testcontainers at it through DOCKER_HOST.
-      - name: Expose Docker socket over TCP
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y socat
-          socat TCP-LISTEN:2375,reuseaddr,fork,bind=127.0.0.1 \
-            UNIX-CONNECT:/var/run/docker.sock &
-          # Wait for the proxy to start accepting connections.
-          for _ in $(seq 1 20); do
-            if curl -fsS http://127.0.0.1:2375/_ping >/dev/null; then
-              echo "Docker TCP proxy is up"
-              exit 0
-            fi
-            sleep 0.25
-          done
-          echo "Docker TCP proxy failed to start" >&2
-          exit 1
-
       - name: Test
-        env:
-          DOCKER_HOST: tcp://127.0.0.1:2375
         run: deno test --allow-all --permit-no-files
 
   docs:
