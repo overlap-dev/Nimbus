@@ -1,10 +1,18 @@
 import { defineConfig } from "vitepress";
-import llmstxt from "vitepress-plugin-llms";
+import llmstxt, { copyOrDownloadAsMarkdownButtons } from "vitepress-plugin-llms";
 import { withMermaid } from "vitepress-plugin-mermaid";
 
 // https://vitepress.dev/reference/site-config
 export default withMermaid(defineConfig({
     title: "Nimbus CQRS Framework",
+    markdown: {
+        image: {
+            lazyLoading: true,
+        },
+        config(md) {
+            md.use(copyOrDownloadAsMarkdownButtons);
+        },
+    },
     vite: {
         plugins: [
             llmstxt({
@@ -89,11 +97,6 @@ export default withMermaid(defineConfig({
             "https://raw.githubusercontent.com/overlap-dev/Nimbus/main/media/Nimbus.svg",
         search: {
             provider: "local",
-        },
-        markdown: {
-            image: {
-                lazyLoading: true,
-            },
         },
 
         nav: [
