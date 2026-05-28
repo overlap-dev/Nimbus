@@ -7,6 +7,7 @@
     "minimatch@5": "^5.1.8",
     "minimatch@9": "^9.0.7",
     "protobufjs": "^7.6.1",
+    "tmp": "^0.2.7",
     "undici": "^7.25.0",
     "yaml": "^2.8.3"
   }
