@@ -1,9 +1,10 @@
-<img 
-    src="https://raw.githubusercontent.com/overlap-dev/Nimbus/main/media/intro.png" 
-    alt="Nimbus"
-/>
-
 # Nimbus Hono
+
+<img
+    src="https://raw.githubusercontent.com/devn-ch/EventFabric/next/media/EventFabric.webp"
+    width="1024"
+    alt="Event Fabric"
+/>
 
 Adapters and middleware that bridge [Hono](https://hono.dev/) and the Nimbus framework. The package gives your Hono app a correlation ID per request, structured request/response logging with OpenTelemetry tracing, and a single error handler that turns Nimbus exceptions into clean HTTP responses.
 
