@@ -1,13 +1,16 @@
+# EventFabric
+
 <img
-    src="https://raw.githubusercontent.com/overlap-dev/Nimbus/main/media/intro.png"
-    alt="Nimbus"
+    src="https://raw.githubusercontent.com/devn-ch/EventFabric/next/media/EventFabric.webp"
+    width="1024"
+    alt="Event Fabric"
 />
 
-# Installation
+## Installation
 
 Find all packages and installation instructions at [jsr.io](https://jsr.io/@nimbus-cqrs) or [npmjs.com](https://www.npmjs.com/org/nimbus-cqrs).
 
-# Documentation
+## Documentation
 
 Find the full documentation at [https://nimbus.overlap.at/](https://nimbus.overlap.at/).
 
@@ -16,8 +19,9 @@ For coding agents and LLM tools, the site also publishes [llms.txt](https://nimb
 In addition code documentation is automatically generated and can be found for
 each package at [jsr.io](https://jsr.io/@nimbus-cqrs).
 
-# License
+## License
 
+Copyright 2026 devn.ch
 Copyright 2024-present Overlap GmbH & Co KG (https://overlap.at)
 
 Licensed under the Apache License, Version 2.0 (the "License");
