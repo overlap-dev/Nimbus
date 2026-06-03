@@ -22,6 +22,7 @@ each package at [jsr.io](https://jsr.io/@nimbus-cqrs).
 ## License
 
 Copyright 2026 devn.ch
+
 Copyright 2024-present Overlap GmbH & Co KG (https://overlap.at)
 
 Licensed under the Apache License, Version 2.0 (the "License");
