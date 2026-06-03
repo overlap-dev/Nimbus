@@ -1,9 +1,10 @@
-<img 
-    src="https://raw.githubusercontent.com/overlap-dev/Nimbus/main/media/intro.png" 
-    alt="Nimbus"
-/>
-
 # Nimbus Core
+
+<img
+    src="https://raw.githubusercontent.com/devn-ch/EventFabric/next/media/EventFabric.webp"
+    width="1024"
+    alt="Event Fabric"
+/>
 
 The core package of the Nimbus framework — a small, [CloudEvents](https://cloudevents.io/)-based CQRS toolkit for TypeScript. It provides typed **Commands**, **Queries** and **Events**, a validating **Router** and an in-process **EventBus** with retries and OpenTelemetry instrumentation.
 
