@@ -1,9 +1,10 @@
-<img 
-    src="https://raw.githubusercontent.com/overlap-dev/Nimbus/main/media/intro.png" 
-    alt="Nimbus"
-/>
-
 # Nimbus MongoDB
+
+<img
+    src="https://raw.githubusercontent.com/devn-ch/EventFabric/next/media/EventFabric.webp"
+    width="1024"
+    alt="Event Fabric"
+/>
 
 A small, opinionated layer on top of the official [`mongodb`](https://www.mongodb.com/docs/drivers/node/current/) Node driver. The package gives you:
 
