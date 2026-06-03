@@ -1,9 +1,10 @@
-<img 
-    src="https://raw.githubusercontent.com/overlap-dev/Nimbus/main/media/intro.png" 
-    alt="Nimbus"
-/>
-
 # Nimbus Utils
+
+<img
+    src="https://raw.githubusercontent.com/devn-ch/EventFabric/next/media/EventFabric.webp"
+    width="1024"
+    alt="Event Fabric"
+/>
 
 A small collection of utility helpers used across the Nimbus framework — currently a single helper, `getEnv`, for reading required environment variables in a fail-fast way.
 
