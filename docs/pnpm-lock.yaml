@@ -12,7 +12,7 @@ importers:
         specifier: ^0.39.3
         version: 0.39.3(astro@6.4.4(@types/node@24.12.4)(rollup@4.61.0))
       astro:
-        specifier: ^6.3.1
+        specifier: ^6.4.0
         version: 6.4.4(@types/node@24.12.4)(rollup@4.61.0)
       remark-gfm:
         specifier: ^4.0.1
