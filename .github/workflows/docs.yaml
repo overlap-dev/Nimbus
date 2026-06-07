@@ -31,25 +31,33 @@ jobs:
       - name: Install pnpm
         run: npm i -g pnpm --no-fund
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v6.0.0
-
-      - name: Install dependencies
-        working-directory: ./docs
-        run: pnpm i --ignore-scripts
-
-      - name: Approve scripts
-        working-directory: ./docs
-        run: pnpm approve-builds
-
-      - name: Build
-        working-directory: ./docs
-        run: pnpm build
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v5.0.0
+      - name: Install, build, and upload your site
+        uses: withastro/action@v0
         with:
-          path: docs/dist
+            path: ./docs # The root location of your Astro project inside the repository. (optional)
+            node-version: 24 # The specific version of Node that should be used to build your site. Defaults to 16. (optional)
+            package-manager: pnpm # The Node package manager that should be used to install dependencies and build your site. Automatically detected based on your lockfile. (optional)
+
+
+      # - name: Setup Pages
+      #   uses: actions/configure-pages@v6.0.0
+
+      # - name: Install dependencies
+      #   working-directory: ./docs
+      #   run: pnpm i --ignore-scripts
+
+      # - name: Approve scripts
+      #   working-directory: ./docs
+      #   run: pnpm approve-builds
+
+      # - name: Build
+      #   working-directory: ./docs
+      #   run: pnpm build
+
+      # - name: Upload artifact
+      #   uses: actions/upload-pages-artifact@v5.0.0
+      #   with:
+      #     path: docs/dist
 
   deploy:
     name: Deploy
