@@ -2,10 +2,11 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import remarkGfm from 'remark-gfm';
+import { starlightBasePath } from "starlight-base-path";
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://devn-ch.github.io/EventFabric',
+	base: "/EventFabric",
 	integrations: [
 		starlight({
 			title: 'EventFabric CQRS Framework',
@@ -43,7 +44,8 @@ export default defineConfig({
 					label: 'Utils',
 					items: [{ autogenerate: { directory: 'utils' } }],
 				},
-			]
+			],
+			plugins: [starlightBasePath()],
 		}),
 	],
 	markdown: {
