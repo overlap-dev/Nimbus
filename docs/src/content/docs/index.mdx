@@ -1,0 +1,55 @@
+---
+title: Documentation
+description: Get started building your event-driven applications with EventFabric.
+template: splash
+hero:
+  title: EventFabric<br /><strong>Simplify Event-Driven Applications</strong>
+  tagline: Build event-driven applications with Typescript.
+  image:
+    file: ../../assets/EventFabric.webp
+    alt: EventFabric hero image
+  actions:
+    - text: Get Started
+      link: /guides/get-started
+      icon: right-arrow
+    - text: What is EventFabric?
+      link: /guides/what-is-eventfabric
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid >
+	<Card title="Simple Core Concepts">
+    ![Icon for Simple Core Concepts](../../assets/simplecore.png)
+
+    No clunky and complex OOP or FP design principles. No Framework Magic. Just explicit code.
+
+    Compose an application with commands, events, and queries.
+	</Card>
+
+	<Card title="Commands & Queries">
+    ![Icon for CQRS](../../assets/cqrs.png)
+
+    The real world doesn't operate in snapshots – instead it operates in actions, events and outcomes.
+
+    Nimbus is a perfect fit for the CQRS pattern. Read more on [cqrs.com](https://www.cqrs.com/).
+	</Card>
+
+	<Card title="Event Sourcing">
+    ![Icon for EventSourcingDB](../../assets/eventsourcingdb.png)
+
+    When building your application to reflect real world actions and events it is crucial to store those events properly.
+
+    Nimbus integrates seamlessly with [EventSourcingDB](https://www.eventsourcingdb.io/).
+	</Card>
+
+	<Card title="Observability Built-In">
+    ![Icon for OpenTelemetry](../../assets/opentelemetry.png)
+
+    Logging, tracing, and metrics. Batteries included.
+
+    Nimbus uses [OpenTelemetry](https://opentelemetry.io/) for all relevant operations to provide a solid foundation for observability out of the box.
+	</Card>
+</CardGrid>

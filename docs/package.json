@@ -1,16 +1,18 @@
 {
-  "name": "@nimbus-cqrs/docs",
+  "name": "@devn-ch/eventfabric-docs",
+  "type": "module",
+  "version": "0.0.1",
   "scripts": {
-    "dev": "vitepress dev",
-    "build": "vitepress build",
-    "preview": "vitepress preview"
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
   },
   "dependencies": {
-    "vitepress": "1.6.4"
-  },
-  "devDependencies": {
-    "mermaid": "^11.14.0",
-    "vitepress-plugin-llms": "^1.13.0",
-    "vitepress-plugin-mermaid": "^2.0.17"
+    "@astrojs/starlight": "^0.39.3",
+    "astro": "^6.3.1",
+    "remark-gfm": "^4.0.1",
+    "sharp": "^0.34.5"
   }
 }
