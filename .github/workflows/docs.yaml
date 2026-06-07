@@ -36,7 +36,11 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./docs
-        run: pnpm i
+        run: pnpm i --ignore-scripts
+
+      - name: Approve scripts
+        working-directory: ./docs
+        run: pnpm approve-builds
 
       - name: Build
         working-directory: ./docs
