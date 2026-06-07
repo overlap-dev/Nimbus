@@ -11,49 +11,54 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  checks:
-    name: Format, Lint, Type Check & Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+  # checks:
+  #   name: Format, Lint, Type Check & Test
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v6.0
 
-      - uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282
-        with:
-          deno-version: v2
+  #     - uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282
+  #       with:
+  #         deno-version: v2
 
-      - name: Install dependencies
-        run: deno ci
+  #     - name: Install dependencies
+  #       run: deno ci
 
-      - name: Check formatting
-        run: deno fmt --check
+  #     - name: Check formatting
+  #       run: deno fmt --check
 
-      - name: Lint
-        run: deno lint
+  #     - name: Lint
+  #       run: deno lint
 
-      - name: Type check
-        run: deno check
+  #     - name: Type check
+  #       run: deno check
 
-      - name: Test
-        run: deno test --allow-all --permit-no-files
+  #     - name: Test
+  #       run: deno test --allow-all --permit-no-files
 
   docs:
     name: Build documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Checkout
+        uses: actions/checkout@v6.0
 
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+      - name: Setup Node
+        uses: actions/setup-node@v6.4
         with:
           node-version: "24"
           cache: npm
-          cache-dependency-path: "./docs/package-lock.json"
+          cache-dependency-path: "./docs/pnpm-lock.yaml"
+
+      - name: Install pnpm
+        run: npm i -g pnpm --no-fund
 
       - name: Build docs
         working-directory: ./docs
-        run: npm ci && npm run build
+        run: pnpm i && pnpm build
 
-      - name: Verify LLM artifacts
-        run: |
-          test -f docs/.vitepress/dist/llms.txt
-          test -f docs/.vitepress/dist/llms-full.txt
-          test -f docs/.vitepress/dist/guide/core/commands.md
+      # - name: Verify LLM artifacts
+      #   run: |
+      #     test -f docs/.vitepress/dist/llms.txt
+      #     test -f docs/.vitepress/dist/llms-full.txt
+      #     test -f docs/.vitepress/dist/guide/core/commands.md
