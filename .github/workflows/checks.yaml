@@ -14,6 +14,8 @@ jobs:
   checks:
     name: Format, Lint, Type Check & Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
@@ -39,6 +41,9 @@ jobs:
   docs:
     name: Build documentation
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
