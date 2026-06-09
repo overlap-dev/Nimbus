@@ -22,7 +22,7 @@ export class InvalidInputException extends Exception {
      *
      * @returns {InvalidInputException} The InvalidInputException.
      */
-    public fromZodError(error: ZodError): InvalidInputException {
+    public fromZodError(error: ZodError): this {
         if (error.stack) {
             this.stack = error.stack;
         }
