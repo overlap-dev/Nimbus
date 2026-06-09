@@ -14,8 +14,8 @@
     "@nimbus-cqrs/hono": "^2.1.2",
     "@nimbus-cqrs/mongodb": "^2.1.2",
     "@nimbus-cqrs/utils": "^2.1.2",
-    "hono": "^4.12.14",
-    "mongodb": "^7.1.1",
+    "hono": "^4.12.23",
+    "mongodb": "7.1.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
