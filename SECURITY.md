@@ -4,11 +4,6 @@ Nimbus is built with security in mind. We take security vulnerabilities seriousl
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.x.x   | :white_check_mark: |
-| 0.x.x   | :x:                |
-
 We recommend always using the most recent version of Nimbus.
 
 ## Reporting a Vulnerability

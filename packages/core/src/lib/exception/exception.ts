@@ -28,7 +28,7 @@ export class Exception extends Error {
         }
     }
 
-    public fromError(error: Error): Exception {
+    public fromError(error: Error): this {
         this.message = error.message;
         this.stack = error.stack;
 
