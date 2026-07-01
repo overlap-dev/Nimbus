@@ -1,5 +1,6 @@
 import { ulid } from '@std/ulid';
 import { z } from 'zod';
+import { warnOnInvalidExtensionAttributeNames } from './message.ts';
 
 /**
  * A command is a message that is sent to tell the system
@@ -21,6 +22,12 @@ import { z } from 'zod';
  * @property {TData} data - The actual data, containing the specific business payload.
  * @property {string} datacontenttype - A MIME type that indicates the format that the data is in (optional).
  * @property {string} dataschema - An absolute URL to the schema that the data adheres to (optional).
+ *
+ * Commands may include additional CloudEvents extension attributes such as
+ * `metadata` or `authcontext`. Define them on a command-specific schema via
+ * {@link commandSchema.extend} or as an intersection type.
+ *
+ * @see https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#extension-context-attributes
  *
  * @template TData - The type of the data.
  *
@@ -51,6 +58,21 @@ export type Command<TData = unknown> = {
     datacontenttype?: string;
     dataschema?: string;
 };
+
+/**
+ * Known command properties handled by {@link createCommand}.
+ */
+type CommandKnownProperty =
+    | 'specversion'
+    | 'id'
+    | 'correlationid'
+    | 'time'
+    | 'source'
+    | 'type'
+    | 'subject'
+    | 'data'
+    | 'datacontenttype'
+    | 'dataschema';
 
 /**
  * Type alias for the command data field schema.
@@ -89,7 +111,7 @@ export type CommandSchemaType = z.ZodObject<{
  * We do not infer the Command type from this schema because of
  * slow type issues see https://jsr.io/docs/about-slow-types for more details.
  */
-export const commandSchema: CommandSchemaType = z.object({
+export const commandSchema: CommandSchemaType = z.looseObject({
     specversion: z.literal('1.0'),
     id: z.string(),
     correlationid: z.string(),
@@ -106,7 +128,7 @@ export const commandSchema: CommandSchemaType = z.object({
     ]),
     datacontenttype: z.string().optional(),
     dataschema: z.url().optional(),
-});
+}) as CommandSchemaType;
 
 /**
  * Input for creating a command.
@@ -127,7 +149,8 @@ export type CreateCommandInput<TCommand extends Command = Command> =
             | 'dataschema'
         >
     >
-    & Pick<TCommand, 'type' | 'source' | 'data'>;
+    & Pick<TCommand, 'type' | 'source' | 'data'>
+    & Partial<Omit<TCommand, CommandKnownProperty>>;
 
 /**
  * Creates a command based on input data with the convenience
@@ -136,17 +159,41 @@ export type CreateCommandInput<TCommand extends Command = Command> =
 export const createCommand = <TCommand extends Command>(
     input: CreateCommandInput<TCommand>,
 ): TCommand => {
+    const {
+        id,
+        correlationid,
+        time,
+        source,
+        type,
+        subject,
+        data,
+        datacontenttype,
+        dataschema,
+        ...extensions
+    } = input;
+
+    const correlationIdWithFallback = correlationid ?? ulid();
+
+    if (Object.keys(extensions).length > 0) {
+        warnOnInvalidExtensionAttributeNames(
+            extensions as Record<string, unknown>,
+            correlationIdWithFallback,
+            createCommand,
+        );
+    }
+
     const command = {
         specversion: '1.0' as const,
-        id: input.id ?? ulid(),
-        correlationid: input.correlationid ?? ulid(),
-        time: input.time ?? new Date().toISOString(),
-        source: input.source,
-        type: input.type,
-        ...(input.subject && { subject: input.subject }),
-        data: input.data,
-        datacontenttype: input.datacontenttype ?? 'application/json',
-        ...(input.dataschema && { dataschema: input.dataschema }),
+        id: id ?? ulid(),
+        correlationid: correlationIdWithFallback,
+        time: time ?? new Date().toISOString(),
+        source,
+        type,
+        ...(subject && { subject }),
+        data,
+        datacontenttype: datacontenttype ?? 'application/json',
+        ...(dataschema && { dataschema }),
+        ...extensions,
     };
 
     return command as TCommand;

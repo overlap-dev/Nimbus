@@ -1,5 +1,6 @@
 import { ulid } from '@std/ulid';
 import { z } from 'zod';
+import { warnOnInvalidExtensionAttributeNames } from './message.ts';
 
 /**
  * An event is a message that is emitted by the system to notify
@@ -21,6 +22,12 @@ import { z } from 'zod';
  * @property {TData} data - The actual data, containing the specific business payload.
  * @property {string} datacontenttype - A MIME type that indicates the format that the data is in (optional).
  * @property {string} dataschema - An absolute URL to the schema that the data adheres to (optional).
+ *
+ * Events may include additional CloudEvents extension attributes such as
+ * `metadata` or `authcontext`. Define them on an event-specific schema via
+ * {@link eventSchema.extend} or as an intersection type.
+ *
+ * @see https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#extension-context-attributes
  *
  * @template TData - The type of the data.
  *
@@ -54,6 +61,21 @@ export type Event<TData = unknown> = {
     datacontenttype?: string;
     dataschema?: string;
 };
+
+/**
+ * Known event properties handled by {@link createEvent}.
+ */
+type EventKnownProperty =
+    | 'specversion'
+    | 'id'
+    | 'correlationid'
+    | 'time'
+    | 'source'
+    | 'type'
+    | 'subject'
+    | 'data'
+    | 'datacontenttype'
+    | 'dataschema';
 
 /**
  * Type alias for the event data field schema.
@@ -92,7 +114,7 @@ export type EventSchemaType = z.ZodObject<{
  * We do not infer the Event type from this schema because of
  * slow type issues see https://jsr.io/docs/about-slow-types for more details.
  */
-export const eventSchema: EventSchemaType = z.object({
+export const eventSchema: EventSchemaType = z.looseObject({
     specversion: z.literal('1.0'),
     id: z.string(),
     correlationid: z.string(),
@@ -109,7 +131,7 @@ export const eventSchema: EventSchemaType = z.object({
     ]),
     datacontenttype: z.string().optional(),
     dataschema: z.url().optional(),
-});
+}) as EventSchemaType;
 
 /**
  * Input for creating an event.
@@ -125,7 +147,8 @@ export type CreateEventInput<TEvent extends Event = Event> =
             'id' | 'correlationid' | 'time' | 'datacontenttype' | 'dataschema'
         >
     >
-    & Pick<TEvent, 'type' | 'source' | 'subject' | 'data'>;
+    & Pick<TEvent, 'type' | 'source' | 'subject' | 'data'>
+    & Partial<Omit<TEvent, EventKnownProperty>>;
 
 /**
  * Creates an event based on input data with the convenience
@@ -134,17 +157,41 @@ export type CreateEventInput<TEvent extends Event = Event> =
 export const createEvent = <TEvent extends Event>(
     input: CreateEventInput<TEvent>,
 ): TEvent => {
+    const {
+        id,
+        correlationid,
+        time,
+        source,
+        type,
+        subject,
+        data,
+        datacontenttype,
+        dataschema,
+        ...extensions
+    } = input;
+
+    const correlationIdWithFallback = correlationid ?? ulid();
+
+    if (Object.keys(extensions).length > 0) {
+        warnOnInvalidExtensionAttributeNames(
+            extensions as Record<string, unknown>,
+            correlationIdWithFallback,
+            createEvent,
+        );
+    }
+
     const event = {
         specversion: '1.0' as const,
-        id: input.id ?? ulid(),
-        correlationid: input.correlationid ?? ulid(),
-        time: input.time ?? new Date().toISOString(),
-        source: input.source,
-        type: input.type,
-        subject: input.subject,
-        data: input.data,
-        datacontenttype: input.datacontenttype ?? 'application/json',
-        ...(input.dataschema && { dataschema: input.dataschema }),
+        id: id ?? ulid(),
+        correlationid: correlationIdWithFallback,
+        time: time ?? new Date().toISOString(),
+        source,
+        type,
+        subject,
+        data,
+        datacontenttype: datacontenttype ?? 'application/json',
+        ...(dataschema && { dataschema }),
+        ...extensions,
     };
 
     return event as TEvent;

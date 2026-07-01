@@ -25,6 +25,13 @@ export const inviteUserInputSchema = z.object({
 export const inviteUserCommandSchema = commandSchema.extend({
     type: z.literal(INVITE_USER_COMMAND_TYPE),
     data: inviteUserInputSchema,
+
+    // This is just an example on how authentication
+    // context could be passed as an extension attribute.
+    authcontext: z.object({
+        sub: z.string(),
+        email: z.email(),
+    }),
 });
 export type InviteUserCommand = z.infer<typeof inviteUserCommandSchema>;
 

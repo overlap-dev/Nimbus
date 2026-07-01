@@ -1,5 +1,6 @@
 import { ulid } from '@std/ulid';
 import { z } from 'zod';
+import { warnOnInvalidExtensionAttributeNames } from './message.ts';
 
 /**
  * A query is a message that is sent to the system to request
@@ -19,6 +20,12 @@ import { z } from 'zod';
  * @property {TData} data - The actual data, containing the specific business payload.
  * @property {string} datacontenttype - A MIME type that indicates the format that the data is in (optional).
  * @property {string} dataschema - An absolute URL to the schema that the data adheres to (optional).
+ *
+ * Queries may include additional CloudEvents extension attributes such as
+ * `metadata` or `authcontext`. Define them on a query-specific schema via
+ * {@link querySchema.extend} or as an intersection type.
+ *
+ * @see https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#extension-context-attributes
  *
  * @template TData - The type of the data.
  *
@@ -47,6 +54,20 @@ export type Query<TData = unknown> = {
     datacontenttype?: string;
     dataschema?: string;
 };
+
+/**
+ * Known query properties handled by {@link createQuery}.
+ */
+type QueryKnownProperty =
+    | 'specversion'
+    | 'id'
+    | 'correlationid'
+    | 'time'
+    | 'source'
+    | 'type'
+    | 'data'
+    | 'datacontenttype'
+    | 'dataschema';
 
 /**
  * Type alias for the query data field schema.
@@ -84,7 +105,7 @@ export type QuerySchemaType = z.ZodObject<{
  * We do not infer the Query type from this schema because of
  * slow type issues see https://jsr.io/docs/about-slow-types for more details.
  */
-export const querySchema: QuerySchemaType = z.object({
+export const querySchema: QuerySchemaType = z.looseObject({
     specversion: z.literal('1.0'),
     id: z.string(),
     correlationid: z.string(),
@@ -100,7 +121,7 @@ export const querySchema: QuerySchemaType = z.object({
     ]),
     datacontenttype: z.string().optional(),
     dataschema: z.url().optional(),
-});
+}) as QuerySchemaType;
 
 /**
  * Input for creating a query.
@@ -116,7 +137,8 @@ export type CreateQueryInput<TQuery extends Query = Query> =
             'id' | 'correlationid' | 'time' | 'datacontenttype' | 'dataschema'
         >
     >
-    & Pick<TQuery, 'type' | 'source' | 'data'>;
+    & Pick<TQuery, 'type' | 'source' | 'data'>
+    & Partial<Omit<TQuery, QueryKnownProperty>>;
 
 /**
  * Creates a query based on input data with the convenience
@@ -125,16 +147,39 @@ export type CreateQueryInput<TQuery extends Query = Query> =
 export const createQuery = <TQuery extends Query>(
     input: CreateQueryInput<TQuery>,
 ): TQuery => {
+    const {
+        id,
+        correlationid,
+        time,
+        source,
+        type,
+        data,
+        datacontenttype,
+        dataschema,
+        ...extensions
+    } = input;
+
+    const correlationIdWithFallback = correlationid ?? ulid();
+
+    if (Object.keys(extensions).length > 0) {
+        warnOnInvalidExtensionAttributeNames(
+            extensions as Record<string, unknown>,
+            correlationIdWithFallback,
+            createQuery,
+        );
+    }
+
     const query = {
         specversion: '1.0' as const,
-        id: input.id ?? ulid(),
-        correlationid: input.correlationid ?? ulid(),
-        time: input.time ?? new Date().toISOString(),
-        source: input.source,
-        type: input.type,
-        data: input.data,
-        datacontenttype: input.datacontenttype ?? 'application/json',
-        ...(input.dataschema && { dataschema: input.dataschema }),
+        id: id ?? ulid(),
+        correlationid: correlationIdWithFallback,
+        time: time ?? new Date().toISOString(),
+        source,
+        type,
+        data,
+        datacontenttype: datacontenttype ?? 'application/json',
+        ...(dataschema && { dataschema }),
+        ...extensions,
     };
 
     return query as TQuery;
