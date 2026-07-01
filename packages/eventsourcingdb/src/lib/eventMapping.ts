@@ -1,4 +1,8 @@
-import { createEvent, type Event } from '@nimbus-cqrs/core';
+import {
+    createEvent,
+    type CreateEventInput,
+    type Event,
+} from '@nimbus-cqrs/core';
 import { ulid } from '@std/ulid';
 import type {
     Event as EventSourcingDBEvent,
@@ -107,5 +111,5 @@ export const eventSourcingDBEventToNimbusEvent = <TEvent extends Event>(
         correlationid: correlationid,
         data: data,
         ...(dataschema && { dataschema: dataschema }),
-    });
+    } as CreateEventInput<TEvent>);
 };

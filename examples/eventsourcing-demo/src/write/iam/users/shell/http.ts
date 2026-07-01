@@ -36,6 +36,13 @@ httpUserCommandRouter.post(
             source: 'https://nimbus.overlap.at',
             correlationid: correlationId,
             data: body,
+
+            // This is just an example on how authentication
+            // context could passed as an extension attribute.
+            authcontext: {
+                sub: '123',
+                email: 'test@example.com',
+            },
         });
 
         const result = await getRouter('commandRouter').route(command);
