@@ -38,7 +38,7 @@ httpUserCommandRouter.post(
             data: body,
 
             // This is just an example on how authentication
-            // context could passed as an extension attribute.
+            // context could be passed as an extension attribute.
             authcontext: {
                 sub: '123',
                 email: 'test@example.com',

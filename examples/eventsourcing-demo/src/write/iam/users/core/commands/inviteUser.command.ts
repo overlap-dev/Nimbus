@@ -27,7 +27,7 @@ export const inviteUserCommandSchema = commandSchema.extend({
     data: inviteUserInputSchema,
 
     // This is just an example on how authentication
-    // context could passed as an extension attribute.
+    // context could be passed as an extension attribute.
     authcontext: z.object({
         sub: z.string(),
         email: z.email(),

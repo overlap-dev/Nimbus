@@ -172,10 +172,12 @@ export const createCommand = <TCommand extends Command>(
         ...extensions
     } = input;
 
+    const correlationIdWithFallback = correlationid ?? ulid();
+
     if (Object.keys(extensions).length > 0) {
         warnOnInvalidExtensionAttributeNames(
             extensions as Record<string, unknown>,
-            correlationid,
+            correlationIdWithFallback,
             createCommand,
         );
     }
@@ -183,7 +185,7 @@ export const createCommand = <TCommand extends Command>(
     const command = {
         specversion: '1.0' as const,
         id: id ?? ulid(),
-        correlationid: correlationid ?? ulid(),
+        correlationid: correlationIdWithFallback,
         time: time ?? new Date().toISOString(),
         source,
         type,

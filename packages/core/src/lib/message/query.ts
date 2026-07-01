@@ -159,10 +159,12 @@ export const createQuery = <TQuery extends Query>(
         ...extensions
     } = input;
 
+    const correlationIdWithFallback = correlationid ?? ulid();
+
     if (Object.keys(extensions).length > 0) {
         warnOnInvalidExtensionAttributeNames(
             extensions as Record<string, unknown>,
-            correlationid,
+            correlationIdWithFallback,
             createQuery,
         );
     }
@@ -170,7 +172,7 @@ export const createQuery = <TQuery extends Query>(
     const query = {
         specversion: '1.0' as const,
         id: id ?? ulid(),
-        correlationid: correlationid ?? ulid(),
+        correlationid: correlationIdWithFallback,
         time: time ?? new Date().toISOString(),
         source,
         type,

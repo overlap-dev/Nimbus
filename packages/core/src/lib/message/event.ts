@@ -170,10 +170,12 @@ export const createEvent = <TEvent extends Event>(
         ...extensions
     } = input;
 
+    const correlationIdWithFallback = correlationid ?? ulid();
+
     if (Object.keys(extensions).length > 0) {
         warnOnInvalidExtensionAttributeNames(
             extensions as Record<string, unknown>,
-            correlationid,
+            correlationIdWithFallback,
             createEvent,
         );
     }
@@ -181,7 +183,7 @@ export const createEvent = <TEvent extends Event>(
     const event = {
         specversion: '1.0' as const,
         id: id ?? ulid(),
-        correlationid: correlationid ?? ulid(),
+        correlationid: correlationIdWithFallback,
         time: time ?? new Date().toISOString(),
         source,
         type,
