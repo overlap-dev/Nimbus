@@ -11,13 +11,26 @@ const withTimeout = <T>(
     promise: Promise<T>,
     ms: number,
     message: string,
-): Promise<T> =>
-    Promise.race([
-        promise,
-        new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error(message)), ms)
-        ),
-    ]);
+): Promise<T> => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    return new Promise<T>((resolve, reject) => {
+        timer = setTimeout(() => {
+            reject(new Error(message));
+        }, ms);
+
+        promise.then(
+            (value) => {
+                clearTimeout(timer);
+                resolve(value);
+            },
+            (error) => {
+                clearTimeout(timer);
+                reject(error);
+            },
+        );
+    });
+};
 
 // ---------------------------------------------------------------------------
 // Shared container lifecycle
@@ -335,6 +348,66 @@ Deno.test({
                     ]);
                     assertEquals(handledTypes, [
                         'at.test.nimbus.after-poison',
+                    ]);
+                },
+            );
+
+            await t.step(
+                'initEventObserver skips event when onHandlerError throws',
+                async () => {
+                    await writeEvents([
+                        createEvent({
+                            source: 'https://nimbus.test',
+                            type: 'at.test.nimbus.on-error-throw',
+                            subject: '/observer/on-handler-error-throw',
+                            data: { index: 0 },
+                        }),
+                        createEvent({
+                            source: 'https://nimbus.test',
+                            type: 'at.test.nimbus.after-on-error-throw',
+                            subject: '/observer/on-handler-error-throw',
+                            data: { index: 1 },
+                        }),
+                    ]);
+
+                    const handledTypes: string[] = [];
+                    let onHandlerErrorCalls = 0;
+                    let resolveDone: () => void;
+                    const done = new Promise<void>((resolve) => {
+                        resolveDone = resolve;
+                    });
+
+                    initEventObserver({
+                        subject: '/observer/on-handler-error-throw',
+                        recursive: false,
+                        eventHandler: (event) => {
+                            if (
+                                event.type === 'at.test.nimbus.on-error-throw'
+                            ) {
+                                throw new Error('poison event');
+                            }
+                            handledTypes.push(event.type);
+                            resolveDone();
+                        },
+                        handlerRetryOptions: {
+                            maxRetries: 1,
+                            initialRetryDelayMs: 10,
+                        },
+                        onHandlerError: () => {
+                            onHandlerErrorCalls++;
+                            throw new Error('onHandlerError failed');
+                        },
+                    });
+
+                    await withTimeout(
+                        done,
+                        5000,
+                        'Observer did not continue after onHandlerError threw within 5 s',
+                    );
+
+                    assertEquals(onHandlerErrorCalls, 1);
+                    assertEquals(handledTypes, [
+                        'at.test.nimbus.after-on-error-throw',
                     ]);
                 },
             );

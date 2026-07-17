@@ -16,8 +16,8 @@ type ObserveFromLatestEvent = {
 
 export type RetryOptions = {
     /**
-     * The maximum number of retry attempts before giving up.
-     * Defaults to 3.
+     * The maximum number of retries after the initial attempt
+     * before giving up. Defaults to 3 (4 failed attempts total).
      */
     maxRetries: number;
     /**
@@ -256,7 +256,26 @@ const handleEventWithRetry = async (
 
             if (attempt > maxRetries) {
                 if (eventObserver.onHandlerError) {
-                    await eventObserver.onHandlerError(handlerError, event);
+                    try {
+                        await eventObserver.onHandlerError(
+                            handlerError,
+                            event,
+                        );
+                    } catch (onHandlerErrorFailure: unknown) {
+                        // Isolate user callback failures so the poison
+                        // event is still skipped and observation continues.
+                        const callbackError =
+                            onHandlerErrorFailure instanceof Error
+                                ? onHandlerErrorFailure
+                                : new Error(String(onHandlerErrorFailure));
+
+                        getLogger().critical({
+                            category: 'Nimbus',
+                            message:
+                                `onHandlerError failed for event "${event.id}" (${event.type}) for subject "${eventObserver.subject}". Skipping event.`,
+                            error: callbackError,
+                        });
+                    }
                 } else {
                     getLogger().critical({
                         category: 'Nimbus',

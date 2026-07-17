@@ -1,7 +1,7 @@
 import { getLogger } from '@nimbus-cqrs/core';
 import { setupEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
 import { getEnv } from '@nimbus-cqrs/utils';
-import { Event as EventSourcingDBEvent } from 'eventsourcingdb';
+import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import {
     getContactProjectionLowerBound,
     projectContacts,
@@ -50,13 +50,12 @@ export const initEventSourcingDB = async () => {
                     lowerBound: await getContactProjectionLowerBound() as any,
                 },
 
-                // This is an example to show how to handle errors
-                // when handling observed events.
+                // Example: handling observer handler failures.
                 //
-                // The observer will retry it based on the handlerRetryOptions
-                // after that it will call the onHandlerError function.
-                // Based on the what on your use case you should decide
-                // what should happen if the event could not be handled.
+                // The observer retries the handler based on
+                // handlerRetryOptions, then calls onHandlerError.
+                // Decide per use case what to do when an event
+                // still cannot be handled (e.g. dead-letter / alert).
                 {
                     subject: '/users',
                     recursive: true,

@@ -113,7 +113,7 @@ The `fromLatestEvent` option starts observation from the latest event matching s
 
 | Option                | Type     | Default | Description                                          |
 | --------------------- | -------- | ------- | ---------------------------------------------------- |
-| `maxRetries`          | `number` | `3`     | Maximum number of retry attempts before giving up    |
+| `maxRetries`          | `number` | `3`     | Maximum number of retries after the initial attempt  |
 | `initialRetryDelayMs` | `number` | `3000`  | Initial delay in milliseconds before the first retry |
 
 Both paths use **exponential backoff with jitter**:
@@ -124,13 +124,13 @@ Both paths use **exponential backoff with jitter**:
 **Connection retries** (`connectionRetryOptions`, or deprecated `retryOptions`):
 
 - Used when the observe stream fails or disconnects
-- After `maxRetries` consecutive connection failures, a critical error is logged and the observer stops
+- After the initial attempt plus `maxRetries` reconnect attempts fail, a critical error is logged and the observer stops (`maxRetries + 1` failed attempts total)
 - The connection retry counter resets when events start flowing again
 
 **Handler retries** (`handlerRetryOptions`):
 
 - Used when `eventHandler` throws; retries happen in-place without reconnecting
-- After `maxRetries` handler failures for an event, `onHandlerError` is called (if provided) or a critical log is emitted
+- After the initial attempt plus `maxRetries` retries fail for an event, `onHandlerError` is called (if provided) or a critical log is emitted (`maxRetries + 1` failed attempts total)
 - The event is then **skipped** (lower bound advanced) so subsequent events keep being processed
 
 ```typescript
