@@ -261,13 +261,12 @@ const handleEventWithRetry = async (
                             handlerError,
                             event,
                         );
-                    } catch (onHandlerErrorFailure: unknown) {
+                    } catch (err: unknown) {
                         // Isolate user callback failures so the poison
                         // event is still skipped and observation continues.
-                        const callbackError =
-                            onHandlerErrorFailure instanceof Error
-                                ? onHandlerErrorFailure
-                                : new Error(String(onHandlerErrorFailure));
+                        const callbackError = err instanceof Error
+                            ? err
+                            : new Error(String(err));
 
                         getLogger().critical({
                             category: 'Nimbus',
