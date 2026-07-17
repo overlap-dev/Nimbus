@@ -16,8 +16,8 @@ type ObserveFromLatestEvent = {
 
 export type RetryOptions = {
     /**
-     * The maximum number of retry attempts before giving up.
-     * Defaults to 3.
+     * The maximum number of retries after the initial attempt
+     * before giving up. Defaults to 3 (4 failed attempts total).
      */
     maxRetries: number;
     /**
@@ -26,6 +26,11 @@ export type RetryOptions = {
      * Defaults to 3000ms.
      */
     initialRetryDelayMs: number;
+};
+
+const DEFAULT_RETRY_OPTIONS: RetryOptions = {
+    maxRetries: 3,
+    initialRetryDelayMs: 3000,
 };
 
 /**
@@ -62,11 +67,36 @@ export type EventObserver = {
      */
     eventHandler: (event: EventSourcingDBEvent) => Promise<void> | void;
     /**
-     * Options for retry behavior when the connection fails.
-     * Uses exponential backoff with jitter between retries.
+     * Options for retry behavior when the observe stream / connection fails.
+     * Uses exponential backoff with jitter between reconnects.
      * Defaults to { maxRetries: 3, initialRetryDelayMs: 3000 }.
      */
+    connectionRetryOptions?: RetryOptions;
+    /**
+     * Options for retry behavior when {@link eventHandler} throws.
+     * Handler retries happen in-place without reconnecting the stream.
+     * Defaults to { maxRetries: 3, initialRetryDelayMs: 3000 }.
+     */
+    handlerRetryOptions?: RetryOptions;
+    /**
+     * @deprecated Use {@link connectionRetryOptions} instead.
+     *
+     * Options for retry behavior when the observe stream / connection fails.
+     * Ignored when {@link connectionRetryOptions} is set.
+     */
     retryOptions?: RetryOptions;
+    /**
+     * Called when {@link eventHandler} keeps failing after all handler
+     * retries are exhausted. The event is then skipped and observation
+     * continues. When omitted, a critical log entry is emitted instead.
+     *
+     * @param error - The last error thrown by the handler.
+     * @param event - The event that could not be handled.
+     */
+    onHandlerError?: (
+        error: Error,
+        event: EventSourcingDBEvent,
+    ) => Promise<void> | void;
 };
 
 /**
@@ -98,6 +128,36 @@ export const calculateBackoffDelay = (
 };
 
 /**
+ * Resolves connection retry options, preferring
+ * {@link EventObserver.connectionRetryOptions} over the deprecated
+ * {@link EventObserver.retryOptions}.
+ */
+const resolveConnectionRetryOptions = (
+    eventObserver: EventObserver,
+): RetryOptions => ({
+    maxRetries: eventObserver.connectionRetryOptions?.maxRetries ??
+        eventObserver.retryOptions?.maxRetries ??
+        DEFAULT_RETRY_OPTIONS.maxRetries,
+    initialRetryDelayMs:
+        eventObserver.connectionRetryOptions?.initialRetryDelayMs ??
+            eventObserver.retryOptions?.initialRetryDelayMs ??
+            DEFAULT_RETRY_OPTIONS.initialRetryDelayMs,
+});
+
+/**
+ * Resolves handler retry options from {@link EventObserver.handlerRetryOptions}.
+ */
+const resolveHandlerRetryOptions = (
+    eventObserver: EventObserver,
+): RetryOptions => ({
+    maxRetries: eventObserver.handlerRetryOptions?.maxRetries ??
+        DEFAULT_RETRY_OPTIONS.maxRetries,
+    initialRetryDelayMs:
+        eventObserver.handlerRetryOptions?.initialRetryDelayMs ??
+            DEFAULT_RETRY_OPTIONS.initialRetryDelayMs,
+});
+
+/**
  * Logs an informational message when an event observer connects or
  * reconnects to EventSourcingDB. When {@link retryCount} is greater
  * than zero the message indicates a successful reconnection.
@@ -121,10 +181,10 @@ const logObserverConnection = (
 };
 
 /**
- * Handles an observer error by logging it and waiting with exponential
- * backoff before the next retry attempt. When the maximum number of
- * retries is exceeded a critical log entry is emitted and no further
- * retries are attempted.
+ * Handles a connection / stream error by logging it and waiting with
+ * exponential backoff before the next reconnect attempt. When the
+ * maximum number of retries is exceeded a critical log entry is
+ * emitted and no further retries are attempted.
  *
  * @param error - The error that caused the observer to disconnect.
  * @param subject - The observed subject.
@@ -135,7 +195,7 @@ const logObserverConnection = (
  * @returns `true` if the observer should retry, `false` if retries
  *   are exhausted.
  */
-const handleObserverError = async (
+const handleConnectionError = async (
     error: unknown,
     subject: string,
     retryCount: number,
@@ -170,37 +230,118 @@ const handleObserverError = async (
 };
 
 /**
+ * Invokes the event handler with in-place retries. Does not reconnect
+ * the observe stream. When all retries are exhausted, calls
+ * {@link EventObserver.onHandlerError} or logs critically, then
+ * returns without throwing so the observer can skip the event.
+ */
+const handleEventWithRetry = async (
+    eventObserver: EventObserver,
+    event: EventSourcingDBEvent,
+    handlerRetryOptions: RetryOptions,
+): Promise<void> => {
+    const { maxRetries, initialRetryDelayMs } = handlerRetryOptions;
+    let attempt = 0;
+
+    while (attempt <= maxRetries) {
+        try {
+            await eventObserver.eventHandler(event);
+            return;
+        } catch (error: unknown) {
+            attempt++;
+
+            const handlerError = error instanceof Error
+                ? error
+                : new Error(String(error));
+
+            if (attempt > maxRetries) {
+                if (eventObserver.onHandlerError) {
+                    try {
+                        await eventObserver.onHandlerError(
+                            handlerError,
+                            event,
+                        );
+                    } catch (err: unknown) {
+                        // Isolate user callback failures so the poison
+                        // event is still skipped and observation continues.
+                        const callbackError = err instanceof Error
+                            ? err
+                            : new Error(String(err));
+
+                        getLogger().critical({
+                            category: 'Nimbus',
+                            message:
+                                `onHandlerError failed for event "${event.id}" (${event.type}) for subject "${eventObserver.subject}". Skipping event.`,
+                            error: callbackError,
+                        });
+                    }
+                } else {
+                    getLogger().critical({
+                        category: 'Nimbus',
+                        message:
+                            `Failed to handle event "${event.id}" (${event.type}) for subject "${eventObserver.subject}" after ${maxRetries} ${
+                                maxRetries === 1 ? 'retry' : 'retries'
+                            }. Skipping event.`,
+                        error: handlerError,
+                    });
+                }
+                return;
+            }
+
+            const backoffDelay = calculateBackoffDelay(
+                initialRetryDelayMs,
+                attempt - 1,
+            );
+
+            getLogger().error({
+                category: 'Nimbus',
+                message:
+                    `Error handling event "${event.id}" (${event.type}) for subject "${eventObserver.subject}" (retry ${attempt}/${maxRetries}), retrying in ${backoffDelay}ms`,
+                error: handlerError,
+            });
+
+            await delay(backoffDelay);
+        }
+    }
+};
+
+/**
  * Starts observing events for the given {@link EventObserver} with
- * automatic reconnection on failure.
+ * automatic reconnection on stream failure and separate in-place
+ * retries for handler failures.
  *
- * On each connection attempt the EventSourcingDB server is pinged
- * first. Events are then consumed from the stream and each one is
- * passed to the observer's event handler inside an OpenTelemetry
- * span. If the event carries a `traceparent`, the span is linked to
- * the original writer's trace for end-to-end distributed tracing.
+ * Events are consumed from the stream and each one is passed to the
+ * observer's event handler inside an OpenTelemetry span. If the event
+ * carries a `traceparent`, the span is linked to the original writer's
+ * trace for end-to-end distributed tracing.
  *
- * After every successfully handled event the lower bound is advanced
- * so that a reconnection resumes from the last processed position.
- *
- * When the connection drops, exponential backoff with jitter is
- * applied up to the configured maximum number of retries.
+ * Handler failures are retried without reconnecting. After handler
+ * retries are exhausted the event is skipped (lower bound advanced)
+ * so observation can continue. When the connection drops, exponential
+ * backoff with jitter is applied up to the configured maximum number
+ * of connection retries.
  *
  * @param eventObserver - The event observer configuration.
+ * @returns A promise that resolves when the observe stream ends or
+ *   connection retries are exhausted.
  */
-const observeWithRetry = async (
+export const observeWithRetry = async (
     eventObserver: EventObserver,
 ): Promise<void> => {
-    const eventSourcingDBClient = getEventSourcingDBClient();
+    const connectionRetryOptions = resolveConnectionRetryOptions(
+        eventObserver,
+    );
+    const handlerRetryOptions = resolveHandlerRetryOptions(eventObserver);
 
-    const maxRetries = eventObserver.retryOptions?.maxRetries ?? 3;
-    const initialRetryDelayMs =
-        eventObserver.retryOptions?.initialRetryDelayMs ?? 3000;
-
-    let retryCount = 0;
+    let connectionRetryCount = 0;
     let lastProcessedEventId: string | undefined;
 
     while (true) {
         try {
+            // Resolve the client on every attempt so a re-initialized
+            // singleton is picked up after reconnecting to EventSourcingDB.
+            const eventSourcingDBClient = getEventSourcingDBClient();
+
             // Once we have a concrete position, use it as lower bound and
             // drop fromLatestEvent; otherwise fall back to the original options.
             const lowerBound: Bound | undefined = lastProcessedEventId
@@ -211,7 +352,7 @@ const observeWithRetry = async (
                     ? undefined
                     : eventObserver.fromLatestEvent;
 
-            logObserverConnection(eventObserver.subject, retryCount, {
+            logObserverConnection(eventObserver.subject, connectionRetryCount, {
                 recursive: eventObserver.recursive ?? false,
                 lowerBound,
                 fromLatestEvent,
@@ -227,8 +368,8 @@ const observeWithRetry = async (
                     },
                 )
             ) {
-                // Reset the retry count as soon as we successfully receive an event
-                retryCount = 0;
+                // Stream is healthy once events flow again.
+                connectionRetryCount = 0;
 
                 const traceContext: TraceContext | undefined = event.traceparent
                     ? {
@@ -240,26 +381,31 @@ const observeWithRetry = async (
                 await withSpan(
                     'observeEvent',
                     async () => {
-                        await eventObserver.eventHandler(event);
+                        await handleEventWithRetry(
+                            eventObserver,
+                            event,
+                            handlerRetryOptions,
+                        );
                     },
                     traceContext,
                 );
 
-                // Track last processed position so retries resume from here
+                // Advance after success or skip so poison events do not block
+                // the stream and reconnects resume past the last attempted event.
                 lastProcessedEventId = event.id;
             }
 
             // If the loop completes normally (stream ended), we're done
             return;
         } catch (error) {
-            retryCount++;
+            connectionRetryCount++;
 
-            const shouldRetry = await handleObserverError(
+            const shouldRetry = await handleConnectionError(
                 error,
                 eventObserver.subject,
-                retryCount,
-                maxRetries,
-                initialRetryDelayMs,
+                connectionRetryCount,
+                connectionRetryOptions.maxRetries,
+                connectionRetryOptions.initialRetryDelayMs,
             );
 
             if (!shouldRetry) {
@@ -272,8 +418,9 @@ const observeWithRetry = async (
 /**
  * Initializes an event observer by starting the observation loop in
  * the background (non-blocking). The observer will keep running and
- * reconnecting according to its retry options until the stream ends
- * or retries are exhausted.
+ * reconnecting according to its connection retry options until the
+ * stream ends or connection retries are exhausted. Handler failures
+ * are retried separately and do not stop the observer.
  *
  * @param eventObserver - The event observer configuration.
  */

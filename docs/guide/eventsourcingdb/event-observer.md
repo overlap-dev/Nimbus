@@ -11,7 +11,7 @@ next:
 
 # Event Observer
 
-The `initEventObserver` function starts a background event observation loop that continuously listens for new events from EventSourcingDB. Observers automatically reconnect with exponential backoff on failure, making them ideal for building read-side projections and reactive event handlers.
+The `initEventObserver` function starts a background event observation loop that continuously listens for new events from EventSourcingDB. Observers automatically reconnect with exponential backoff on connection failure, and retry handler failures in-place without tearing down the stream — making them ideal for building read-side projections and reactive event handlers.
 
 For full details on observing events, including resuming after connection loss and observing from the last event of a given type, see the [Observing Events](https://docs.eventsourcingdb.io/getting-started/observing-events/) section in the EventSourcingDB documentation.
 
@@ -61,14 +61,17 @@ initEventObserver({
 
 ## EventObserver Options
 
-| Option            | Type                     | Default      | Description                                                |
-| ----------------- | ------------------------ | ------------ | ---------------------------------------------------------- |
-| `subject`         | `string`                 | _(required)_ | The subject to observe events for                          |
-| `recursive`       | `boolean`                | `false`      | Whether to observe events recursively for all sub-subjects |
-| `lowerBound`      | `Bound`                  | `undefined`  | The starting position for observation                      |
-| `fromLatestEvent` | `ObserveFromLatestEvent` | `undefined`  | Start observation from a specific latest event             |
-| `eventHandler`    | `(event: Event) => void` | _(required)_ | Handler function called for each observed event            |
-| `retryOptions`    | `RetryOptions`           | see below    | Options for retry behavior on connection failure           |
+| Option                   | Type                                   | Default      | Description                                                       |
+| ------------------------ | -------------------------------------- | ------------ | ----------------------------------------------------------------- |
+| `subject`                | `string`                               | _(required)_ | The subject to observe events for                                 |
+| `recursive`              | `boolean`                              | `false`      | Whether to observe events recursively for all sub-subjects        |
+| `lowerBound`             | `Bound`                                | `undefined`  | The starting position for observation                             |
+| `fromLatestEvent`        | `ObserveFromLatestEvent`               | `undefined`  | Start observation from a specific latest event                    |
+| `eventHandler`           | `(event: Event) => void`               | _(required)_ | Handler function called for each observed event                   |
+| `retryOptions`           | `RetryOptions`                         | see below    | **Deprecated.** Alias for `connectionRetryOptions`                |
+| `connectionRetryOptions` | `RetryOptions`                         | see below    | Retry options when the observe stream / connection fails          |
+| `handlerRetryOptions`    | `RetryOptions`                         | see below    | Retry options when `eventHandler` throws (in-place, no reconnect) |
+| `onHandlerError`         | `(error: Error, event: Event) => void` | `undefined`  | Called after handler retries are exhausted; event is then skipped |
 
 ### Bound
 
@@ -106,16 +109,57 @@ The `fromLatestEvent` option starts observation from the latest event matching s
 
 ## Retry Options
 
+`connectionRetryOptions` and `handlerRetryOptions` share the same shape (defaults apply independently to each):
+
 | Option                | Type     | Default | Description                                          |
 | --------------------- | -------- | ------- | ---------------------------------------------------- |
-| `maxRetries`          | `number` | `3`     | Maximum number of retry attempts before giving up    |
+| `maxRetries`          | `number` | `3`     | Maximum number of retries after the initial attempt  |
 | `initialRetryDelayMs` | `number` | `3000`  | Initial delay in milliseconds before the first retry |
 
-The observer uses **exponential backoff with jitter** for retries:
+Both paths use **exponential backoff with jitter**:
 
--   Base delay doubles with each attempt: `initialDelayMs * 2^attempt`
--   Random jitter of 0-30% is added to avoid thundering-herd effects
--   After `maxRetries` consecutive failures, a critical error is logged and the observer stops
+- Base delay doubles with each attempt: `initialDelayMs * 2^attempt`
+- Random jitter of 0-30% is added to avoid thundering-herd effects
+
+**Connection retries** (`connectionRetryOptions`, or deprecated `retryOptions`):
+
+- Used when the observe stream fails or disconnects
+- After the initial attempt plus `maxRetries` reconnect attempts fail, a critical error is logged and the observer stops (`maxRetries + 1` failed attempts total)
+- The connection retry counter resets when events start flowing again
+
+**Handler retries** (`handlerRetryOptions`):
+
+- Used when `eventHandler` throws; retries happen in-place without reconnecting
+- After the initial attempt plus `maxRetries` retries fail for an event, `onHandlerError` is called (if provided) or a critical log is emitted (`maxRetries + 1` failed attempts total)
+- The event is then **skipped** (lower bound advanced) so subsequent events keep being processed
+
+```typescript
+import { getLogger } from "@nimbus-cqrs/core";
+import { initEventObserver } from "@nimbus-cqrs/eventsourcingdb";
+
+initEventObserver({
+    subject: "/users",
+    recursive: true,
+    eventHandler: async (event) => {
+        // ...
+    },
+    connectionRetryOptions: {
+        maxRetries: 5,
+        initialRetryDelayMs: 1000,
+    },
+    handlerRetryOptions: {
+        maxRetries: 3,
+        initialRetryDelayMs: 500,
+    },
+    onHandlerError: (error, event) => {
+        getLogger().error({
+            category: "EventObserver",
+            message: `Skipping event after handler retries: ${event.id}`,
+            error,
+        });
+    },
+});
+```
 
 ## Building Projections
 
@@ -189,7 +233,7 @@ await setupEventSourcingDBClient({
 
 ## Automatic Position Tracking
 
-The observer automatically tracks its position in the event stream. After each successfully handled event, the `lowerBound` is updated so that reconnections resume from the last processed event rather than replaying the entire stream.
+The observer automatically tracks its position in the event stream. After each event is handled successfully **or skipped** after exhausted handler retries, the `lowerBound` is updated so that reconnections resume from that position rather than replaying the entire stream.
 
 ## OpenTelemetry Tracing
 
