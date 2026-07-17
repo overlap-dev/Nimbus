@@ -7,9 +7,9 @@
 
 Integration between Nimbus and [EventSourcingDB](https://www.eventsourcingdb.io/). The package wraps the official `eventsourcingdb` client with:
 
--   a **singleton setup** that pings the server, verifies the API token and registers long-running observers in one call,
--   typed **`writeEvents` / `readEvents`** helpers that translate between Nimbus events and EventSourcingDB events while preserving correlation IDs, data schemas and W3C trace context (`traceparent` / `tracestate`),
--   resilient **event observers** with exponential-backoff retries, jitter, position tracking across reconnects and OpenTelemetry span linking back to the original writer.
+- a **singleton setup** that pings the server, verifies the API token and registers long-running observers in one call,
+- typed **`writeEvents` / `readEvents`** helpers that translate between Nimbus events and EventSourcingDB events while preserving correlation IDs, data schemas and W3C trace context (`traceparent` / `tracestate`),
+- resilient **event observers** with exponential-backoff retries, jitter, position tracking across reconnects and OpenTelemetry span linking back to the original writer.
 
 Refer to the [Nimbus main repository](https://github.com/overlap-dev/Nimbus) or the [Nimbus documentation](https://nimbus.overlap.at) for more information about the Nimbus framework.
 
@@ -122,7 +122,7 @@ await writeEvents(
             type: "isSubjectPristine",
             payload: { subject: "/todos/todo-1" },
         },
-    ]
+    ],
 );
 ```
 
@@ -146,11 +146,17 @@ Pass an `AbortSignal` as the third argument if you need to cancel a long-running
 
 ## Event observers
 
-An `EventObserver` is a long-running consumer attached to a subject. `initEventObserver` (or the `eventObservers` array on `setupEventSourcingDBClient`) starts it in the background and keeps it alive: on connection failures it retries with exponential backoff plus jitter (defaults: 3 retries, 3000 ms initial delay) and on every successful event it advances its lower bound, so a reconnection resumes from exactly where it left off — no replays, no gaps.
+An `EventObserver` is a long-running consumer attached to a subject. `initEventObserver` (or the `eventObservers` array on `setupEventSourcingDBClient`) starts it in the background and keeps it alive. Connection and handler failures are retried separately with exponential backoff plus jitter (defaults: 3 retries, 3000 ms initial delay for each):
+
+- **Connection failures** reconnect the observe stream (`connectionRetryOptions`; deprecated alias: `retryOptions`).
+- **Handler failures** are retried in-place without reconnecting (`handlerRetryOptions`). After handler retries are exhausted the event is skipped (optional `onHandlerError`) and observation continues.
+
+On every handled or skipped event the observer advances its lower bound so a reconnection resumes from exactly where it left off — no replays, no gaps.
 
 Each event handler runs inside an OpenTelemetry span. If the source event carries a `traceparent`, that span is linked back to the writer's trace, giving you end-to-end visibility from the command that produced the event to every subscriber that reacted to it.
 
 ```typescript
+import { getLogger } from "@nimbus-cqrs/core";
 import { initEventObserver } from "@nimbus-cqrs/eventsourcingdb";
 
 initEventObserver({
@@ -166,9 +172,20 @@ initEventObserver({
             // ...update a read model, send a notification, ...
         }
     },
-    retryOptions: {
+    connectionRetryOptions: {
         maxRetries: 5,
         initialRetryDelayMs: 1000,
+    },
+    handlerRetryOptions: {
+        maxRetries: 3,
+        initialRetryDelayMs: 1000,
+    },
+    onHandlerError: (error, event) => {
+        getLogger().error({
+            category: "EventObserver",
+            message: `Skipping event after handler retries: ${event.id}`,
+            error,
+        });
     },
 });
 ```
@@ -201,9 +218,9 @@ import {
 } from "@nimbus-cqrs/eventsourcingdb";
 ```
 
--   `nimbusEventToEventSourcingDBEventCandidate(event)` — manual conversion, e.g. when batching with the raw client.
--   `eventSourcingDBEventToNimbusEvent<TEvent>(event)` — typed conversion when reading or observing.
--   `isEventData(value)` — type guard to detect the Nimbus envelope on arbitrary stored data.
+- `nimbusEventToEventSourcingDBEventCandidate(event)` — manual conversion, e.g. when batching with the raw client.
+- `eventSourcingDBEventToNimbusEvent<TEvent>(event)` — typed conversion when reading or observing.
+- `isEventData(value)` — type guard to detect the Nimbus envelope on arbitrary stored data.
 
 # License
 

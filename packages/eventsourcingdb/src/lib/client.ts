@@ -64,7 +64,11 @@ export type SetupEventSourcingDBClientInput = {
  *             eventHandler: async (event: Event) => {
  *                 console.log('Received event:', event);
  *             },
- *             retryOptions: {
+ *             connectionRetryOptions: {
+ *                 maxRetries: 3,
+ *                 initialRetryDelayMs: 3000,
+ *             },
+ *             handlerRetryOptions: {
  *                 maxRetries: 3,
  *                 initialRetryDelayMs: 3000,
  *             },

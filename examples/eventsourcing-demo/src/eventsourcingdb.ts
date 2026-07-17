@@ -1,5 +1,7 @@
+import { getLogger } from '@nimbus-cqrs/core';
 import { setupEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
 import { getEnv } from '@nimbus-cqrs/utils';
+import { Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import {
     getContactProjectionLowerBound,
     projectContacts,
@@ -46,6 +48,53 @@ export const initEventSourcingDB = async () => {
                     recursive: true,
                     eventHandler: projectContacts,
                     lowerBound: await getContactProjectionLowerBound() as any,
+                },
+
+                // This is an example to show how to handle errors
+                // when handling observed events.
+                //
+                // The observer will retry it based on the handlerRetryOptions
+                // after that it will call the onHandlerError function.
+                // Based on the what on your use case you should decide
+                // what should happen if the event could not be handled.
+                {
+                    subject: '/users',
+                    recursive: true,
+                    handlerRetryOptions: {
+                        maxRetries: 2,
+                        initialRetryDelayMs: 1000,
+                    },
+                    onHandlerError: (_error, event) => {
+                        getLogger().info({
+                            category: 'DLQ',
+                            message: `DLQ received event: ${event.id}`,
+                        });
+                    },
+                    eventHandler: async (
+                        eventSourcingDBEvent: EventSourcingDBEvent,
+                    ) => {
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, 1000)
+                        );
+
+                        getLogger().debug({
+                            category: 'FaultyEventHandler',
+                            message:
+                                `Got event: "${eventSourcingDBEvent.id}" (${eventSourcingDBEvent.type}) for subject: "${eventSourcingDBEvent.subject}"`,
+                        });
+
+                        if (eventSourcingDBEvent.id === '1') {
+                            getLogger().debug({
+                                category: 'FaultyEventHandler',
+                                message:
+                                    `Will demo faulty behavior by throwing an error.`,
+                            });
+
+                            throw new Error(
+                                'Faulty behavior demo: throwing an error',
+                            );
+                        }
+                    },
                 },
             ],
         },
