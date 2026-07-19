@@ -3,6 +3,7 @@ import EventEmitter from 'node:events';
 import { GenericException } from '../exception/genericException.ts';
 import { getLogger } from '../log/logger.ts';
 import type { Event } from '../message/event.ts';
+import { withRetry } from '../retry/withRetry.ts';
 
 const tracer = trace.getTracer('nimbus');
 const meter = metrics.getMeter('nimbus');
@@ -418,53 +419,46 @@ export class NimbusEventBus {
                 },
             },
             async (span) => {
-                let attempt = 0;
+                try {
+                    await withRetry(
+                        async () => {
+                            await handler(event);
+                        },
+                        {
+                            maxRetries,
+                            initialDelayMs: baseDelay,
+                            maxDelayMs: maxDelay,
+                            jitterFactor: useJitter ? 0.1 : 0,
+                            onRetry: ({ attempt, delayMs }) => {
+                                retryAttemptsCounter.add(1, metricLabels);
+                                span.addEvent('retry', {
+                                    attempt,
+                                    delay_ms: delayMs,
+                                });
+                            },
+                        },
+                    );
 
-                while (attempt <= maxRetries) {
-                    try {
-                        await handler(event);
+                    this._recordDeliveryMetrics(
+                        metricLabels,
+                        'success',
+                        startTime,
+                    );
 
-                        this._recordDeliveryMetrics(
-                            metricLabels,
-                            'success',
-                            startTime,
-                        );
-
-                        span.end();
-                        return;
-                    } catch (error: unknown) {
-                        attempt++;
-
-                        if (attempt > maxRetries) {
-                            this._handleFinalFailure({
-                                error,
-                                event,
-                                span,
-                                metricLabels,
-                                startTime,
-                                retryConfig: {
-                                    maxRetries,
-                                    baseDelay,
-                                    maxDelay,
-                                },
-                            });
-                        }
-
-                        retryAttemptsCounter.add(1, metricLabels);
-
-                        const delayMs = this._calculateRetryDelay(
-                            attempt,
+                    span.end();
+                } catch (error: unknown) {
+                    this._handleFinalFailure({
+                        error,
+                        event,
+                        span,
+                        metricLabels,
+                        startTime,
+                        retryConfig: {
+                            maxRetries,
                             baseDelay,
                             maxDelay,
-                            useJitter,
-                        );
-
-                        span.addEvent('retry', { attempt, delay_ms: delayMs });
-
-                        await new Promise((resolve) =>
-                            setTimeout(resolve, delayMs)
-                        );
-                    }
+                        },
+                    });
                 }
             },
         );
@@ -520,17 +514,6 @@ export class NimbusEventBus {
         }
 
         throw exception;
-    }
-
-    private _calculateRetryDelay(
-        attempt: number,
-        baseDelay: number,
-        maxDelay: number,
-        useJitter: boolean,
-    ): number {
-        const delay = Math.min(baseDelay * Math.pow(2, attempt - 1), maxDelay);
-        const jitter = useJitter ? Math.random() * delay * 0.1 : 0;
-        return delay + jitter;
     }
 
     /**
