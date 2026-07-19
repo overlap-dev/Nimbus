@@ -5,11 +5,21 @@
 
 # Nimbus Utils
 
-A small collection of utility helpers used across the Nimbus framework — currently a single helper, `getEnv`, for reading required environment variables in a fail-fast way.
+> **Deprecated.** This package is deprecated. Import `getEnv` from [`@nimbus-cqrs/core`](https://www.npmjs.com/package/@nimbus-cqrs/core) instead. `@nimbus-cqrs/utils` remains available as a thin re-export for backwards compatibility.
 
 Refer to the [Nimbus main repository](https://github.com/overlap-dev/Nimbus) or the [Nimbus documentation](https://nimbus.overlap.at) for more information about the Nimbus framework.
 
-## Install
+## Migration
+
+```typescript
+// Before
+import { getEnv } from "@nimbus-cqrs/utils";
+
+// After
+import { getEnv } from "@nimbus-cqrs/core";
+```
+
+## Install (legacy)
 
 ```bash
 # Deno
@@ -22,52 +32,7 @@ npm install @nimbus-cqrs/utils
 bun add @nimbus-cqrs/utils
 ```
 
-# Examples
-
-For detailed documentation, please refer to the [Nimbus documentation](https://nimbus.overlap.at).
-
-## getEnv
-
-`getEnv` reads a list of environment variables from `process.env` and returns them as a plain object. If any of the requested variables are missing it logs the missing names through the Nimbus logger and throws a `GenericException`, so misconfiguration fails loudly at startup instead of leaking through as `undefined` later.
-
-```typescript
-import { getEnv } from "@nimbus-cqrs/utils";
-
-const env = getEnv({
-    variables: ["MONGO_URI", "MONGO_DB_NAME"],
-});
-
-console.log(env.MONGO_URI); // "mongodb://localhost:27017"
-console.log(env.MONGO_DB_NAME); // "my-app"
-```
-
-If, for example, `MONGO_DB_NAME` is not set, the call throws a `GenericException` whose `data` carries the list of missing variables:
-
-```json
-{
-    "name": "GenericException",
-    "message": "Undefined environment variables",
-    "data": {
-        "undefinedVariables": ["MONGO_DB_NAME"]
-    }
-}
-```
-
-A typical pattern is to call `getEnv` once at application startup, before any subsystem that needs those values is initialized:
-
-```typescript
-import { getEnv } from "@nimbus-cqrs/utils";
-import { MongoConnectionManager } from "@nimbus-cqrs/mongodb";
-
-const env = getEnv({
-    variables: ["MONGO_URI", "MONGO_DB_NAME"],
-});
-
-const mongo = new MongoConnectionManager({
-    uri: env.MONGO_URI,
-    dbName: env.MONGO_DB_NAME,
-});
-```
+Prefer installing `@nimbus-cqrs/core` directly.
 
 # License
 

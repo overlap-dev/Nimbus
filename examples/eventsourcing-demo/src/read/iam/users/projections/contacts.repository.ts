@@ -2,7 +2,7 @@ import {
     getMongoConnectionManager,
     MongoDBRepository,
 } from '@nimbus-cqrs/mongodb';
-import { getEnv } from '@nimbus-cqrs/utils';
+import { getEnv } from '@nimbus-cqrs/core';
 import { Document, ObjectId } from 'mongodb';
 import { Contact, CONTACTS_COLLECTION } from './contacts.collection.ts';
 

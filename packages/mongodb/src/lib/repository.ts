@@ -58,7 +58,7 @@ export type WithStringId<TSchema> = Omit<TSchema, '_id'> & {
  * @example
  * ```ts
  * import { MongoDBRepository } from '@nimbus-cqrs/mongodb';
- * import { getEnv } from '@nimbus-cqrs/utils';
+ * import { getEnv } from '@nimbus-cqrs/core';
  * import { mongoClient } from './mongoDBClient.ts';
  * import { User } from './user.type.ts';
  * import { USER_COLLECTION } from './user.collection.ts';

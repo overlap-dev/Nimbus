@@ -3,10 +3,6 @@ description: deployMongoCollection declaratively creates or updates collections 
 prev:
     text: "handleMongoError"
     link: "/guide/mongodb/handle-mongo-error"
-
-next:
-    text: "Nimbus Utils"
-    link: "/guide/utils"
 ---
 
 # Deploy Collection

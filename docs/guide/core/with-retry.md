@@ -1,12 +1,5 @@
 ---
 description: withRetry retries async work with exponential backoff, jitter, AbortSignal support, and hooks for custom retry decisions.
-prev:
-    text: "Event Bus"
-    link: "/guide/core/event-bus"
-
-next:
-    text: "Exceptions"
-    link: "/guide/core/exceptions"
 ---
 
 # withRetry

@@ -1,4 +1,5 @@
 import {
+    getEnv,
     getLogger,
     jsonLogFormatter,
     parseLogLevel,
@@ -6,7 +7,6 @@ import {
     setupLogger,
 } from '@nimbus-cqrs/core';
 import { getMongoConnectionManager } from '@nimbus-cqrs/mongodb';
-import { getEnv } from '@nimbus-cqrs/utils';
 import '@std/dotenv/load';
 import process from 'node:process';
 import { initEventSourcingDB } from './eventsourcingdb.ts';

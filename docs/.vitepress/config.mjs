@@ -159,10 +159,6 @@ export default withMermaid(defineConfig({
                             link: "/guide/core/event-bus",
                         },
                         {
-                            text: "withRetry",
-                            link: "/guide/core/with-retry",
-                        },
-                        {
                             text: "Exceptions",
                             link: "/guide/core/exceptions",
                         },
@@ -173,6 +169,14 @@ export default withMermaid(defineConfig({
                         {
                             text: "Logging",
                             link: "/guide/core/logging",
+                        },
+                        {
+                            text: "withRetry",
+                            link: "/guide/core/with-retry",
+                        },
+                        {
+                            text: "getEnv",
+                            link: "/guide/core/get-env",
                         },
 
                     ],
@@ -251,17 +255,6 @@ export default withMermaid(defineConfig({
                         {
                             text: "Deploy Collection",
                             link: "/guide/mongodb/deploy-collection",
-                        },
-                    ],
-                },
-
-                {
-                    text: "Utils",
-                    link: "/guide/utils",
-                    items: [
-                        {
-                            text: "getEnv",
-                            link: "/guide/utils/get-env",
                         },
                     ],
                 },

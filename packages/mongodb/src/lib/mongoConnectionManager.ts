@@ -246,7 +246,7 @@ const mongoConnectionManagerRegistry = new Map<
  * @example
  * ```ts
  * import { setupMongoConnectionManager } from '@nimbus-cqrs/mongodb';
- * import { getEnv } from '@nimbus-cqrs/utils';
+ * import { getEnv } from '@nimbus-cqrs/core';
  * import { ServerApiVersion } from 'mongodb';
  *
  * const env = getEnv({ variables: ['MONGO_URL'] });

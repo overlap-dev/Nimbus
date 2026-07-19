@@ -1,8 +1,5 @@
 ---
 description: Structured console logging with JSON or pretty formatters and OpenTelemetry log export via Deno.
-next:
-    text: "Exceptions"
-    link: "/guide/core/exceptions"
 ---
 
 # Logging
@@ -248,8 +245,8 @@ logger.error({
 
 ### Use Appropriate Log Levels
 
--   `debug`: Detailed info for debugging (disabled in production)
--   `info`: Normal application flow
--   `warn`: Unexpected but recoverable situations
--   `error`: Errors that need investigation
--   `critical`: Failures requiring immediate action
+- `debug`: Detailed info for debugging (disabled in production)
+- `info`: Normal application flow
+- `warn`: Unexpected but recoverable situations
+- `error`: Errors that need investigation
+- `critical`: Failures requiring immediate action

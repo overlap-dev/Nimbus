@@ -1,8 +1,8 @@
 ---
 description: Hub for @nimbus-cqrs/hono — middleware and handlers bridging Nimbus observability and errors to Hono HTTP apps.
 prev:
-    text: "Exceptions"
-    link: "/guide/core/exceptions"
+    text: "getEnv"
+    link: "/guide/core/get-env"
 
 next:
     text: "CorrelationID Middleware"
@@ -13,8 +13,8 @@ next:
 
 Adapters and useful functionality to bridge Nimbus and [Hono](https://hono.dev/).
 
--   npm: [@nimbus-cqrs/hono](https://www.npmjs.com/package/@nimbus-cqrs/hono)
--   JSR: [@nimbus-cqrs/hono](https://jsr.io/@nimbus-cqrs/hono)
+- npm: [@nimbus-cqrs/hono](https://www.npmjs.com/package/@nimbus-cqrs/hono)
+- JSR: [@nimbus-cqrs/hono](https://jsr.io/@nimbus-cqrs/hono)
 
 ### Deno
 
