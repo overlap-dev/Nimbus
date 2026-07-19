@@ -5,10 +5,9 @@
     "": {
       "name": "nimbus-bun-demo",
       "dependencies": {
-        "@nimbus-cqrs/core": "^2.1.2",
-        "@nimbus-cqrs/hono": "^2.1.2",
-        "@nimbus-cqrs/mongodb": "^2.1.2",
-        "@nimbus-cqrs/utils": "^2.1.2",
+        "@nimbus-cqrs/core": "^2.2.0",
+        "@nimbus-cqrs/hono": "^2.2.0",
+        "@nimbus-cqrs/mongodb": "^2.2.0",
         "hono": "^4.12.27",
         "mongodb": "7.1.1",
         "zod": "^4.4.3",
@@ -22,13 +21,11 @@
   "packages": {
     "@mongodb-js/saslprep": ["@mongodb-js/saslprep@1.4.11", "", { "dependencies": { "sparse-bitfield": "^3.0.3" } }, "sha512-o9rAHc0IpIjuPSxRutWpE1F62x7n+4mVS4rCNHkzhIUMQcc18bb6xEq5wd2NdN0WjepIyXIppRshYI2kQDOZVA=="],
 
-    "@nimbus-cqrs/core": ["@nimbus-cqrs/core@2.1.2", "", { "dependencies": { "@opentelemetry/api": "^1.9.1", "zod": "^4.3.6" } }, "sha512-ENP8AFdC3Ta6FcRx1a8wYzlqR4xd736YUgQ3BULjZ4C/M9M585F/gZEdnsiHkcccRoKD8c2ove/w7BxTa15SpQ=="],
+    "@nimbus-cqrs/core": ["@nimbus-cqrs/core@2.2.0", "", { "dependencies": { "@opentelemetry/api": "^1.9.1", "zod": "^4.4.3" } }, "sha512-IYVqQK/jP3RTcO81Gyp+eKxL62kuHaBQzrGu9iP1iogJB23Z8pK6KBJvoHZvWeMrt+7sbZ3rae1j5FGjE4rN2A=="],
 
-    "@nimbus-cqrs/hono": ["@nimbus-cqrs/hono@2.1.2", "", { "dependencies": { "@nimbus-cqrs/core": "^2.1.2", "@opentelemetry/api": "^1.9.1", "hono": "^4.12.23", "zod": "^4.3.6" } }, "sha512-RYyo+Pxin5yGU7vUY2n1RGF/eq+xKQsBaLfyfx0wRCZgJJ7uwybkrknx1PGB5KtbUN0gs/bJQda8TVZ3mPLatg=="],
+    "@nimbus-cqrs/hono": ["@nimbus-cqrs/hono@2.2.0", "", { "dependencies": { "@nimbus-cqrs/core": "^2.2.0", "@opentelemetry/api": "^1.9.1", "hono": "^4.12.27", "zod": "^4.4.3" } }, "sha512-zImAj0/jTEPzDlaOEEY9brj2gQWCGTYwqR9586ArvHEBtbErNBiOZdjy7OEAuNGdtUZQUG3NAHuSkh8H6aQCDQ=="],
 
-    "@nimbus-cqrs/mongodb": ["@nimbus-cqrs/mongodb@2.1.2", "", { "dependencies": { "@nimbus-cqrs/core": "^2.1.2", "@opentelemetry/api": "^1.9.1", "mongodb": "7.1.1", "zod": "^4.3.6" } }, "sha512-ynnDOzM1M12Eq03oGHk9C4va3bCMlLTTUBmdPEXg2iRoy4vLX+emWl8KT6t1OafnrewFSzbJCz/oawvoEG2j4A=="],
-
-    "@nimbus-cqrs/utils": ["@nimbus-cqrs/utils@2.1.2", "", { "dependencies": { "@nimbus-cqrs/core": "^2.1.2", "@opentelemetry/api": "^1.9.1", "zod": "^4.3.6" } }, "sha512-yJXckR0n/VEdOIK39/HU7Q4G9cDrxtZEuW4DI7hdshbUz1mtf3CP95T31T4UkKt3PrvtSxR2nysLjfqhS3T95g=="],
+    "@nimbus-cqrs/mongodb": ["@nimbus-cqrs/mongodb@2.2.0", "", { "dependencies": { "@nimbus-cqrs/core": "^2.2.0", "@opentelemetry/api": "^1.9.1", "mongodb": "7.1.1", "zod": "^4.4.3" } }, "sha512-6TjzMgbcsYQdYZ9ECj85jFcdJqVdrGM0cJFM8CpdJL16Ko2aPEOLG7EC99w86HNdwKmqW68nhffX0Sa3WfnurA=="],
 
     "@opentelemetry/api": ["@opentelemetry/api@1.9.1", "", {}, "sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q=="],
 
@@ -67,7 +64,5 @@
     "whatwg-url": ["whatwg-url@14.2.0", "", { "dependencies": { "tr46": "^5.1.0", "webidl-conversions": "^7.0.0" } }, "sha512-De72GdQZzNTUBBChsXueQUnPKDkg/5A5zp7pFDuQAj5UFoENpiACU0wlCvzpAGnTkj++ihpKwKyYewn/XNUbKw=="],
 
     "zod": ["zod@4.4.3", "", {}, "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ=="],
-
-    "@nimbus-cqrs/hono/hono": ["hono@4.12.25", "", {}, "sha512-2NFaIyNVgJmBs/ecmtGzlmluTFs5cHEWGTdu0t1HBwYzoGXOL5nUQBRMXsXWla5i4KkG//QMzVP88m1+I3fdAQ=="],
   }
 }
