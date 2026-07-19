@@ -237,4 +237,22 @@ The observer automatically tracks its position in the event stream. After each e
 
 ## OpenTelemetry Tracing
 
-Each observed event is processed within an OpenTelemetry span named `eventsourcingdb.observeEvent`. If the event carries a `traceparent` (injected by `writeEvents`), the span is linked to the original writer's trace, enabling end-to-end distributed tracing across the write and read sides.
+Each observed event is processed within an OpenTelemetry consumer span named `eventsourcingdb.observeEvent`. If the event carries a `traceparent` (injected by `writeEvents`), the span is linked to the original writer's trace, enabling end-to-end distributed tracing across the write and read sides.
+
+**Span attributes** (include identifying CloudEvents fields):
+
+- `cloudevents.event_id`
+- `cloudevents.event_type`
+- `cloudevents.event_subject`
+- `eventsourcingdb.observer.subject`
+- Handler retries add a `retry` span event (`attempt`, `delay_ms`)
+
+**Metrics** (labels use `subject` + `event_type` where an event is in scope; connection metrics use `subject` only — no `event_id` on metric labels):
+
+| Metric                                                     | Type      | Labels                            | Description                                                          |
+| ---------------------------------------------------------- | --------- | --------------------------------- | -------------------------------------------------------------------- |
+| `eventsourcingdb_observer_events_handled_total`            | Counter   | `subject`, `event_type`, `status` | Events handled (`success`) or skipped after exhaustion               |
+| `eventsourcingdb_observer_handling_duration_seconds`       | Histogram | `subject`, `event_type`           | Handler duration in seconds (includes retries)                       |
+| `eventsourcingdb_observer_handler_retry_attempts_total`    | Counter   | `subject`, `event_type`           | In-place handler retry attempts                                      |
+| `eventsourcingdb_observer_connection_retry_attempts_total` | Counter   | `subject`                         | Stream failures that schedule a reconnect                            |
+| `eventsourcingdb_observer_connection_reconnects_total`     | Counter   | `subject`                         | Successful reconnects (counted when events flow again after retries) |

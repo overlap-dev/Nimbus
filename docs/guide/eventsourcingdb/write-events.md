@@ -61,7 +61,8 @@ Every call to `writeEvents` is automatically wrapped in an OpenTelemetry span na
 
 The following metrics are recorded:
 
-| Metric                                       | Type      | Labels                | Description                             |
-| -------------------------------------------- | --------- | --------------------- | --------------------------------------- |
-| `eventsourcingdb_operation_total`            | Counter   | `operation`, `status` | Total number of write operations        |
-| `eventsourcingdb_operation_duration_seconds` | Histogram | `operation`           | Duration of write operations in seconds |
+| Metric                                       | Type      | Labels                  | Description                             |
+| -------------------------------------------- | --------- | ----------------------- | --------------------------------------- |
+| `eventsourcingdb_operation_total`            | Counter   | `operation`, `status`   | Total number of write operations        |
+| `eventsourcingdb_operation_duration_seconds` | Histogram | `operation`             | Duration of write operations in seconds |
+| `eventsourcingdb_event_size_bytes`           | Histogram | `subject`, `event_type` | Size of each written event in bytes     |

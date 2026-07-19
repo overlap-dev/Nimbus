@@ -1,5 +1,9 @@
 import { assertEquals, assertRejects } from '@std/assert';
-import { withAsyncGeneratorSpan, withSpan } from './tracing.ts';
+import {
+    withAsyncGeneratorSpan,
+    withObserveEventSpan,
+    withSpan,
+} from './tracing.ts';
 
 // ---------------------------------------------------------------------------
 // withSpan
@@ -81,4 +85,54 @@ Deno.test('withAsyncGeneratorSpan re-throws errors from the inner generator', as
 
     // The value yielded before the error should still have been received
     assertEquals(values, [1]);
+});
+
+// ---------------------------------------------------------------------------
+// withObserveEventSpan
+// ---------------------------------------------------------------------------
+
+const testEvent = {
+    id: 'event-1',
+    type: 'at.test.nimbus.observed',
+    subject: '/test',
+};
+
+Deno.test('withObserveEventSpan returns the result of the wrapped function', async () => {
+    const result = await withObserveEventSpan(
+        testEvent,
+        '/test',
+        undefined,
+        () => Promise.resolve(42),
+    );
+
+    assertEquals(result, 42);
+});
+
+Deno.test('withObserveEventSpan re-throws errors from the wrapped function', async () => {
+    await assertRejects(
+        () =>
+            withObserveEventSpan(
+                testEvent,
+                '/test',
+                undefined,
+                () => Promise.reject(new Error('observe boom')),
+            ),
+        Error,
+        'observe boom',
+    );
+});
+
+Deno.test('withObserveEventSpan accepts an optional TraceContext without error', async () => {
+    const result = await withObserveEventSpan(
+        testEvent,
+        '/test',
+        {
+            traceparent:
+                '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01',
+            tracestate: 'vendor=value',
+        },
+        () => Promise.resolve('observed'),
+    );
+
+    assertEquals(result, 'observed');
 });

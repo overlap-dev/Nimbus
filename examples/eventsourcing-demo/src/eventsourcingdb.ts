@@ -1,5 +1,8 @@
 import { getLogger } from '@nimbus-cqrs/core';
-import { setupEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
+import {
+    isEventData,
+    setupEventSourcingDBClient,
+} from '@nimbus-cqrs/eventsourcingdb';
 import { getEnv } from '@nimbus-cqrs/utils';
 import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import {
@@ -64,9 +67,15 @@ export const initEventSourcingDB = async () => {
                         initialRetryDelayMs: 1000,
                     },
                     onHandlerError: (_error, event) => {
+                        const correlationId = isEventData(event.data)
+                            ? event.data.nimbusMeta
+                                .correlationid
+                            : undefined;
+
                         getLogger().info({
                             category: 'DLQ',
                             message: `DLQ received event: ${event.id}`,
+                            correlationId,
                         });
                     },
                     eventHandler: async (
@@ -76,10 +85,17 @@ export const initEventSourcingDB = async () => {
                             setTimeout(resolve, 1000)
                         );
 
+                        const correlationId =
+                            isEventData(eventSourcingDBEvent.data)
+                                ? eventSourcingDBEvent.data.nimbusMeta
+                                    .correlationid
+                                : undefined;
+
                         getLogger().debug({
                             category: 'FaultyEventHandler',
                             message:
                                 `Got event: "${eventSourcingDBEvent.id}" (${eventSourcingDBEvent.type}) for subject: "${eventSourcingDBEvent.subject}"`,
+                            correlationId,
                         });
 
                         if (eventSourcingDBEvent.id === '1') {
@@ -87,6 +103,7 @@ export const initEventSourcingDB = async () => {
                                 category: 'FaultyEventHandler',
                                 message:
                                     `Will demo faulty behavior by throwing an error.`,
+                                correlationId,
                             });
 
                             throw new Error(

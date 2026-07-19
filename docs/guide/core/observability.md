@@ -8,9 +8,9 @@ Observability is a first-class citizen in Nimbus. The framework is designed so t
 
 Every core component - from message routing to event handling - comes with automatic instrumentation. This means:
 
--   **Zero boilerplate** - Tracing spans and metrics are created automatically
--   **Consistent structure** - All logs follow the same format across your application
--   **Correlation built-in** - Every message carries a correlation ID for distributed tracing
+- **Zero boilerplate** - Tracing spans and metrics are created automatically
+- **Consistent structure** - All logs follow the same format across your application
+- **Correlation built-in** - Every message carries a correlation ID for distributed tracing
 
 The three pillars of observability in Nimbus:
 
@@ -28,9 +28,9 @@ Check out the [In Depth Example](/guide/in-depth-example) page to learn how ever
 
 Nimbus uses the [OpenTelemetry API](https://opentelemetry.io/) (`@opentelemetry/api`) for all observability instrumentation. This provides:
 
--   **Vendor-agnostic** - Export to any OTLP-compatible backend (Jaeger, Zipkin, Grafana, Honeycomb, Datadog, etc.)
--   **Industry standard** - Wide ecosystem support and community adoption
--   **Future-proof** - Backed by CNCF with active development
+- **Vendor-agnostic** - Export to any OTLP-compatible backend (Jaeger, Zipkin, Grafana, Honeycomb, Datadog, etc.)
+- **Industry standard** - Wide ecosystem support and community adoption
+- **Future-proof** - Backed by CNCF with active development
 
 ## Deno Native Observability
 
@@ -60,13 +60,13 @@ The [MessageRouter](/guide/core/router) automatically creates spans for every ro
 
 **Tracing:**
 
--   Span name: `router.route`
--   Attributes: `messaging.system`, `messaging.router_name`, `messaging.destination`, `correlation_id`
+- Span name: `router.route`
+- Attributes: `messaging.system`, `messaging.router_name`, `messaging.destination`, `correlation_id`
 
 **Metrics:**
 
--   `router_messages_routed_total` - Counter for total messages routed (with `status: success|error`)
--   `router_routing_duration_seconds` - Histogram of routing duration
+- `router_messages_routed_total` - Counter for total messages routed (with `status: success|error`)
+- `router_routing_duration_seconds` - Histogram of routing duration
 
 ### EventBus
 
@@ -74,16 +74,38 @@ The [NimbusEventBus](/guide/core/event-bus) instruments both publishing and hand
 
 **Tracing:**
 
--   `eventbus.publish` span for event publishing
--   `eventbus.handle` span for event handling with retry tracking
+- `eventbus.publish` span for event publishing
+- `eventbus.handle` span for event handling with retry tracking
 
 **Metrics:**
 
--   `eventbus_events_published_total` - Counter for published events
--   `eventbus_events_delivered_total` - Counter for delivered events (with `status: success|error`)
--   `eventbus_event_handling_duration_seconds` - Histogram of handler execution time
--   `eventbus_retry_attempts_total` - Counter for retry attempts
--   `eventbus_event_size_bytes` - Histogram of event sizes
+- `eventbus_events_published_total` - Counter for published events
+- `eventbus_events_delivered_total` - Counter for delivered events (with `status: success|error`)
+- `eventbus_event_handling_duration_seconds` - Histogram of handler execution time
+- `eventbus_retry_attempts_total` - Counter for retry attempts
+- `eventbus_event_size_bytes` - Histogram of event sizes
+
+### EventSourcingDB
+
+The [EventSourcingDB package](/guide/eventsourcingdb/) instruments writes, reads, and observers:
+
+**Tracing:**
+
+- `eventsourcingdb.writeEvents` / `eventsourcingdb.readEvents` client spans
+- `eventsourcingdb.observeEvent` consumer span per observed event (with id/type/subject attributes and handler `retry` events)
+
+**Metrics:**
+
+- `eventsourcingdb_operation_total` - Counter for read/write operations (with `status: success|error`)
+- `eventsourcingdb_operation_duration_seconds` - Histogram of operation duration
+- `eventsourcingdb_event_size_bytes` - Histogram of written event sizes (`subject`, `event_type`)
+- `eventsourcingdb_observer_events_handled_total` - Counter for handled events (`status: success|skipped`)
+- `eventsourcingdb_observer_handling_duration_seconds` - Histogram of observer handler duration
+- `eventsourcingdb_observer_handler_retry_attempts_total` - Counter for handler retries
+- `eventsourcingdb_observer_connection_retry_attempts_total` - Counter for scheduled reconnects
+- `eventsourcingdb_observer_connection_reconnects_total` - Counter for successful reconnects (when events flow again)
+
+See [Event Observer](/guide/eventsourcingdb/event-observer) and [Write Events](/guide/eventsourcingdb/write-events) for details.
 
 ### Logger
 
@@ -105,7 +127,7 @@ const fetchUser = withSpan(
     },
     async (userId: string) => {
         return await db.users.findById(userId);
-    }
+    },
 );
 
 // Usage - automatically traced
@@ -130,7 +152,7 @@ const processOrder = withSpan(
         span.setAttribute("order.items", order.items.length);
 
         return await processPayment(order);
-    }
+    },
 );
 ```
 
@@ -147,16 +169,16 @@ const processOrder = withSpan(
 
 All messages in Nimbus (Commands, Queries, Events) carry a `correlationid` field. This enables:
 
--   **Request tracing** - Follow a request through commands, events, and queries
--   **Log correlation** - Group related logs together
--   **Distributed tracing** - Track requests across services
+- **Request tracing** - Follow a request through commands, events, and queries
+- **Log correlation** - Group related logs together
+- **Distributed tracing** - Track requests across services
 
 The correlation ID is automatically:
 
--   Generated when creating messages with `createCommand()`, `createQuery()`, or `createEvent()`
--   Propagated from commands to events they produce
--   Included in log output when provided
--   Added as a span attribute for tracing
+- Generated when creating messages with `createCommand()`, `createQuery()`, or `createEvent()`
+- Propagated from commands to events they produce
+- Included in log output when provided
+- Added as a span attribute for tracing
 
 ```typescript
 // Correlation ID is passed from command to event
@@ -219,6 +241,6 @@ const validatePayment = withSpan(
     { name: "validatePayment" },
     async (paymentDetails: PaymentDetails) => {
         // Critical logic is now traced
-    }
+    },
 );
 ```

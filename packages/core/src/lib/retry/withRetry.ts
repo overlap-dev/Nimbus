@@ -313,7 +313,11 @@ export const withRetry = async <T>(
             if (maxRetryTimeMs !== undefined) {
                 const remainingMs = maxRetryTimeMs -
                     (performance.now() - startedAt);
-                if (remainingMs <= 0) {
+                // floor() can turn a sub-millisecond remainder into 0.
+                // delay(0) is a no-op, so sync failures would otherwise
+                // burn through every remaining retry without ever
+                // advancing past maxRetryTimeMs.
+                if (remainingMs < 1) {
                     throw err;
                 }
                 delayMs = Math.min(delayMs, Math.floor(remainingMs));

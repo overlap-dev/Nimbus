@@ -252,6 +252,40 @@ Deno.test('withRetry respects maxRetryTimeMs', async () => {
     assertLessOrEqual(calls, 4);
 });
 
+Deno.test('withRetry stops when remaining maxRetryTimeMs is under 1ms', async () => {
+    let calls = 0;
+    let now = 0;
+    const originalNow = performance.now;
+    performance.now = () => now;
+
+    try {
+        await assertRejects(
+            () =>
+                withRetry(() => {
+                    calls++;
+                    // Land just under the budget after the first failure so
+                    // the next remainingMs is in (0, 1) and would previously
+                    // floor to a 0-delay busy-retry loop.
+                    if (calls === 1) {
+                        now = 79.5;
+                    }
+                    throw new Error('budget-edge');
+                }, {
+                    maxRetries: 10,
+                    initialDelayMs: 50,
+                    jitterFactor: 0,
+                    maxRetryTimeMs: 80,
+                }),
+            Error,
+            'budget-edge',
+        );
+    } finally {
+        performance.now = originalNow;
+    }
+
+    assertEquals(calls, 1);
+});
+
 Deno.test('RetryAbortedError can wrap another error', () => {
     const cause = new Error('not found');
     const aborted = new RetryAbortedError(cause);
