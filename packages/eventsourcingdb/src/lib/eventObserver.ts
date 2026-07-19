@@ -3,9 +3,19 @@ import {
     getLogger,
     withRetry,
 } from '@nimbus-cqrs/core';
+import { type Span, SpanStatusCode } from '@opentelemetry/api';
 import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import { getEventSourcingDBClient } from './client.ts';
-import { type TraceContext, withSpan } from './tracing.ts';
+import { isEventData } from './eventMapping.ts';
+import {
+    observerConnectionReconnectsCounter,
+    observerConnectionRetryAttemptsCounter,
+    observerEventsHandledCounter,
+    observerHandlerRetryAttemptsCounter,
+    observerHandlingDuration,
+    type TraceContext,
+    withObserveEventSpan,
+} from './tracing.ts';
 
 type Bound = {
     id: string;
@@ -183,6 +193,10 @@ const logObserverConnection = (
         : `Observing events for subject "${subject}"`;
 
     getLogger().info({ category: 'Nimbus', message, data });
+
+    if (retryCount > 0) {
+        observerConnectionReconnectsCounter.add(1, { subject });
+    }
 };
 
 /**
@@ -218,6 +232,8 @@ const handleConnectionError = async (
         return false;
     }
 
+    observerConnectionRetryAttemptsCounter.add(1, { subject });
+
     const backoffDelay = calculateBackoffDelay(
         initialRetryDelayMs,
         retryCount - 1,
@@ -234,6 +250,18 @@ const handleConnectionError = async (
     return true;
 };
 
+const recordHandlerMetrics = (
+    metricLabels: { subject: string; event_type: string },
+    status: 'success' | 'skipped',
+    startTime: number,
+): void => {
+    observerEventsHandledCounter.add(1, { ...metricLabels, status });
+    observerHandlingDuration.record(
+        (performance.now() - startTime) / 1000,
+        metricLabels,
+    );
+};
+
 /**
  * Invokes the event handler with in-place retries. Does not reconnect
  * the observe stream. When all retries are exhausted, calls
@@ -244,8 +272,14 @@ const handleEventWithRetry = async (
     eventObserver: EventObserver,
     event: EventSourcingDBEvent,
     handlerRetryOptions: RetryOptions,
+    span: Span,
+    startTime: number,
 ): Promise<void> => {
     const { maxRetries, initialRetryDelayMs } = handlerRetryOptions;
+    const metricLabels = {
+        subject: eventObserver.subject,
+        event_type: event.type,
+    };
 
     try {
         await withRetry(
@@ -256,19 +290,42 @@ const handleEventWithRetry = async (
                 maxDelayMs: Infinity,
                 jitterFactor: 0.3,
                 onRetry: ({ error, attempt, delayMs }) => {
+                    observerHandlerRetryAttemptsCounter.add(1, metricLabels);
+                    span.addEvent('retry', {
+                        attempt,
+                        delay_ms: delayMs,
+                    });
+
                     getLogger().error({
                         category: 'Nimbus',
                         message:
                             `Error handling event "${event.id}" (${event.type}) for subject "${eventObserver.subject}" (retry ${attempt}/${maxRetries}), retrying in ${delayMs}ms`,
                         error,
+                        ...(isEventData(event.data)
+                            ? {
+                                correlationId:
+                                    event.data.nimbusMeta.correlationid,
+                            }
+                            : {}),
                     });
                 },
             },
         );
+
+        recordHandlerMetrics(metricLabels, 'success', startTime);
+        span.end();
     } catch (error: unknown) {
         const handlerError = error instanceof Error
             ? error
             : new Error(String(error));
+
+        recordHandlerMetrics(metricLabels, 'skipped', startTime);
+        span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: handlerError.message,
+        });
+        span.recordException(handlerError);
+        span.end();
 
         await handleHandlerExhausted(
             eventObserver,
@@ -304,6 +361,11 @@ const handleHandlerExhausted = async (
                 message:
                     `onHandlerError failed for event "${event.id}" (${event.type}) for subject "${eventObserver.subject}". Skipping event.`,
                 error: callbackError,
+                ...(isEventData(event.data)
+                    ? {
+                        correlationId: event.data.nimbusMeta.correlationid,
+                    }
+                    : {}),
             });
         }
         return;
@@ -316,6 +378,11 @@ const handleHandlerExhausted = async (
                 maxRetries === 1 ? 'retry' : 'retries'
             }. Skipping event.`,
         error: handlerError,
+        ...(isEventData(event.data)
+            ? {
+                correlationId: event.data.nimbusMeta.correlationid,
+            }
+            : {}),
     });
 };
 
@@ -392,16 +459,21 @@ export const observeWithRetry = async (
                     }
                     : undefined;
 
-                await withSpan(
-                    'observeEvent',
-                    async () => {
+                const startTime = performance.now();
+
+                await withObserveEventSpan(
+                    event,
+                    eventObserver.subject,
+                    traceContext,
+                    async (span) => {
                         await handleEventWithRetry(
                             eventObserver,
                             event,
                             handlerRetryOptions,
+                            span,
+                            startTime,
                         );
                     },
-                    traceContext,
                 );
 
                 // Advance after success or skip so poison events do not block
