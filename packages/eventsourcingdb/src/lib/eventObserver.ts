@@ -193,10 +193,6 @@ const logObserverConnection = (
         : `Observing events for subject "${subject}"`;
 
     getLogger().info({ category: 'Nimbus', message, data });
-
-    if (retryCount > 0) {
-        observerConnectionReconnectsCounter.add(1, { subject });
-    }
 };
 
 /**
@@ -313,7 +309,6 @@ const handleEventWithRetry = async (
         );
 
         recordHandlerMetrics(metricLabels, 'success', startTime);
-        span.end();
     } catch (error: unknown) {
         const handlerError = error instanceof Error
             ? error
@@ -325,7 +320,6 @@ const handleEventWithRetry = async (
             message: handlerError.message,
         });
         span.recordException(handlerError);
-        span.end();
 
         await handleHandlerExhausted(
             eventObserver,
@@ -449,7 +443,13 @@ export const observeWithRetry = async (
                     },
                 )
             ) {
-                // Stream is healthy once events flow again.
+                // Stream is healthy once events flow again. Count a successful
+                // reconnect only here so failed reconnect attempts are excluded.
+                if (connectionRetryCount > 0) {
+                    observerConnectionReconnectsCounter.add(1, {
+                        subject: eventObserver.subject,
+                    });
+                }
                 connectionRetryCount = 0;
 
                 const traceContext: TraceContext | undefined = event.traceparent

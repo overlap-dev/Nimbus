@@ -103,7 +103,7 @@ The [EventSourcingDB package](/guide/eventsourcingdb/) instruments writes, reads
 - `eventsourcingdb_observer_handling_duration_seconds` - Histogram of observer handler duration
 - `eventsourcingdb_observer_handler_retry_attempts_total` - Counter for handler retries
 - `eventsourcingdb_observer_connection_retry_attempts_total` - Counter for scheduled reconnects
-- `eventsourcingdb_observer_connection_reconnects_total` - Counter for successful reconnects
+- `eventsourcingdb_observer_connection_reconnects_total` - Counter for successful reconnects (when events flow again)
 
 See [Event Observer](/guide/eventsourcingdb/event-observer) and [Write Events](/guide/eventsourcingdb/write-events) for details.
 

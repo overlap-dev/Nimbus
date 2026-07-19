@@ -222,7 +222,13 @@ export const withObserveEventSpan = <T>(
             },
         },
         parentContext,
-        fn,
+        async (span) => {
+            try {
+                return await fn(span);
+            } finally {
+                span.end();
+            }
+        },
     );
 };
 

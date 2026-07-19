@@ -249,10 +249,10 @@ Each observed event is processed within an OpenTelemetry consumer span named `ev
 
 **Metrics** (labels use `subject` + `event_type` where an event is in scope; connection metrics use `subject` only — no `event_id` on metric labels):
 
-| Metric                                                     | Type      | Labels                            | Description                                                |
-| ---------------------------------------------------------- | --------- | --------------------------------- | ---------------------------------------------------------- |
-| `eventsourcingdb_observer_events_handled_total`            | Counter   | `subject`, `event_type`, `status` | Events handled (`success`) or skipped after exhaustion     |
-| `eventsourcingdb_observer_handling_duration_seconds`       | Histogram | `subject`, `event_type`           | Handler duration in seconds (includes retries)             |
-| `eventsourcingdb_observer_handler_retry_attempts_total`    | Counter   | `subject`, `event_type`           | In-place handler retry attempts                            |
-| `eventsourcingdb_observer_connection_retry_attempts_total` | Counter   | `subject`                         | Stream failures that schedule a reconnect                  |
-| `eventsourcingdb_observer_connection_reconnects_total`     | Counter   | `subject`                         | Successful reconnects after one or more connection retries |
+| Metric                                                     | Type      | Labels                            | Description                                                          |
+| ---------------------------------------------------------- | --------- | --------------------------------- | -------------------------------------------------------------------- |
+| `eventsourcingdb_observer_events_handled_total`            | Counter   | `subject`, `event_type`, `status` | Events handled (`success`) or skipped after exhaustion               |
+| `eventsourcingdb_observer_handling_duration_seconds`       | Histogram | `subject`, `event_type`           | Handler duration in seconds (includes retries)                       |
+| `eventsourcingdb_observer_handler_retry_attempts_total`    | Counter   | `subject`, `event_type`           | In-place handler retry attempts                                      |
+| `eventsourcingdb_observer_connection_retry_attempts_total` | Counter   | `subject`                         | Stream failures that schedule a reconnect                            |
+| `eventsourcingdb_observer_connection_reconnects_total`     | Counter   | `subject`                         | Successful reconnects (counted when events flow again after retries) |
