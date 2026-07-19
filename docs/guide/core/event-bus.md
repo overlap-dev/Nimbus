@@ -114,7 +114,7 @@ eventBus.putEvent<UserInvitedEvent>(event);
 
 ## Retry Mechanism
 
-When a handler throws an error, the event bus automatically retries using exponential backoff:
+When a handler throws an error, the event bus automatically retries using exponential backoff via the shared [`withRetry`](/guide/core/with-retry) helper:
 
 1. **First retry**: Waits `baseDelay` ms (default: 1000ms)
 2. **Second retry**: Waits `baseDelay * 2` ms (2000ms)

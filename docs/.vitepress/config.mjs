@@ -159,6 +159,10 @@ export default withMermaid(defineConfig({
                             link: "/guide/core/event-bus",
                         },
                         {
+                            text: "withRetry",
+                            link: "/guide/core/with-retry",
+                        },
+                        {
                             text: "Exceptions",
                             link: "/guide/core/exceptions",
                         },

@@ -1,4 +1,8 @@
-import { getLogger } from '@nimbus-cqrs/core';
+import {
+    calculateBackoffDelay as coreCalculateBackoffDelay,
+    getLogger,
+    withRetry,
+} from '@nimbus-cqrs/core';
 import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import { getEventSourcingDBClient } from './client.ts';
 import { type TraceContext, withSpan } from './tracing.ts';
@@ -114,18 +118,19 @@ const delay = (ms: number): Promise<void> =>
  *   exponential scaling.
  * @param attempt - The zero-based retry attempt number.
  * @returns The backoff delay in milliseconds.
+ *
+ * @deprecated Import {@link calculateBackoffDelay} from
+ *   `@nimbus-cqrs/core` instead. This wrapper keeps the historical
+ *   30% jitter default used by EventSourcingDB observers.
  */
 export const calculateBackoffDelay = (
     initialDelayMs: number,
     attempt: number,
-): number => {
-    const baseDelay = initialDelayMs * Math.pow(2, attempt);
-
-    // Add jitter: random value between 0 and 30% of the base delay
-    const jitter = Math.random() * baseDelay * 0.3;
-
-    return Math.floor(baseDelay + jitter);
-};
+): number =>
+    coreCalculateBackoffDelay(initialDelayMs, attempt, {
+        jitterFactor: 0.3,
+        maxDelayMs: Infinity,
+    });
 
 /**
  * Resolves connection retry options, preferring
@@ -241,68 +246,77 @@ const handleEventWithRetry = async (
     handlerRetryOptions: RetryOptions,
 ): Promise<void> => {
     const { maxRetries, initialRetryDelayMs } = handlerRetryOptions;
-    let attempt = 0;
 
-    while (attempt <= maxRetries) {
-        try {
-            await eventObserver.eventHandler(event);
-            return;
-        } catch (error: unknown) {
-            attempt++;
-
-            const handlerError = error instanceof Error
-                ? error
-                : new Error(String(error));
-
-            if (attempt > maxRetries) {
-                if (eventObserver.onHandlerError) {
-                    try {
-                        await eventObserver.onHandlerError(
-                            handlerError,
-                            event,
-                        );
-                    } catch (err: unknown) {
-                        // Isolate user callback failures so the poison
-                        // event is still skipped and observation continues.
-                        const callbackError = err instanceof Error
-                            ? err
-                            : new Error(String(err));
-
-                        getLogger().critical({
-                            category: 'Nimbus',
-                            message:
-                                `onHandlerError failed for event "${event.id}" (${event.type}) for subject "${eventObserver.subject}". Skipping event.`,
-                            error: callbackError,
-                        });
-                    }
-                } else {
-                    getLogger().critical({
+    try {
+        await withRetry(
+            () => eventObserver.eventHandler(event),
+            {
+                maxRetries,
+                initialDelayMs: initialRetryDelayMs,
+                maxDelayMs: Infinity,
+                jitterFactor: 0.3,
+                onRetry: ({ error, attempt, delayMs }) => {
+                    getLogger().error({
                         category: 'Nimbus',
                         message:
-                            `Failed to handle event "${event.id}" (${event.type}) for subject "${eventObserver.subject}" after ${maxRetries} ${
-                                maxRetries === 1 ? 'retry' : 'retries'
-                            }. Skipping event.`,
-                        error: handlerError,
+                            `Error handling event "${event.id}" (${event.type}) for subject "${eventObserver.subject}" (retry ${attempt}/${maxRetries}), retrying in ${delayMs}ms`,
+                        error,
                     });
-                }
-                return;
-            }
+                },
+            },
+        );
+    } catch (error: unknown) {
+        const handlerError = error instanceof Error
+            ? error
+            : new Error(String(error));
 
-            const backoffDelay = calculateBackoffDelay(
-                initialRetryDelayMs,
-                attempt - 1,
-            );
+        await handleHandlerExhausted(
+            eventObserver,
+            event,
+            handlerError,
+            maxRetries,
+        );
+    }
+};
 
-            getLogger().error({
+/**
+ * Handles exhausted handler retries by invoking
+ * {@link EventObserver.onHandlerError} or emitting a critical log.
+ */
+const handleHandlerExhausted = async (
+    eventObserver: EventObserver,
+    event: EventSourcingDBEvent,
+    handlerError: Error,
+    maxRetries: number,
+): Promise<void> => {
+    if (eventObserver.onHandlerError) {
+        try {
+            await eventObserver.onHandlerError(handlerError, event);
+        } catch (err: unknown) {
+            // Isolate user callback failures so the poison
+            // event is still skipped and observation continues.
+            const callbackError = err instanceof Error
+                ? err
+                : new Error(String(err));
+
+            getLogger().critical({
                 category: 'Nimbus',
                 message:
-                    `Error handling event "${event.id}" (${event.type}) for subject "${eventObserver.subject}" (retry ${attempt}/${maxRetries}), retrying in ${backoffDelay}ms`,
-                error: handlerError,
+                    `onHandlerError failed for event "${event.id}" (${event.type}) for subject "${eventObserver.subject}". Skipping event.`,
+                error: callbackError,
             });
-
-            await delay(backoffDelay);
         }
+        return;
     }
+
+    getLogger().critical({
+        category: 'Nimbus',
+        message:
+            `Failed to handle event "${event.id}" (${event.type}) for subject "${eventObserver.subject}" after ${maxRetries} ${
+                maxRetries === 1 ? 'retry' : 'retries'
+            }. Skipping event.`,
+        error: handlerError,
+    });
 };
 
 /**

@@ -116,7 +116,7 @@ The `fromLatestEvent` option starts observation from the latest event matching s
 | `maxRetries`          | `number` | `3`     | Maximum number of retries after the initial attempt  |
 | `initialRetryDelayMs` | `number` | `3000`  | Initial delay in milliseconds before the first retry |
 
-Both paths use **exponential backoff with jitter**:
+Both paths use **exponential backoff with jitter** (via the shared [`withRetry`](/guide/core/with-retry) / `calculateBackoffDelay` helpers from `@nimbus-cqrs/core`):
 
 - Base delay doubles with each attempt: `initialDelayMs * 2^attempt`
 - Random jitter of 0-30% is added to avoid thundering-herd effects
