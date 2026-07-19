@@ -1,9 +1,8 @@
-import { getLogger } from '@nimbus-cqrs/core';
+import { getEnv, getLogger } from '@nimbus-cqrs/core';
 import {
     isEventData,
     setupEventSourcingDBClient,
 } from '@nimbus-cqrs/eventsourcingdb';
-import { getEnv } from '@nimbus-cqrs/utils';
 import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import {
     getContactProjectionLowerBound,

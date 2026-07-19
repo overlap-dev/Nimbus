@@ -205,7 +205,7 @@ export const initMongoDB = () => {
 };
 ```
 
-The pattern is documented in [Connection Manager](/guide/mongodb/connection-manager). The little [`getEnv`](/guide/utils/get-env) helper next to it is what reads `MONGO_URL` from the environment with a friendly error if it is missing.
+The pattern is documented in [Connection Manager](/guide/mongodb/connection-manager). The little [`getEnv`](/guide/core/get-env) helper next to it is what reads `MONGO_URL` from the environment with a friendly error if it is missing.
 
 ### EventSourcingDB Client
 

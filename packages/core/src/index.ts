@@ -1,3 +1,4 @@
+export * from './lib/env/getEnv.ts';
 export * from './lib/eventBus/eventBus.ts';
 export * from './lib/exception/exception.ts';
 export * from './lib/exception/forbiddenException.ts';

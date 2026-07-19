@@ -1,10 +1,9 @@
 ---
 description: getEnv loads and validates required environment variables, failing fast with clear errors when any are missing.
-prev:
-    text: "Nimbus Utils"
-    link: "/guide/utils"
 
-next: false
+next:
+    text: "Hono"
+    link: "/guide/hono"
 ---
 
 # getEnv
@@ -20,7 +19,7 @@ Check out the [In Depth Example](/guide/in-depth-example) page to learn how ever
 ## Basic Usage
 
 ```typescript
-import { getEnv } from "@nimbus-cqrs/utils";
+import { getEnv } from "@nimbus-cqrs/core";
 
 const env = getEnv({
     variables: ["DATABASE_URL", "API_KEY", "PORT"],
@@ -48,7 +47,7 @@ getEnv({ variables: string[] }): Record<string, string>
 If any requested variables are undefined, `getEnv` throws a `GenericException` with details about all missing variables:
 
 ```typescript
-import { getEnv } from "@nimbus-cqrs/utils";
+import { getEnv } from "@nimbus-cqrs/core";
 
 try {
     const env = getEnv({
@@ -73,7 +72,7 @@ The error is also logged before throwing:
 ### Application Configuration
 
 ```typescript
-import { getEnv } from "@nimbus-cqrs/utils";
+import { getEnv } from "@nimbus-cqrs/core";
 
 const env = getEnv({
     variables: ["NODE_ENV", "PORT", "DATABASE_URL", "REDIS_URL", "JWT_SECRET"],
@@ -91,8 +90,8 @@ export const config = {
 ### MongoDB Connection
 
 ```typescript
+import { getEnv } from "@nimbus-cqrs/core";
 import { MongoConnectionManager } from "@nimbus-cqrs/mongodb";
-import { getEnv } from "@nimbus-cqrs/utils";
 
 const env = getEnv({
     variables: ["MONGO_URL", "MONGO_DB"],
@@ -109,8 +108,8 @@ export const getCollection = (name: string) =>
 ### Repository Configuration
 
 ```typescript
+import { getEnv } from "@nimbus-cqrs/core";
 import { MongoDBRepository } from "@nimbus-cqrs/mongodb";
-import { getEnv } from "@nimbus-cqrs/utils";
 import { mongoManager } from "./mongodb.ts";
 
 class UserRepository extends MongoDBRepository<User> {
@@ -120,7 +119,7 @@ class UserRepository extends MongoDBRepository<User> {
         super(
             () => mongoManager.getCollection(env.MONGO_DB, "users"),
             UserSchema,
-            "User"
+            "User",
         );
     }
 }
@@ -129,7 +128,7 @@ class UserRepository extends MongoDBRepository<User> {
 ### External Service Configuration
 
 ```typescript
-import { getEnv } from "@nimbus-cqrs/utils";
+import { getEnv } from "@nimbus-cqrs/core";
 
 const env = getEnv({
     variables: ["STRIPE_API_KEY", "STRIPE_WEBHOOK_SECRET"],

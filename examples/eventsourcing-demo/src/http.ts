@@ -1,4 +1,4 @@
-import { getLogger } from '@nimbus-cqrs/core';
+import { getEnv, getLogger } from '@nimbus-cqrs/core';
 import { getEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
 import {
     correlationId,
@@ -7,7 +7,6 @@ import {
     logger,
 } from '@nimbus-cqrs/hono';
 import { getMongoConnectionManager } from '@nimbus-cqrs/mongodb';
-import { getEnv } from '@nimbus-cqrs/utils';
 import { Hono } from 'hono';
 import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';
