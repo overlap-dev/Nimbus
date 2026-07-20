@@ -16,15 +16,20 @@ export type LogTruncator = (logInput: LogInput) => LogInput;
 export type LogTruncatorOptions = {
     /**
      * Maximum serialized byte size of `data` after structural truncation.
-     * If still over budget, `data` is replaced with a size marker.
-     * Defaults to 16_384 (16 KB).
+     * If still over budget (or not JSON-serializable), `data` is replaced
+     * with a size marker. Defaults to 16_384 (16 KB).
      */
     maxBytes?: number;
     /**
-     * Maximum number of array items kept inside `data`.
-     * Defaults to 20.
+     * Maximum number of array items kept inside `data` (also applies when
+     * converting `Map` / `Set` to arrays). Defaults to 50.
      */
     maxArrayItems?: number;
+    /**
+     * Maximum number of own enumerable keys kept on plain objects inside
+     * `data`. Defaults to 50.
+     */
+    maxObjectKeys?: number;
     /**
      * Maximum object nesting depth inside `data`, and maximum depth when
      * walking `error.cause` / aggregate error chains.
@@ -55,7 +60,8 @@ export type LogTruncatorOptions = {
 };
 
 const DEFAULT_MAX_BYTES = 16_384;
-const DEFAULT_MAX_ARRAY_ITEMS = 20;
+const DEFAULT_MAX_ARRAY_ITEMS = 50;
+const DEFAULT_MAX_OBJECT_KEYS = 50;
 const DEFAULT_MAX_DEPTH = 8;
 const DEFAULT_MAX_CATEGORY_LENGTH = 50;
 const DEFAULT_MAX_MESSAGE_LENGTH = 200;
@@ -69,13 +75,31 @@ type TruncatedArrayMarker = {
 
 type TruncatedSizeMarker = {
     __truncated: true;
-    reason: 'size';
-    serializedByteSize: number;
+    reason: 'size' | 'unserializable';
+    serializedByteSize?: number;
     maxBytes: number;
 };
 
-const serializedByteSize = (value: unknown): number =>
-    new TextEncoder().encode(JSON.stringify(value)).byteLength;
+type TruncatedTypedArrayMarker = {
+    __truncated: true;
+    reason: 'typedArray';
+    type: string;
+    byteLength: number;
+};
+
+type TruncatedArrayBufferMarker = {
+    __truncated: true;
+    reason: 'arrayBuffer';
+    byteLength: number;
+};
+
+const serializedByteSize = (value: unknown): number | undefined => {
+    try {
+        return new TextEncoder().encode(JSON.stringify(value)).byteLength;
+    } catch {
+        return undefined;
+    }
+};
 
 const truncateString = (value: string, maxLength: number): string => {
     if (value.length <= maxLength) {
@@ -90,10 +114,12 @@ const truncateString = (value: string, maxLength: number): string => {
  * separately (except `correlationId`, which is left untouched).
  *
  * - `message` / `category`: string length caps
- * - `data`: structural truncation (arrays, strings, depth, circular refs) plus
- *   a byte-size cliff that replaces oversized payloads with a size marker
- * - `error`: stays `Error`-shaped; truncates `message` / `stack` and walks
- *   `cause` / aggregate errors up to `maxDepth`
+ * - `data`: structural truncation (arrays, objects, strings, depth, circular
+ *   refs, common JS types) plus a byte-size cliff that replaces oversized or
+ *   unserializable payloads with a size marker
+ * - `error`: stays `Error`-shaped; truncates `message` / `stack`, copies
+ *   enumerable custom fields, and walks `cause` / aggregate errors up to
+ *   `maxDepth`
  *
  * @param options - Optional limits; omitted fields use built-in defaults.
  *
@@ -108,7 +134,8 @@ const truncateString = (value: string, maxLength: number): string => {
  * setupLogger({
  *     truncator: createLogTruncator({
  *         maxBytes: 8_192,
- *         maxArrayItems: 20,
+ *         maxArrayItems: 50,
+ *         maxObjectKeys: 50,
  *         maxDepth: 8,
  *         maxCategoryLength: 50,
  *         maxMessageLength: 100,
@@ -129,6 +156,10 @@ export const createLogTruncator = (
     const maxArrayItems = Math.max(
         0,
         options.maxArrayItems ?? DEFAULT_MAX_ARRAY_ITEMS,
+    );
+    const maxObjectKeys = Math.max(
+        0,
+        options.maxObjectKeys ?? DEFAULT_MAX_OBJECT_KEYS,
     );
     const maxDepth = Math.max(
         1,
@@ -156,6 +187,10 @@ export const createLogTruncator = (
         depth: number,
         seen: WeakSet<object>,
     ): unknown => {
+        if (typeof value === 'bigint') {
+            return truncateString(`${value}n`, maxDataStringLength);
+        }
+
         if (value === null || typeof value !== 'object') {
             if (
                 typeof value === 'string' &&
@@ -178,6 +213,51 @@ export const createLogTruncator = (
         seen.add(value);
 
         try {
+            if (value instanceof Date) {
+                return truncateString(value.toISOString(), maxDataStringLength);
+            }
+
+            if (value instanceof RegExp) {
+                return truncateString(value.toString(), maxDataStringLength);
+            }
+
+            if (value instanceof ArrayBuffer) {
+                return {
+                    __truncated: true,
+                    reason: 'arrayBuffer',
+                    byteLength: value.byteLength,
+                } satisfies TruncatedArrayBufferMarker;
+            }
+
+            if (ArrayBuffer.isView(value)) {
+                return {
+                    __truncated: true,
+                    reason: 'typedArray',
+                    type: value.constructor.name,
+                    byteLength: value.byteLength,
+                } satisfies TruncatedTypedArrayMarker;
+            }
+
+            if (value instanceof Error) {
+                return truncateErrorAsData(value, depth, seen);
+            }
+
+            if (value instanceof Map) {
+                return truncateDataValue(
+                    Array.from(value.entries()),
+                    depth + 1,
+                    seen,
+                );
+            }
+
+            if (value instanceof Set) {
+                return truncateDataValue(
+                    Array.from(value.values()),
+                    depth + 1,
+                    seen,
+                );
+            }
+
             if (Array.isArray(value)) {
                 if (value.length > maxArrayItems) {
                     return [
@@ -198,10 +278,20 @@ export const createLogTruncator = (
                 );
             }
 
+            const entries = Object.entries(value);
+            const limited = entries.length > maxObjectKeys
+                ? entries.slice(0, maxObjectKeys)
+                : entries;
+
             const result: Record<string, unknown> = {};
 
-            for (const [key, entry] of Object.entries(value)) {
+            for (const [key, entry] of limited) {
                 result[key] = truncateDataValue(entry, depth + 1, seen);
+            }
+
+            if (entries.length > maxObjectKeys) {
+                result.__truncated = true;
+                result.omittedKeyCount = entries.length - maxObjectKeys;
             }
 
             return result;
@@ -211,22 +301,91 @@ export const createLogTruncator = (
         }
     };
 
+    const truncateErrorAsData = (
+        error: Error,
+        depth: number,
+        seen: WeakSet<object>,
+    ): Record<string, unknown> => {
+        const result: Record<string, unknown> = {
+            name: error.name,
+            message: truncateString(error.message, maxMessageLength),
+        };
+
+        if (typeof error.stack === 'string') {
+            result.stack = truncateString(error.stack, maxStackLength);
+        }
+
+        for (const [key, entry] of Object.entries(error)) {
+            if (
+                key === 'name' ||
+                key === 'message' ||
+                key === 'stack' ||
+                key === 'cause' ||
+                key === 'errors'
+            ) {
+                continue;
+            }
+
+            result[key] = truncateDataValue(entry, depth + 1, seen);
+        }
+
+        if ('cause' in error && error.cause !== undefined) {
+            result.cause = truncateDataValue(error.cause, depth + 1, seen);
+        }
+
+        if (
+            typeof AggregateError !== 'undefined' &&
+            error instanceof AggregateError
+        ) {
+            result.errors = truncateDataValue(error.errors, depth + 1, seen);
+        }
+
+        return result;
+    };
+
     const truncateData = (
         data: Record<string, unknown>,
     ): Record<string, unknown> => {
         const truncated = truncateDataValue(data, 0, new WeakSet<object>());
         const byteSize = serializedByteSize(truncated);
 
-        if (byteSize <= maxBytes) {
+        if (byteSize !== undefined && byteSize <= maxBytes) {
             return truncated as Record<string, unknown>;
         }
 
         return {
             __truncated: true,
-            reason: 'size',
-            serializedByteSize: byteSize,
+            reason: byteSize === undefined ? 'unserializable' : 'size',
+            ...(byteSize !== undefined ? { serializedByteSize: byteSize } : {}),
             maxBytes,
         } satisfies TruncatedSizeMarker;
+    };
+
+    const copyCustomErrorFields = (
+        source: Error,
+        target: Error,
+        depth: number,
+    ): void => {
+        for (const [key, entry] of Object.entries(source)) {
+            if (
+                key === 'name' ||
+                key === 'message' ||
+                key === 'stack' ||
+                key === 'cause' ||
+                key === 'errors'
+            ) {
+                continue;
+            }
+
+            (target as unknown as Record<string, unknown>)[key] =
+                entry instanceof Error
+                    ? truncateError(entry, depth + 1)
+                    : truncateDataValue(
+                        entry,
+                        depth + 1,
+                        new WeakSet<object>(),
+                    );
+        }
     };
 
     const truncateError = (error: Error, depth: number): Error => {
@@ -248,7 +407,11 @@ export const createLogTruncator = (
                 error.errors.map((item) =>
                     item instanceof Error
                         ? truncateError(item, depth + 1)
-                        : item
+                        : truncateDataValue(
+                            item,
+                            depth + 1,
+                            new WeakSet<object>(),
+                        )
                 ),
                 message,
             );
@@ -265,8 +428,14 @@ export const createLogTruncator = (
         if ('cause' in error && error.cause !== undefined) {
             truncated.cause = error.cause instanceof Error
                 ? truncateError(error.cause, depth + 1)
-                : error.cause;
+                : truncateDataValue(
+                    error.cause,
+                    depth + 1,
+                    new WeakSet<object>(),
+                );
         }
+
+        copyCustomErrorFields(error, truncated, depth);
 
         return truncated;
     };

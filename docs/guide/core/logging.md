@@ -190,7 +190,8 @@ setupLogger({
 setupLogger({
     truncator: createLogTruncator({
         maxBytes: 8_192,
-        maxArrayItems: 20,
+        maxArrayItems: 50,
+        maxObjectKeys: 50,
         maxDepth: 8,
         maxCategoryLength: 50,
         maxMessageLength: 100,
@@ -202,19 +203,22 @@ setupLogger({
 
 The built-in truncator processes each `LogInput` field separately and leaves `correlationId` untouched:
 
-| Field                  | Behavior                                                                                                                            |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `message` / `category` | String length caps                                                                                                                  |
-| `data`                 | Structural limits (strings, arrays, depth, circular refs), then a byte-size cliff that replaces oversized `data` with a size marker |
-| `error`                | Stays `Error`-shaped; truncates `message` / `stack`; walks `cause` and aggregate errors up to `maxDepth`                            |
-| `correlationId`        | Never truncated                                                                                                                     |
+| Field                  | Behavior                                                                                                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `message` / `category` | String length caps                                                                                                                                                       |
+| `data`                 | Structural limits (strings, arrays, object keys, depth, circular refs, common JS types), then a byte-size cliff for oversized or unserializable `data`                   |
+| `error`                | Stays `Error`-shaped; truncates `message` / `stack`; copies enumerable custom fields; walks `cause` and aggregate errors (including non-`Error` values) up to `maxDepth` |
+| `correlationId`        | Never truncated                                                                                                                                                          |
+
+Inside `data`, common values are normalized before limits apply: `bigint` → string, `Date` → ISO string, `RegExp` → pattern string, `Map` / `Set` → arrays (with `maxArrayItems`), `Error` → plain object, and `ArrayBuffer` / typed arrays → size summaries.
 
 ### Truncator options
 
 | Option                | Default | Applies to                                               |
 | --------------------- | ------- | -------------------------------------------------------- |
 | `maxBytes`            | `16384` | `data` size cliff only                                   |
-| `maxArrayItems`       | `20`    | Arrays inside `data`                                     |
+| `maxArrayItems`       | `50`    | Arrays inside `data` (including converted `Map` / `Set`) |
+| `maxObjectKeys`       | `50`    | Own enumerable keys on plain objects inside `data`       |
 | `maxDepth`            | `8`     | Object depth in `data`; also bounds `error.cause` chains |
 | `maxCategoryLength`   | `50`    | `category`                                               |
 | `maxMessageLength`    | `200`   | `message` and `error.message`                            |

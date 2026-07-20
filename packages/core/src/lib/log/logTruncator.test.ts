@@ -219,3 +219,199 @@ Deno.test('createLogTruncator uses defaults when options are omitted', () => {
     assertEquals(result.category?.length, 51);
     assertMatch(result.category ?? '', /…$/);
 });
+
+Deno.test('createLogTruncator converts bigint and replaces unserializable data', () => {
+    const truncator = createLogTruncator({ maxBytes: 16_384 });
+
+    const withBigInt = truncator({
+        message: 'ok',
+        data: { id: 9007199254740993n },
+    });
+
+    assertEquals(withBigInt.data, { id: '9007199254740993n' });
+
+    const withThrowingToJSON = truncator({
+        message: 'ok',
+        data: {
+            bad: {
+                toJSON() {
+                    throw new Error('cannot serialize');
+                },
+            },
+        },
+    });
+
+    assertEquals(withThrowingToJSON.data, {
+        __truncated: true,
+        reason: 'unserializable',
+        maxBytes: 16_384,
+    });
+});
+
+Deno.test('createLogTruncator converts Date, Map, Set, and RegExp in data', () => {
+    const truncator = createLogTruncator({
+        maxArrayItems: 2,
+        maxDataStringLength: 500,
+    });
+
+    const result = truncator({
+        message: 'ok',
+        data: {
+            at: new Date('2026-07-20T12:00:00.000Z'),
+            pattern: /hello/gi,
+            map: new Map<string, number>([
+                ['a', 1],
+                ['b', 2],
+                ['c', 3],
+            ]),
+            set: new Set([1, 2, 3, 4]),
+        },
+    });
+
+    assertEquals(result.data?.at, '2026-07-20T12:00:00.000Z');
+    assertEquals(result.data?.pattern, '/hello/gi');
+    assertEquals(result.data?.map, [
+        ['a', 1],
+        ['b', 2],
+        { __truncated: true, omittedCount: 1 },
+    ]);
+    assertEquals(result.data?.set, [
+        1,
+        2,
+        { __truncated: true, omittedCount: 2 },
+    ]);
+});
+
+Deno.test('createLogTruncator summarizes TypedArrays and ArrayBuffers in data', () => {
+    const truncator = createLogTruncator();
+    const bytes = new Uint8Array([1, 2, 3, 4, 5]);
+    const buffer = bytes.buffer;
+
+    const result = truncator({
+        message: 'ok',
+        data: {
+            bytes,
+            buffer,
+        },
+    });
+
+    assertEquals(result.data?.bytes, {
+        __truncated: true,
+        reason: 'typedArray',
+        type: 'Uint8Array',
+        byteLength: 5,
+    });
+    assertEquals(result.data?.buffer, {
+        __truncated: true,
+        reason: 'arrayBuffer',
+        byteLength: 5,
+    });
+});
+
+Deno.test('createLogTruncator converts Error values inside data to plain objects', () => {
+    const truncator = createLogTruncator({
+        maxMessageLength: 10,
+        maxStackLength: 20,
+    });
+
+    const error = new Error('0123456789ABCDEF');
+    error.stack = 'stack-0123456789ABCDEFGHIJ';
+    (error as Error & { code: string }).code = 'EFAIL';
+
+    const result = truncator({
+        message: 'ok',
+        data: { err: error },
+    });
+
+    assertEquals(result.data?.err, {
+        name: 'Error',
+        message: '0123456789…',
+        stack: 'stack-0123456789ABCD…',
+        code: 'EFAIL',
+    });
+});
+
+Deno.test('createLogTruncator preserves custom enumerable fields on log errors', () => {
+    const truncator = createLogTruncator({
+        maxMessageLength: 100,
+        maxDataStringLength: 5,
+    });
+
+    const error = new Error('boom');
+    (error as Error & { code: string; detail: string }).code = 'EFAIL';
+    (error as Error & { code: string; detail: string }).detail = '0123456789';
+
+    const result = truncator({
+        message: 'ok',
+        error,
+    });
+
+    assertInstanceOf(result.error, Error);
+    assertEquals(result.error?.message, 'boom');
+    assertEquals((result.error as Error & { code: string }).code, 'EFAIL');
+    assertEquals(
+        (result.error as Error & { detail: string }).detail,
+        '01234…',
+    );
+});
+
+Deno.test('createLogTruncator truncates non-Error cause and AggregateError items', () => {
+    const truncator = createLogTruncator({
+        maxMessageLength: 100,
+        maxDataStringLength: 5,
+        maxArrayItems: 20,
+        maxDepth: 8,
+    });
+
+    const withCause = new Error('root');
+    withCause.cause = { reason: '0123456789', nested: { ok: true } };
+
+    const aggregate = new AggregateError(
+        [{ info: 'ABCDEFGHIJ' }, new Error('inner-error')],
+        'aggregate',
+    );
+
+    const causeResult = truncator({
+        message: 'ok',
+        error: withCause,
+    });
+
+    assertEquals(causeResult.error?.cause, {
+        reason: '01234…',
+        nested: { ok: true },
+    });
+
+    const aggregateResult = truncator({
+        message: 'ok',
+        error: aggregate,
+    });
+
+    assertInstanceOf(aggregateResult.error, AggregateError);
+    const errors = (aggregateResult.error as AggregateError).errors;
+    assertEquals(errors[0], { info: 'ABCDE…' });
+    assertInstanceOf(errors[1], Error);
+    assertEquals((errors[1] as Error).message, 'inner-error');
+});
+
+Deno.test('createLogTruncator limits object keys in data', () => {
+    const truncator = createLogTruncator({
+        maxObjectKeys: 2,
+    });
+
+    const result = truncator({
+        message: 'ok',
+        data: {
+            a: 1,
+            b: 2,
+            c: 3,
+            d: 4,
+        },
+    });
+
+    assertEquals(result.data, {
+        a: 1,
+        b: 2,
+        __truncated: true,
+        omittedKeyCount: 2,
+    });
+});
