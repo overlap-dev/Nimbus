@@ -77,6 +77,41 @@ Deno.test('createLogTruncator replaces circular refs in data', () => {
     assertEquals(result.data, { name: 'root', self: '[Circular]' });
 });
 
+Deno.test('createLogTruncator keeps shared references (not cycles)', () => {
+    const truncator = createLogTruncator();
+    const shared = { id: 1 };
+    const sharedArray = [1, 2];
+
+    const result = truncator({
+        message: 'ok',
+        data: {
+            left: shared,
+            right: shared,
+            items: sharedArray,
+            moreItems: sharedArray,
+        },
+    });
+
+    assertEquals(result.data, {
+        left: { id: 1 },
+        right: { id: 1 },
+        items: [1, 2],
+        moreItems: [1, 2],
+    });
+});
+
+Deno.test('createLogTruncator clamps maxDepth below 1', () => {
+    const truncator = createLogTruncator({ maxDepth: 0 });
+
+    const result = truncator({
+        message: 'ok',
+        data: { nested: { value: 1 } },
+    });
+
+    assertEquals(typeof result.data, 'object');
+    assertEquals(result.data, { nested: '[Max depth]' });
+});
+
 Deno.test('createLogTruncator replaces oversized data with a size marker', () => {
     const truncator = createLogTruncator({
         maxBytes: 50,

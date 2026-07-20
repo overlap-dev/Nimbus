@@ -28,7 +28,8 @@ export type LogTruncatorOptions = {
     /**
      * Maximum object nesting depth inside `data`, and maximum depth when
      * walking `error.cause` / aggregate error chains.
-     * Defaults to 8.
+     * Defaults to 8. Values below 1 are clamped to 1 so root `data` stays
+     * an object.
      */
     maxDepth?: number;
     /**
@@ -120,16 +121,35 @@ const truncateString = (value: string, maxLength: number): string => {
 export const createLogTruncator = (
     options: LogTruncatorOptions = {},
 ): LogTruncator => {
-    const maxBytes = options.maxBytes ?? DEFAULT_MAX_BYTES;
-    const maxArrayItems = options.maxArrayItems ?? DEFAULT_MAX_ARRAY_ITEMS;
-    const maxDepth = options.maxDepth ?? DEFAULT_MAX_DEPTH;
-    const maxCategoryLength = options.maxCategoryLength ??
-        DEFAULT_MAX_CATEGORY_LENGTH;
-    const maxMessageLength = options.maxMessageLength ??
-        DEFAULT_MAX_MESSAGE_LENGTH;
-    const maxStackLength = options.maxStackLength ?? DEFAULT_MAX_STACK_LENGTH;
-    const maxDataStringLength = options.maxDataStringLength ??
-        DEFAULT_MAX_DATA_STRING_LENGTH;
+    // Clamp so root `data` stays an object and string/array limits stay usable.
+    const maxBytes = Math.max(
+        0,
+        options.maxBytes ?? DEFAULT_MAX_BYTES,
+    );
+    const maxArrayItems = Math.max(
+        0,
+        options.maxArrayItems ?? DEFAULT_MAX_ARRAY_ITEMS,
+    );
+    const maxDepth = Math.max(
+        1,
+        options.maxDepth ?? DEFAULT_MAX_DEPTH,
+    );
+    const maxCategoryLength = Math.max(
+        0,
+        options.maxCategoryLength ?? DEFAULT_MAX_CATEGORY_LENGTH,
+    );
+    const maxMessageLength = Math.max(
+        0,
+        options.maxMessageLength ?? DEFAULT_MAX_MESSAGE_LENGTH,
+    );
+    const maxStackLength = Math.max(
+        0,
+        options.maxStackLength ?? DEFAULT_MAX_STACK_LENGTH,
+    );
+    const maxDataStringLength = Math.max(
+        0,
+        options.maxDataStringLength ?? DEFAULT_MAX_DATA_STRING_LENGTH,
+    );
 
     const truncateDataValue = (
         value: unknown,
@@ -151,39 +171,44 @@ export const createLogTruncator = (
             return '[Circular]';
         }
 
-        seen.add(value);
-
         if (depth >= maxDepth) {
             return '[Max depth]';
         }
 
-        if (Array.isArray(value)) {
-            if (value.length > maxArrayItems) {
-                return [
-                    ...value
-                        .slice(0, maxArrayItems)
-                        .map((item) =>
-                            truncateDataValue(item, depth + 1, seen)
-                        ),
-                    {
-                        __truncated: true,
-                        omittedCount: value.length - maxArrayItems,
-                    } satisfies TruncatedArrayMarker,
-                ];
+        seen.add(value);
+
+        try {
+            if (Array.isArray(value)) {
+                if (value.length > maxArrayItems) {
+                    return [
+                        ...value
+                            .slice(0, maxArrayItems)
+                            .map((item) =>
+                                truncateDataValue(item, depth + 1, seen)
+                            ),
+                        {
+                            __truncated: true,
+                            omittedCount: value.length - maxArrayItems,
+                        } satisfies TruncatedArrayMarker,
+                    ];
+                }
+
+                return value.map((item) =>
+                    truncateDataValue(item, depth + 1, seen)
+                );
             }
 
-            return value.map((item) =>
-                truncateDataValue(item, depth + 1, seen)
-            );
+            const result: Record<string, unknown> = {};
+
+            for (const [key, entry] of Object.entries(value)) {
+                result[key] = truncateDataValue(entry, depth + 1, seen);
+            }
+
+            return result;
+        } finally {
+            // Recursion stack: allow shared refs, still detect true cycles.
+            seen.delete(value);
         }
-
-        const result: Record<string, unknown> = {};
-
-        for (const [key, entry] of Object.entries(value)) {
-            result[key] = truncateDataValue(entry, depth + 1, seen);
-        }
-
-        return result;
     };
 
     const truncateData = (
