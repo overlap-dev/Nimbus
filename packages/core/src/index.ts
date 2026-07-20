@@ -7,6 +7,7 @@ export * from './lib/exception/invalidInputException.ts';
 export * from './lib/exception/notFoundException.ts';
 export * from './lib/exception/unauthorizedException.ts';
 export * from './lib/log/logFormatter.ts';
+export * from './lib/log/logTruncator.ts';
 export * from './lib/log/logger.ts';
 export * from './lib/log/logLevel.ts';
 export * from './lib/log/options.ts';

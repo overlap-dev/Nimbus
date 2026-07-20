@@ -18,6 +18,7 @@ Configure the logger at application startup using `setupLogger()`:
 
 ```typescript
 import {
+    createLogTruncator,
     jsonLogFormatter,
     parseLogLevel,
     prettyLogFormatter,
@@ -32,6 +33,7 @@ setupLogger({
             ? prettyLogFormatter
             : jsonLogFormatter,
     useConsoleColors: process.env.LOG_FORMAT === "pretty",
+    truncator: createLogTruncator(),
 });
 ```
 
@@ -42,6 +44,7 @@ setupLogger({
 | `logLevel`         | `LogLevel`     | `'silent'`         | Minimum level to output                      |
 | `formatter`        | `LogFormatter` | `jsonLogFormatter` | Function to format log records               |
 | `useConsoleColors` | `boolean`      | `false`            | Enable colored output (for pretty formatter) |
+| `truncator`        | `LogTruncator` | `undefined`        | Optional truncator for log inputs            |
 
 ## Log Levels
 
@@ -169,6 +172,57 @@ getLogger().debug({
 // }
 ```
 
+## Truncation
+
+By default, log inputs are passed through unchanged. To avoid flooding log pipelines with large payloads, configure a truncator via `setupLogger`.
+
+Use the built-in factory, or supply a custom `LogTruncator`:
+
+```typescript
+import { createLogTruncator, setupLogger } from "@nimbus-cqrs/core";
+
+// Built-in defaults
+setupLogger({
+    truncator: createLogTruncator(),
+});
+
+// Override limits
+setupLogger({
+    truncator: createLogTruncator({
+        maxBytes: 8_192,
+        maxArrayItems: 20,
+        maxDepth: 8,
+        maxCategoryLength: 50,
+        maxMessageLength: 100,
+        maxStackLength: 500,
+        maxDataStringLength: 500,
+    }),
+});
+```
+
+The built-in truncator processes each `LogInput` field separately and leaves `correlationId` untouched:
+
+| Field                  | Behavior                                                                                                                            |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `message` / `category` | String length caps                                                                                                                  |
+| `data`                 | Structural limits (strings, arrays, depth, circular refs), then a byte-size cliff that replaces oversized `data` with a size marker |
+| `error`                | Stays `Error`-shaped; truncates `message` / `stack`; walks `cause` and aggregate errors up to `maxDepth`                            |
+| `correlationId`        | Never truncated                                                                                                                     |
+
+### Truncator options
+
+| Option                | Default | Applies to                                               |
+| --------------------- | ------- | -------------------------------------------------------- |
+| `maxBytes`            | `16384` | `data` size cliff only                                   |
+| `maxArrayItems`       | `20`    | Arrays inside `data`                                     |
+| `maxDepth`            | `8`     | Object depth in `data`; also bounds `error.cause` chains |
+| `maxCategoryLength`   | `50`    | `category`                                               |
+| `maxMessageLength`    | `200`   | `message` and `error.message`                            |
+| `maxStackLength`      | `500`   | `error.stack`                                            |
+| `maxDataStringLength` | `500`   | Strings inside `data`                                    |
+
+If a configured truncator throws, the logger fails open: it warns to the console and logs the original input.
+
 ## OpenTelemetry Integration
 
 When combined with Deno's native OpenTelemetry support, logs are automatically exported alongside traces and metrics. See the [Observability](/guide/core/observability) documentation for details on enabling OTEL export.
@@ -190,6 +244,7 @@ const defaultSettings = {
     logLevel: "silent",
     formatter: jsonLogFormatter,
     useConsoleColors: false,
+    // truncator: undefined (no truncation)
 };
 ```
 

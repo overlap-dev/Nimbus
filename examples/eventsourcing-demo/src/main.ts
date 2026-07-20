@@ -1,4 +1,5 @@
 import {
+    createLogTruncator,
     getEnv,
     getLogger,
     jsonLogFormatter,
@@ -24,6 +25,7 @@ setupLogger({
         ? prettyLogFormatter
         : jsonLogFormatter,
     useConsoleColors: process.env.LOG_FORMAT === 'pretty',
+    truncator: createLogTruncator(),
 });
 
 // Make sure Database connections are established first.

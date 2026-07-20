@@ -3,6 +3,7 @@ import type { Exception } from '../exception/exception.ts';
 import type { LogFormatter } from './logFormatter.ts';
 import { type LogLevel, numericLogLevel } from './logLevel.ts';
 import { defaultLogOptions, type LogOptions } from './options.ts';
+import type { LogTruncator } from './logTruncator.ts';
 
 /**
  * The input for a log message.
@@ -85,6 +86,7 @@ export type LogRecord = {
  * @example
  * ```ts
  * import {
+ *     createLogTruncator,
  *     getLogger,
  *     jsonLogFormatter,
  *     parseLogLevel,
@@ -99,6 +101,7 @@ export type LogRecord = {
  *         ? jsonLogFormatter
  *         : prettyLogFormatter,
  *     useConsoleColors: process.env.NODE_ENV !== 'production',
+ *     truncator: createLogTruncator(),
  * });
  *
  * // Use the logger throughout your application
@@ -124,12 +127,14 @@ export class Logger {
     private readonly _logLevel: LogLevel;
     private readonly _formatter: LogFormatter;
     private readonly _useConsoleColors: boolean;
+    private readonly _truncator?: LogTruncator;
 
     constructor(options: LogOptions) {
         this._logLevel = options.logLevel ?? defaultLogOptions.logLevel;
         this._formatter = options.formatter ?? defaultLogOptions.formatter;
         this._useConsoleColors = options.useConsoleColors ??
             defaultLogOptions.useConsoleColors;
+        this._truncator = options.truncator ?? defaultLogOptions.truncator;
     }
 
     /**
@@ -138,6 +143,7 @@ export class Logger {
      * @param {LogOptions} options - The options for the Logger
      * @param {LogLevel} options.logLevel - The log level to use for the Logger
      * @param {LogFormatter} options.formatter - The formatter to use for the Logger
+     * @param {LogTruncator} options.truncator - Optional truncator for log inputs
      */
     public static configure(options: LogOptions): void {
         Logger._instance = new Logger(options);
@@ -381,6 +387,29 @@ export class Logger {
     }
 
     /**
+     * Apply the configured truncator, failing open if it throws.
+     *
+     * @param {LogInput} logInput - The original log input
+     *
+     * @returns {LogInput} The truncated log input, or the original on failure
+     */
+    private _applyTruncator(logInput: LogInput): LogInput {
+        if (!this._truncator) {
+            return logInput;
+        }
+
+        try {
+            return this._truncator(logInput);
+        } catch (error) {
+            console.warn(
+                'Log truncator failed; logging original input.',
+                error,
+            );
+            return logInput;
+        }
+    }
+
+    /**
      * Log a message.
      *
      * @param {LogInput} logInput - The log input
@@ -392,7 +421,8 @@ export class Logger {
         logLevel: LogLevel,
         logFunction: (...data: any[]) => void,
     ): void {
-        const logRecord = this._produceLogRecord(logInput, logLevel);
+        const truncatedInput = this._applyTruncator(logInput);
+        const logRecord = this._produceLogRecord(truncatedInput, logLevel);
         const formattedLogRecord = this._formatLogRecord(logRecord);
 
         if (Array.isArray(formattedLogRecord)) {
@@ -421,6 +451,7 @@ export class Logger {
  * @example
  * ```ts
  * import {
+ *     createLogTruncator,
  *     jsonLogFormatter,
  *     parseLogLevel,
  *     prettyLogFormatter,
@@ -434,6 +465,7 @@ export class Logger {
  *             ? prettyLogFormatter
  *             : jsonLogFormatter,
  *     useConsoleColors: process.env.NODE_ENV === "development",
+ *     truncator: createLogTruncator(),
  * });
  * ```
  */

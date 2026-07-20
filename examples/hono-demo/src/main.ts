@@ -1,4 +1,5 @@
 import {
+    createLogTruncator,
     getLogger,
     jsonLogFormatter,
     parseLogLevel,
@@ -19,6 +20,7 @@ setupLogger({
         ? prettyLogFormatter
         : jsonLogFormatter,
     useConsoleColors: process.env.LOG_FORMAT === 'pretty',
+    truncator: createLogTruncator(),
 });
 
 setupEventBus('default', {
