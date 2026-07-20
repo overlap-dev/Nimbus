@@ -13,8 +13,8 @@ Deno.test('createLogTruncator truncates long message and category', () => {
         correlationId: 'keep-me',
     });
 
-    assertEquals(result.message, '0123456789…');
-    assertEquals(result.category, 'ABCDE…');
+    assertEquals(result.message, '0123456789 [... __truncated]');
+    assertEquals(result.category, 'ABCDE [... __truncated]');
     assertEquals(result.correlationId, 'keep-me');
 });
 
@@ -34,7 +34,7 @@ Deno.test('createLogTruncator leaves correlationId untouched', () => {
     });
 
     assertEquals(result.correlationId, longId);
-    assertEquals(result.data?.id, `${'x'.repeat(5)}…`);
+    assertEquals(result.data?.id, `${'x'.repeat(5)} [... __truncated]`);
 });
 
 Deno.test('createLogTruncator truncates data strings, arrays, and depth', () => {
@@ -55,7 +55,7 @@ Deno.test('createLogTruncator truncates data strings, arrays, and depth', () => 
         },
     });
 
-    assertEquals(result.data?.text, '01234…');
+    assertEquals(result.data?.text, '01234 [... __truncated]');
     assertEquals(result.data?.items, [
         1,
         2,
@@ -149,8 +149,8 @@ Deno.test('createLogTruncator keeps Error shape and truncates message/stack', ()
     });
 
     assertInstanceOf(result.error, Error);
-    assertEquals(result.error?.message, '0123456789…');
-    assertEquals(result.error?.stack, 'stack-0123456789ABCD…');
+    assertEquals(result.error?.message, '0123456789 [... __truncated]');
+    assertEquals(result.error?.stack, 'stack-0123456789ABCD [... __truncated]');
     assertEquals(result.error?.name, 'Error');
 });
 
@@ -200,11 +200,11 @@ Deno.test('createLogTruncator truncates AggregateError.errors', () => {
     });
 
     assertInstanceOf(result.error, AggregateError);
-    assertEquals(result.error?.message, 'aggre…');
+    assertEquals(result.error?.message, 'aggre [... __truncated]');
     const errors = (result.error as AggregateError).errors;
     assertEquals(errors.length, 2);
-    assertEquals((errors[0] as Error).message, '01234…');
-    assertEquals((errors[1] as Error).message, 'ABCDE…');
+    assertEquals((errors[0] as Error).message, '01234 [... __truncated]');
+    assertEquals((errors[1] as Error).message, 'ABCDE [... __truncated]');
 });
 
 Deno.test('createLogTruncator uses defaults when options are omitted', () => {
@@ -214,10 +214,10 @@ Deno.test('createLogTruncator uses defaults when options are omitted', () => {
         category: 'y'.repeat(51),
     });
 
-    assertEquals(result.message.length, 201); // 200 + ellipsis
-    assertMatch(result.message, /…$/);
-    assertEquals(result.category?.length, 51);
-    assertMatch(result.category ?? '', /…$/);
+    assertEquals(result.message.length, 200 + ' [... __truncated]'.length); // 200 + truncation suffix
+    assertMatch(result.message, / \[\.\.\. __truncated\]$/);
+    assertEquals(result.category?.length, 50 + ' [... __truncated]'.length);
+    assertMatch(result.category ?? '', / \[\.\.\. __truncated\]$/);
 });
 
 Deno.test('createLogTruncator converts bigint and replaces unserializable data', () => {
@@ -325,8 +325,8 @@ Deno.test('createLogTruncator converts Error values inside data to plain objects
 
     assertEquals(result.data?.err, {
         name: 'Error',
-        message: '0123456789…',
-        stack: 'stack-0123456789ABCD…',
+        message: '0123456789 [... __truncated]',
+        stack: 'stack-0123456789ABCD [... __truncated]',
         code: 'EFAIL',
     });
 });
@@ -351,7 +351,7 @@ Deno.test('createLogTruncator preserves custom enumerable fields on log errors',
     assertEquals((result.error as Error & { code: string }).code, 'EFAIL');
     assertEquals(
         (result.error as Error & { detail: string }).detail,
-        '01234…',
+        '01234 [... __truncated]',
     );
 });
 
@@ -377,7 +377,7 @@ Deno.test('createLogTruncator truncates non-Error cause and AggregateError items
     });
 
     assertEquals(causeResult.error?.cause, {
-        reason: '01234…',
+        reason: '01234 [... __truncated]',
         nested: { ok: true },
     });
 
@@ -388,7 +388,7 @@ Deno.test('createLogTruncator truncates non-Error cause and AggregateError items
 
     assertInstanceOf(aggregateResult.error, AggregateError);
     const errors = (aggregateResult.error as AggregateError).errors;
-    assertEquals(errors[0], { info: 'ABCDE…' });
+    assertEquals(errors[0], { info: 'ABCDE [... __truncated]' });
     assertInstanceOf(errors[1], Error);
     assertEquals((errors[1] as Error).message, 'inner-error');
 });

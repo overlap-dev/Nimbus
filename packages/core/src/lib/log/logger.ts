@@ -36,6 +36,12 @@ export type LogInput = {
      * Useful for tracking a request through multiple services or handlers.
      */
     correlationId?: string;
+    /**
+     * When `true`, skips the configured truncator for this log call.
+     * Useful for intentionally logging full payloads. Defaults to `false`.
+     * This flag is not included in the emitted log record.
+     */
+    skipTruncation?: boolean;
 };
 
 /**
@@ -394,7 +400,7 @@ export class Logger {
      * @returns {LogInput} The truncated log input, or the original on failure
      */
     private _applyTruncator(logInput: LogInput): LogInput {
-        if (!this._truncator) {
+        if (!this._truncator || logInput.skipTruncation) {
             return logInput;
         }
 

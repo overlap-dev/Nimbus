@@ -118,13 +118,14 @@ logger.critical({
 
 The log input object can contain the following properties:
 
-| Property        | Type                      | Description                                                   |
-| --------------- | ------------------------- | ------------------------------------------------------------- |
-| `message`       | `string`                  | **Required.** The log message                                 |
-| `category`      | `string`                  | Optional category for grouping logs (defaults to `'Default'`) |
-| `data`          | `Record<string, unknown>` | Optional structured data to include                           |
-| `error`         | `Error`                   | Optional error with stack trace                               |
-| `correlationId` | `string`                  | Optional ID for tracing related operations                    |
+| Property         | Type                      | Description                                                                       |
+| ---------------- | ------------------------- | --------------------------------------------------------------------------------- |
+| `message`        | `string`                  | **Required.** The log message                                                     |
+| `category`       | `string`                  | Optional category for grouping logs (defaults to `'Default'`)                     |
+| `data`           | `Record<string, unknown>` | Optional structured data to include                                               |
+| `error`          | `Error`                   | Optional error with stack trace                                                   |
+| `correlationId`  | `string`                  | Optional ID for tracing related operations                                        |
+| `skipTruncation` | `boolean`                 | When `true`, skips the configured truncator for this call (not emitted in output) |
 
 ## Formatters
 
@@ -195,8 +196,8 @@ setupLogger({
         maxDepth: 8,
         maxCategoryLength: 50,
         maxMessageLength: 100,
-        maxStackLength: 500,
-        maxDataStringLength: 500,
+        maxStackLength: 200,
+        maxDataStringLength: 200,
     }),
 });
 ```
@@ -209,6 +210,7 @@ The built-in truncator processes each `LogInput` field separately and leaves `co
 | `data`                 | Structural limits (strings, arrays, object keys, depth, circular refs, common JS types), then a byte-size cliff for oversized or unserializable `data`                   |
 | `error`                | Stays `Error`-shaped; truncates `message` / `stack`; copies enumerable custom fields; walks `cause` and aggregate errors (including non-`Error` values) up to `maxDepth` |
 | `correlationId`        | Never truncated                                                                                                                                                          |
+| `skipTruncation`       | Logger control flag; when `true`, truncation is skipped for that call                                                                                                    |
 
 Inside `data`, common values are normalized before limits apply: `bigint` → string, `Date` → ISO string, `RegExp` → pattern string, `Map` / `Set` → arrays (with `maxArrayItems`), `Error` → plain object, and `ArrayBuffer` / typed arrays → size summaries.
 
@@ -222,10 +224,20 @@ Inside `data`, common values are normalized before limits apply: `bigint` → st
 | `maxDepth`            | `8`     | Object depth in `data`; also bounds `error.cause` chains |
 | `maxCategoryLength`   | `50`    | `category`                                               |
 | `maxMessageLength`    | `200`   | `message` and `error.message`                            |
-| `maxStackLength`      | `500`   | `error.stack`                                            |
-| `maxDataStringLength` | `500`   | Strings inside `data`                                    |
+| `maxStackLength`      | `200`   | `error.stack`                                            |
+| `maxDataStringLength` | `200`   | Strings inside `data`                                    |
 
 If a configured truncator throws, the logger fails open: it warns to the console and logs the original input.
+
+Pass `skipTruncation: true` on a single log call to bypass truncation when you intentionally need the full payload:
+
+```typescript
+getLogger().info({
+    message: "Full debug dump",
+    data: hugePayload,
+    skipTruncation: true,
+});
+```
 
 ## OpenTelemetry Integration
 

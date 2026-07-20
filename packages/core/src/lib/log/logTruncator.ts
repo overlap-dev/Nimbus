@@ -49,12 +49,12 @@ export type LogTruncatorOptions = {
     maxMessageLength?: number;
     /**
      * Maximum length of `error.stack`.
-     * Defaults to 500.
+     * Defaults to 200.
      */
     maxStackLength?: number;
     /**
      * Maximum length of string values inside `data`.
-     * Defaults to 500.
+     * Defaults to 200.
      */
     maxDataStringLength?: number;
 };
@@ -65,8 +65,8 @@ const DEFAULT_MAX_OBJECT_KEYS = 50;
 const DEFAULT_MAX_DEPTH = 8;
 const DEFAULT_MAX_CATEGORY_LENGTH = 50;
 const DEFAULT_MAX_MESSAGE_LENGTH = 200;
-const DEFAULT_MAX_STACK_LENGTH = 500;
-const DEFAULT_MAX_DATA_STRING_LENGTH = 500;
+const DEFAULT_MAX_STACK_LENGTH = 200;
+const DEFAULT_MAX_DATA_STRING_LENGTH = 200;
 
 type TruncatedArrayMarker = {
     __truncated: true;
@@ -101,12 +101,14 @@ const serializedByteSize = (value: unknown): number | undefined => {
     }
 };
 
+const TRUNCATED_STRING_SUFFIX = ' [... __truncated]';
+
 const truncateString = (value: string, maxLength: number): string => {
     if (value.length <= maxLength) {
         return value;
     }
 
-    return `${value.slice(0, maxLength)}…`;
+    return `${value.slice(0, maxLength)}${TRUNCATED_STRING_SUFFIX}`;
 };
 
 /**
@@ -139,8 +141,8 @@ const truncateString = (value: string, maxLength: number): string => {
  *         maxDepth: 8,
  *         maxCategoryLength: 50,
  *         maxMessageLength: 100,
- *         maxStackLength: 500,
- *         maxDataStringLength: 500,
+ *         maxStackLength: 200,
+ *         maxDataStringLength: 200,
  *     }),
  * });
  * ```

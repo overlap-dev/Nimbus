@@ -21,7 +21,7 @@ Deno.test('Logger applies configured truncator to log input', () => {
         });
 
         assertEquals(outputs.length, 1);
-        assertStringIncludes(outputs[0]!, '0123456789…');
+        assertStringIncludes(outputs[0]!, '0123456789 [... __truncated]');
     } finally {
         console.info = originalInfo;
         setupLogger({ logLevel: 'silent' });
@@ -60,6 +60,35 @@ Deno.test('Logger fails open when truncator throws', () => {
     } finally {
         console.info = originalInfo;
         console.warn = originalWarn;
+        setupLogger({ logLevel: 'silent' });
+    }
+});
+
+Deno.test('Logger skips truncator when skipTruncation is true', () => {
+    const outputs: string[] = [];
+    const originalInfo = console.info;
+    console.info = (...args: unknown[]) => {
+        outputs.push(args.map(String).join(' '));
+    };
+
+    try {
+        setupLogger({
+            logLevel: 'info',
+            truncator: createLogTruncator({ maxMessageLength: 10 }),
+        });
+
+        getLogger().info({
+            message: '0123456789ABCDEF',
+            category: 'Test',
+            skipTruncation: true,
+        });
+
+        assertEquals(outputs.length, 1);
+        assertStringIncludes(outputs[0]!, '0123456789ABCDEF');
+        assertEquals(outputs[0]!.includes(' [... __truncated]'), false);
+        assertEquals(outputs[0]!.includes('skipTruncation'), false);
+    } finally {
+        console.info = originalInfo;
         setupLogger({ logLevel: 'silent' });
     }
 });
