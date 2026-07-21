@@ -5,10 +5,10 @@
  *
  * Updates:
  *   - `version` in every `packages/<pkg>/deno.json`
- *   - every `@nimbus-cqrs/*` dependency in `examples/{node,bun}-demo/package.json`
+ *   - every `@nimbus-cqrs/*` dependency in `examples/node-demo/package.json`
  *
  * The version is written verbatim into `deno.json`, and as a caret
- * range (`^<version>`) into the example `package.json` files.
+ * range (`^<version>`) into the example `package.json`.
  *
  * Usage:
  *
@@ -36,7 +36,6 @@ const denoPackages = [
 
 const npmExamples = [
     'node-demo',
-    'bun-demo',
 ];
 
 // Loose SemVer 2.0.0 check, sufficient to catch typos like "2.0" or
