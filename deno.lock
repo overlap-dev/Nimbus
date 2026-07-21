@@ -1,48 +1,24 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@david/code-block-writer@^13.0.3": "13.0.3",
-    "jsr:@deno/dnt@~0.42.3": "0.42.3",
     "jsr:@std/assert@^1.0.19": "1.0.19",
     "jsr:@std/dotenv@~0.225.7": "0.225.7",
-    "jsr:@std/fmt@1": "1.0.10",
     "jsr:@std/fmt@^1.0.10": "1.0.10",
-    "jsr:@std/fs@1": "1.0.24",
-    "jsr:@std/fs@^1.0.13": "1.0.24",
     "jsr:@std/internal@^1.0.12": "1.0.14",
-    "jsr:@std/internal@^1.0.14": "1.0.14",
-    "jsr:@std/path@1": "1.1.5",
-    "jsr:@std/path@^1.0.9": "1.1.5",
-    "jsr:@std/path@^1.1.5": "1.1.5",
     "jsr:@std/regexp@^1.0.2": "1.0.2",
     "jsr:@std/text@^1.0.19": "1.0.19",
     "jsr:@std/ulid@1": "1.0.0",
-    "jsr:@ts-morph/bootstrap@0.27": "0.27.0",
-    "jsr:@ts-morph/common@0.27": "0.27.0",
     "npm:@opentelemetry/api@^1.9.1": "1.9.1",
-    "npm:eventsourcingdb@^1.8.1": "1.8.1",
-    "npm:hono@^4.12.27": "4.12.27",
+    "npm:eventsourcingdb@^1.8.2": "1.8.2",
+    "npm:hono@^4.12.27": "4.12.30",
     "npm:mongodb@7.1.1": "7.1.1",
     "npm:zod@^4.4.3": "4.4.3"
   },
   "jsr": {
-    "@david/code-block-writer@13.0.3": {
-      "integrity": "f98c77d320f5957899a61bfb7a9bead7c6d83ad1515daee92dbacc861e13bb7f"
-    },
-    "@deno/dnt@0.42.3": {
-      "integrity": "62a917a0492f3c8af002dce90605bb0d41f7d29debc06aca40dba72ab65d8ae3",
-      "dependencies": [
-        "jsr:@david/code-block-writer",
-        "jsr:@std/fmt@1",
-        "jsr:@std/fs@1",
-        "jsr:@std/path@1",
-        "jsr:@ts-morph/bootstrap"
-      ]
-    },
     "@std/assert@1.0.19": {
       "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
       "dependencies": [
-        "jsr:@std/internal@^1.0.12"
+        "jsr:@std/internal"
       ]
     },
     "@std/dotenv@0.225.7": {
@@ -51,21 +27,8 @@
     "@std/fmt@1.0.10": {
       "integrity": "90dfba288802ac6de82fb31d0917eb9e4450b9925b954d5e51fc29ac07419db5"
     },
-    "@std/fs@1.0.24": {
-      "integrity": "f3061b45b81673a2bece689da041df32d174be064c89eb6397fb5718d3fb7877",
-      "dependencies": [
-        "jsr:@std/internal@^1.0.14",
-        "jsr:@std/path@^1.1.5"
-      ]
-    },
     "@std/internal@1.0.14": {
       "integrity": "291516b3d4c35024d6ffbc0a9df5bf4c64116e05b50012cf846710152d2ffdf7"
-    },
-    "@std/path@1.1.5": {
-      "integrity": "ccea00982ea28c36becaf6e62f855406c76a8c32d462f66f415bbb7d83a271bc",
-      "dependencies": [
-        "jsr:@std/internal@^1.0.14"
-      ]
     },
     "@std/regexp@1.0.2": {
       "integrity": "7493d47c077cfdb023e41a0b44fd608d87fe5b36fc3dc614261afc0f1452aabf"
@@ -78,15 +41,6 @@
     },
     "@std/ulid@1.0.0": {
       "integrity": "d41c3d27a907714413649fee864b7cde8d42ee68437d22b79d5de4f81d808780"
-    },
-    "@ts-morph/bootstrap@0.27.0": {
-      "integrity": "b8d7bc8f7942ce853dde4161b28f9aa96769cef3d8eebafb379a81800b9e2448",
-      "dependencies": [
-        "jsr:@ts-morph/common"
-      ]
-    },
-    "@ts-morph/common@0.27.0": {
-      "integrity": "c7b73592d78ce8479b356fd4f3d6ec3c460d77753a8680ff196effea7a939052"
     }
   },
   "npm": {
@@ -134,8 +88,14 @@
     "@js-sdsl/ordered-map@4.4.2": {
       "integrity": "sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw=="
     },
-    "@mongodb-js/saslprep@1.4.11": {
-      "integrity": "sha512-o9rAHc0IpIjuPSxRutWpE1F62x7n+4mVS4rCNHkzhIUMQcc18bb6xEq5wd2NdN0WjepIyXIppRshYI2kQDOZVA==",
+    "@kwsites/file-exists@1.1.1": {
+      "integrity": "sha512-m9/5YGR18lIwxSFDwfE3oA7bWuq9kdau6ugN4H2rJeyhFQZcG9AgSHkQtSD15a8WvTgfz9aikZMrKPHvbpqFiw==",
+      "dependencies": [
+        "debug"
+      ]
+    },
+    "@mongodb-js/saslprep@1.4.12": {
+      "integrity": "sha512-QAfAMwNgnYxZ2C6D1HgeP7Gc4i/uvJRim415PCIL9ptRxWMNbWeLBYb2/9R4pGKny/s1FVu2JA2cxCUBUOggrA==",
       "dependencies": [
         "sparse-bitfield"
       ]
@@ -173,8 +133,8 @@
     "@protobufjs/pool@1.1.0": {
       "integrity": "sha512-0kELaGSIDBKvcgS4zkjz1PeddatrjYcmMWOlAuAPwAeccUrPHdUqo/J6LiymHHEiJT5NrF1UVwxY14f+fy4WQw=="
     },
-    "@protobufjs/utf8@1.1.1": {
-      "integrity": "sha512-oOAWABowe8EAbMyWKM0tYDKi8Yaox52D+HWZhAIJqQXbqe0xI/GV7FhLWqlEKreMkfDjshR5FKgi3mnle0h6Eg=="
+    "@protobufjs/utf8@1.1.2": {
+      "integrity": "sha512-b1UQwcEZ4yCnMCD8DAL1VlbvBJE9/IX4FTIp7BG1xYpf29SLazLSrqUkj4w7Y5y7cCVP6E5tcqqcI0xemPkHug=="
     },
     "@types/docker-modem@3.0.6": {
       "integrity": "sha512-yKpAGEuKRSS8wwx0joknWxsmLha78wNMe9R2S3UNsVOkZded8UqOrV8KoeDXoXsjndxwyF3eIhyClGbO1SEhEg==",
@@ -183,8 +143,8 @@
         "@types/ssh2"
       ]
     },
-    "@types/dockerode@3.3.47": {
-      "integrity": "sha512-ShM1mz7rCjdssXt7Xz0u1/R2BJC7piWa3SJpUBiVjCf2A3XNn4cP6pUVaD8bLanpPVVn4IKzJuw3dOvkJ8IbYw==",
+    "@types/dockerode@4.0.1": {
+      "integrity": "sha512-cmUpB+dPN955PxBEuXE3f6lKO1hHiIGYJA46IVF3BJpNsZGvtBDcRnlrHYHtOH/B6vtDOyl2kZ2ShAu3mgc27Q==",
       "dependencies": [
         "@types/docker-modem",
         "@types/node",
@@ -285,8 +245,8 @@
     "bare-events@2.9.1": {
       "integrity": "sha512-Z0oHEHAFDZkffN8Qc39zNZjQlMDkPJRyyyZieU1VH7u8c5S+qHZ2S8ixdKIAxEjfHO7FJxXmJWgteOghVanIsg=="
     },
-    "bare-fs@4.7.2": {
-      "integrity": "sha512-aTvMFUWkBmjzKtEQMDGGDNF8bkfpD5N1b/FCwt7A3wrU4t1o/e/85Wzkluh6JlODCjqVESYCkQCdTXqZ9G7VFg==",
+    "bare-fs@4.7.4": {
+      "integrity": "sha512-y1kC+ffIx/tPLdTE693uNjHfzTfr+ravR5tvWlMXe25nELbkqV400S71qHDwbkAQ1FVEZobB1NFRzFbCCcyBCQ==",
       "dependencies": [
         "bare-events",
         "bare-path",
@@ -295,14 +255,8 @@
         "fast-fifo"
       ]
     },
-    "bare-os@3.9.2": {
-      "integrity": "sha512-h530JsrkYi8518ZfR57GHaLoI5YzXkGGEV0Y+mf4KYPBn4OnNajiznwkDq7FgE+Vnmyss9Utnzi44y7sowiAXA=="
-    },
-    "bare-path@3.0.1": {
-      "integrity": "sha512-ghj2DSK/2e99a1anTVPCV4m4YIYtrbXhfM7V3D7XZLOTsybnYyaJloymGqssQc8l/or0UoDyRtNQkmkEF/ysgQ==",
-      "dependencies": [
-        "bare-os"
-      ]
+    "bare-path@3.1.1": {
+      "integrity": "sha512-JprUlveX3QjApC1cTpsUOiscADftCGVWkzitbHsRqv84hzYwYHw2mbluddsq5TvI8mH/8Ov1f4BiMAdcB0oYnQ=="
     },
     "bare-stream@2.13.3_bare-events@2.9.1": {
       "integrity": "sha512-Kc+brLqvEqGkjyfiwJmImAOqLZL7OsoLKuavx+hJjgVV3nLTOjloJyPMFxjUPerGGHrNH0fLU06jjykMLWrERQ==",
@@ -339,8 +293,8 @@
         "readable-stream@3.6.2"
       ]
     },
-    "brace-expansion@2.1.1": {
-      "integrity": "sha512-WR1cURNjuvBLMZBMbqM0UoE+WAfdUcEV1ccD8PVBVOI+Z3ND4+SZbN8RsfT2bMuG1qwz5RFvPukSZm5fF2D5eA==",
+    "brace-expansion@2.1.2": {
+      "integrity": "sha512-w5JZcKgdhDOgOwm8H+KgbosopHMuGcl6qbulwjtz3SM7I7P3yW1eAjzMPLrIE+NQ9vjgANKHWeMHnrT0OXW1oA==",
       "dependencies": [
         "balanced-match"
       ]
@@ -452,16 +406,15 @@
         "ssh2"
       ]
     },
-    "dockerode@4.0.12": {
-      "integrity": "sha512-/bCZd6KlGcjZO8Buqmi/vXuqEGVEZ0PNjx/biBNqJD3MhK9DmdiAuKxqfNhflgDESDIiBz3qF+0e55+CpnrUcw==",
+    "dockerode@5.0.1": {
+      "integrity": "sha512-avsq/xk4YPIrn0CgleX5bjT9Y8IT1p9PxrNQ++RBQ2WEyFfHCTDsT9kmyxz+H/axnjAwg8wJWEIuPGOUuNupiA==",
       "dependencies": [
         "@balena/dockerignore",
         "@grpc/grpc-js",
         "@grpc/proto-loader@0.7.15",
         "docker-modem",
         "protobufjs",
-        "tar-fs@2.1.5",
-        "uuid"
+        "tar-fs@2.1.5"
       ]
     },
     "eastasianwidth@0.2.0": {
@@ -494,8 +447,8 @@
     "events@3.3.0": {
       "integrity": "sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q=="
     },
-    "eventsourcingdb@1.8.1": {
-      "integrity": "sha512-RKZKEU05qPoiWGWw2/qvIrpzB8FQrB5iCiJCSoVfTKiTrpZA5MD2vUN220d9WMMux2CUI4k4/OH7HgM3Lj6IDA==",
+    "eventsourcingdb@1.8.2": {
+      "integrity": "sha512-JXph6wV1ORV7oJcrzIY12+PLUmLnhorwaxQHBVAWqiQCcBjRAmu4r3/8lqrGbI1Vw4fA94IeLW2UVG3XLa/ZvA==",
       "dependencies": [
         "testcontainers"
       ]
@@ -516,8 +469,8 @@
     "get-caller-file@2.0.5": {
       "integrity": "sha512-DyFP3BM/3YHTQOCUL/w0OZHR0lpKeGrxotcHWcqNEdnltqFwXVfhEBQ94eIo34AfQpo0rGki4cyIiftY06h2Fg=="
     },
-    "get-port@7.2.0": {
-      "integrity": "sha512-afP4W205ONCuMoPBqcR6PSXnzX35KTcJygfJfcp+QY+uwm3p20p1YczWXhlICIzGMCxYBQcySEcOgsJcrkyobg=="
+    "get-port@5.1.1": {
+      "integrity": "sha512-g/Q1aTSDOxFpchXC4i8ZWvxA1lnPqx/JHqcpIw0/LX9T8x/GBbi6YnlN5nhaKIFkT8oFsscUKgDJYxfwfS6QsQ=="
     },
     "glob@10.5.0": {
       "integrity": "sha512-DfXN8DfhJ7NH3Oe7cFmu3NCu1wKbkReJ8TorzSAFbSKrlNaQSKfIzqYqVY8zlbs2NLBbWpRiU52GX2PbaBVNkg==",
@@ -535,8 +488,8 @@
     "graceful-fs@4.2.11": {
       "integrity": "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="
     },
-    "hono@4.12.27": {
-      "integrity": "sha512-1yrb/+w6HWQJrUCLkJ2IF5jNIPvvFkblV5RNOYl6bV+OA6p9GLcMpHFFGTosSvHvcAUibuUukRqhlYI4z32C7Q=="
+    "hono@4.12.30": {
+      "integrity": "sha512-emn+JoJjrN9YTpRDS5it/UI2SO9BAE37T6I3d963RxcZ81G9A4pr2SZTEiiaiKbzx+NKRg5BZ89fCL7gCJCUog=="
     },
     "ieee754@1.2.1": {
       "integrity": "sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA=="
@@ -604,12 +557,12 @@
     "mkdirp-classic@0.5.3": {
       "integrity": "sha512-gKLcREMhtuZRwRAfqP3RFW+TK4JqApVBtOIftVgjuABpAtpxhPGaDcfvbhNvD0B8iD1oUr/txX35NjcaY6Ns/A=="
     },
-    "mkdirp@1.0.4": {
-      "integrity": "sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==",
+    "mkdirp@3.0.1": {
+      "integrity": "sha512-+NsyUUAZDmo6YVHzL/stxSu3t9YS1iljliy3BSDrXJ/dkn1KYdmtZODGGjLcc9XLgVVpH4KshHB8XmZgMhaBXg==",
       "bin": true
     },
-    "mongodb-connection-string-url@7.0.1": {
-      "integrity": "sha512-h0AZ9A7IDVwwHyMxmdMXKy+9oNlF0zFoahHiX3vQ8e3KFcSP3VmsmfvtRSuLPxmyv2vjIDxqty8smTgie/SNRQ==",
+    "mongodb-connection-string-url@7.0.2": {
+      "integrity": "sha512-ZoS07RoFqpKYQwAk59qmrx8+jJHNHU30UjlU96QktiGn1ltvDr+vCznLX5DiUBLEpMAHatHNWV1nM/74ul66kA==",
       "dependencies": [
         "@types/whatwg-url",
         "whatwg-url"
@@ -665,14 +618,15 @@
         "signal-exit@3.0.7"
       ]
     },
-    "properties-reader@2.3.0": {
-      "integrity": "sha512-z597WicA7nDZxK12kZqHr2TcvwNU1GCfA5UwfDY/HDp3hXPoPlb5rlEx9bwGTiJnc0OqbBTkU975jDToth8Gxw==",
+    "properties-reader@3.0.1": {
+      "integrity": "sha512-WPn+h9RGEExOKdu4bsF4HksG/uzd3cFq3MFtq8PsFeExPse5Ha/VOjQNyHhjboBFwGXGev6muJYTSPAOkROq2g==",
       "dependencies": [
+        "@kwsites/file-exists",
         "mkdirp"
       ]
     },
-    "protobufjs@7.6.4": {
-      "integrity": "sha512-RJJPTTpvFfHcWLkIa2JFWK4XvtSzS0yEWDmunqHXli1h3JlkbcQZXDZdcWxv+JK3Xsl5/UFDPZ0iGm7DAengYw==",
+    "protobufjs@7.6.5": {
+      "integrity": "sha512-/FPD0nUc9jH6rfFjji9IBqOz4pcSE3CsT1m7Ep6Mdb0LxSUMj8hgl6GomOvZzpNpAqqGaXA0P3VSrZLFzIhQrw==",
       "dependencies": [
         "@protobufjs/aspromise",
         "@protobufjs/base64",
@@ -885,8 +839,8 @@
         "streamx"
       ]
     },
-    "testcontainers@11.10.0": {
-      "integrity": "sha512-8hwK2EnrOZfrHPpDC7CPe03q7H8Vv8j3aXdcmFFyNV8dzpBzgZYmqyDtduJ8YQ5kbzj+A+jUXMQ6zI8B5U3z+g==",
+    "testcontainers@12.0.4": {
+      "integrity": "sha512-QIR/8xF1+F/26cIM+9B4yyxNTbKJxAv3hygZyhPRgZ8Q2AhlPZjDdpXRuk16V37X4bgJRI3hXFhoEICMBA7Adg==",
       "dependencies": [
         "@balena/dockerignore",
         "@types/dockerode",
@@ -926,16 +880,11 @@
     "undici-types@5.26.5": {
       "integrity": "sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA=="
     },
-    "undici@7.28.0": {
-      "integrity": "sha512-cRZYrTDwWznlnRiPjggAGxZXanty6M8RV1ff8Wm4LWXBp7/IG8v5DnOm74DtUBp9OONpK75YlPnIjQqX0dBDtA=="
+    "undici@8.7.0": {
+      "integrity": "sha512-N7iQtfyLhIMOFgQubvmLV26svHpO0bqKnAiWotTQCVKCmWrcGbBotPuW1x+xwYZ2VHdSTVUfPQQnlEt1/LouTQ=="
     },
     "util-deprecate@1.0.2": {
       "integrity": "sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw=="
-    },
-    "uuid@10.0.0": {
-      "integrity": "sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==",
-      "deprecated": true,
-      "bin": true
     },
     "webidl-conversions@7.0.0": {
       "integrity": "sha512-VwddBukDzu71offAQR975unBIGqfKZpM+8ZX6ySk8nYhVoo5CYaZyzt3YBvYtRtO+aoGlqxPg/B87NGVZ/fu6g=="
@@ -1008,24 +957,12 @@
     }
   },
   "workspace": {
-    "packageJson": {
-      "overrides": {
-        "brace-expansion": "^2.1.0",
-        "lodash": "^4.18.1",
-        "minimatch@5": "^5.1.8",
-        "minimatch@9": "^9.0.7",
-        "protobufjs": "^7.6.1",
-        "tmp": "^0.2.7",
-        "undici": "^7.28.0",
-        "yaml": "^2.8.3"
-      }
-    },
     "members": {
       "examples/eventsourcing-demo": {
         "dependencies": [
           "jsr:@std/dotenv@~0.225.7",
           "jsr:@std/ulid@1",
-          "npm:eventsourcingdb@^1.8.1",
+          "npm:eventsourcingdb@^1.8.2",
           "npm:hono@^4.12.27",
           "npm:mongodb@7.1.1",
           "npm:zod@^4.4.3"
@@ -1054,7 +991,7 @@
           "jsr:@std/assert@^1.0.19",
           "jsr:@std/ulid@1",
           "npm:@opentelemetry/api@^1.9.1",
-          "npm:eventsourcingdb@^1.8.1"
+          "npm:eventsourcingdb@^1.8.2"
         ]
       },
       "packages/hono": {
