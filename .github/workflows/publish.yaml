@@ -24,25 +24,64 @@ jobs:
       # The packages must be published in dependency order because
       # @nimbus-cqrs/{utils,mongodb,hono,eventsourcingdb} all depend on
       # @nimbus-cqrs/core being available on the registry.
+      #
+      # If a version is already on JSR (e.g. recovering a half-finished
+      # release where JSR succeeded but npm failed), skip that package so
+      # the job still completes and publish-npm can run.
       - name: Publish core package
         working-directory: ./packages/core
-        run: deno publish
+        run: |
+          name=$(jq -r .name deno.json)
+          version=$(jq -r .version deno.json)
+          if curl -sf -o /dev/null "https://jsr.io/${name}/${version}_meta.json"; then
+            echo "${name}@${version} already on JSR — skipping"
+          else
+            deno publish
+          fi
 
       - name: Publish mongodb package
         working-directory: ./packages/mongodb
-        run: deno publish
+        run: |
+          name=$(jq -r .name deno.json)
+          version=$(jq -r .version deno.json)
+          if curl -sf -o /dev/null "https://jsr.io/${name}/${version}_meta.json"; then
+            echo "${name}@${version} already on JSR — skipping"
+          else
+            deno publish
+          fi
 
       - name: Publish hono package
         working-directory: ./packages/hono
-        run: deno publish
+        run: |
+          name=$(jq -r .name deno.json)
+          version=$(jq -r .version deno.json)
+          if curl -sf -o /dev/null "https://jsr.io/${name}/${version}_meta.json"; then
+            echo "${name}@${version} already on JSR — skipping"
+          else
+            deno publish
+          fi
 
       - name: Publish utils package
         working-directory: ./packages/utils
-        run: deno publish
+        run: |
+          name=$(jq -r .name deno.json)
+          version=$(jq -r .version deno.json)
+          if curl -sf -o /dev/null "https://jsr.io/${name}/${version}_meta.json"; then
+            echo "${name}@${version} already on JSR — skipping"
+          else
+            deno publish
+          fi
 
       - name: Publish eventsourcingdb package
         working-directory: ./packages/eventsourcingdb
-        run: deno publish
+        run: |
+          name=$(jq -r .name deno.json)
+          version=$(jq -r .version deno.json)
+          if curl -sf -o /dev/null "https://jsr.io/${name}/${version}_meta.json"; then
+            echo "${name}@${version} already on JSR — skipping"
+          else
+            deno publish
+          fi
 
   publish-npm:
     name: Publish to npm

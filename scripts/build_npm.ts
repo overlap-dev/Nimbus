@@ -147,16 +147,17 @@ async function collectSourceFiles(dir: string): Promise<string[]> {
 
 /**
  * Returns the set of sibling Nimbus packages that the given package's
- * non-test source code imports from.
+ * non-test source code imports or re-exports from.
  */
 async function detectSiblingDeps(pkgRoot: string): Promise<Set<string>> {
     const sources = await collectSourceFiles(join(pkgRoot, 'src'));
     const siblings = new Set<string>();
     // Anchor the match to the start of a line (optionally preceded by
     // whitespace) so import-like strings inside JSDoc comments (which start
-    // with ` * `) are not mistakenly treated as real imports.
+    // with ` * `) are not mistakenly treated as real imports. Covers both
+    // `import … from` and re-export `export … from` forms.
     const importPattern = new RegExp(
-        String.raw`^\s*import\s.*?from\s+['"](${SCOPE}\/[a-z][a-z0-9-]*)['"]`,
+        String.raw`^\s*(?:import|export)\s.*?from\s+['"](${SCOPE}\/[a-z][a-z0-9-]*)['"]`,
         'gm',
     );
     for (const file of sources) {
