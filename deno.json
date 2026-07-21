@@ -5,8 +5,7 @@
   "exclude": [
     "docs/",
     "dist/",
-    "examples/node-demo/",
-    "examples/bun-demo/"
+    "examples/node-demo/"
   ],
   "tasks": {
     "build:npm": "deno run -A scripts/build_npm.ts",
@@ -18,7 +17,6 @@
     "./packages/hono",
     "./packages/utils",
     "./packages/eventsourcingdb",
-    "./examples/hono-demo",
     "./examples/eventsourcing-demo"
   ],
   "nodeModulesDir": "none",
@@ -28,8 +26,7 @@
       "packages/"
     ],
     "exclude": [
-      "examples/node-demo/",
-      "examples/bun-demo/"
+      "examples/node-demo/"
     ]
   },
   "lint": {
@@ -38,8 +35,7 @@
       "packages/"
     ],
     "exclude": [
-      "examples/node-demo/",
-      "examples/bun-demo/"
+      "examples/node-demo/"
     ]
   },
   "check": {
@@ -48,8 +44,7 @@
       "packages/"
     ],
     "exclude": [
-      "examples/node-demo/",
-      "examples/bun-demo/"
+      "examples/node-demo/"
     ]
   },
   "test": {
@@ -58,8 +53,7 @@
       "packages/"
     ],
     "exclude": [
-      "examples/node-demo/",
-      "examples/bun-demo/"
+      "examples/node-demo/"
     ]
   }
 }

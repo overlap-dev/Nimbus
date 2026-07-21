@@ -59,13 +59,13 @@ deno test --allow-all
 
 ### Documentation
 
--   Add JSDoc comments to all publicly exported elements
--   Update user documentation in the `docs/` folder when adding or changing
-    functionality
--   For new or updated guide pages, add YAML `description` frontmatter (1–3
-    sentences summarizing the page for humans, SEO, and LLM index files)
--   When changing `examples/eventsourcing-demo`, update GitHub line-range links in
-    [docs/guide/in-depth-example.md](docs/guide/in-depth-example.md) if affected symbols moved
+- Add JSDoc comments to all publicly exported elements
+- Update user documentation in the `docs/` folder when adding or changing
+  functionality
+- For new or updated guide pages, add YAML `description` frontmatter (1–3
+  sentences summarizing the page for humans, SEO, and LLM index files)
+- When changing `examples/eventsourcing-demo`, update GitHub line-range links in
+  [docs/guide/in-depth-example.md](docs/guide/in-depth-example.md) if affected symbols moved
 
 The docs site generates LLM-friendly artifacts on build (`llms.txt`, `llms-full.txt`, and per-page `.md` mirrors) via `vitepress-plugin-llms`.
 
@@ -90,22 +90,19 @@ You can check the `llms.txt` and `llms-full.txt` under `http://localhost:4173/ll
 
 ### Examples on other runtimes
 
-Two of the examples are intentionally **not** part of the Deno workspace:
+`examples/node-demo` is intentionally **not** part of the Deno workspace. It
+runs on the supported Node.js LTS and consumes the published `@nimbus-cqrs/*`
+npm packages. Use it to smoke test Nimbus on Node.js.
 
--   `examples/node-demo` - the `hono-demo` ported to the supported Node.js LTS, consuming the published `@nimbus-cqrs/*` npm packages. Use it to test Nimbus on Node.js.
--   `examples/bun-demo` - the same demo running on the latest stable Bun release.
-
-Each one has its own `package.json` and `node_modules`. They are excluded from
+It has its own `package.json` and `node_modules`, and is excluded from
 `deno fmt`, `deno lint`, `deno check`, and `deno test` via the root
-`deno.json`. To work on them:
+`deno.json`. To work on it:
 
 ```sh
 cd examples/node-demo && npm install && npm run dev
-# or
-cd examples/bun-demo && bun install && bun run dev
 ```
 
-Refer to each example's README for details.
+Refer to the example's README for details.
 
 ### EventSourcingDB
 
@@ -176,8 +173,7 @@ deno task version:set 3.0.0-rc.1
 
 This updates the `version` field in every `packages/<PACKAGE_NAME>/deno.json`
 and rewrites the `@nimbus-cqrs/*` dependencies in
-`examples/node-demo/package.json` and `examples/bun-demo/package.json` to the
-new caret range.
+`examples/node-demo/package.json` to the new caret range.
 
 Commit, push and open a pull request to `main`.
 Squash and merge the pull request with the message `chore: release <VERSION>`.

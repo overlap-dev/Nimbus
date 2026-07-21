@@ -968,15 +968,6 @@
           "npm:zod@^4.4.3"
         ]
       },
-      "examples/hono-demo": {
-        "dependencies": [
-          "jsr:@std/dotenv@~0.225.7",
-          "jsr:@std/ulid@1",
-          "npm:hono@^4.12.27",
-          "npm:mongodb@7.1.1",
-          "npm:zod@^4.4.3"
-        ]
-      },
       "packages/core": {
         "dependencies": [
           "jsr:@std/assert@^1.0.19",
