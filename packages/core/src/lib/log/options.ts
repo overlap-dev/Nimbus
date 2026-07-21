@@ -1,5 +1,6 @@
 import { jsonLogFormatter, type LogFormatter } from './logFormatter.ts';
 import type { LogLevel } from './logLevel.ts';
+import type { LogTruncator } from './logTruncator.ts';
 
 /**
  * Configuration options for the Logger.
@@ -27,12 +28,23 @@ export type LogOptions = {
      * Defaults to false.
      */
     useConsoleColors?: boolean;
+    /**
+     * Optional truncator applied to each {@link LogInput} before formatting.
+     * Use {@link createLogTruncator} for the built-in implementation, or supply a custom one.
+     * Defaults to undefined (no truncation).
+     */
+    truncator?: LogTruncator;
 };
 
 /**
  * The default log options.
  */
-export const defaultLogOptions: Required<LogOptions> = {
+export const defaultLogOptions: {
+    logLevel: LogLevel;
+    formatter: LogFormatter;
+    useConsoleColors: boolean;
+    truncator?: LogTruncator;
+} = {
     logLevel: 'silent',
     formatter: jsonLogFormatter,
     useConsoleColors: false,
