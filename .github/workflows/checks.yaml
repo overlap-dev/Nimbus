@@ -54,7 +54,7 @@ jobs:
 
       - name: Build docs
         working-directory: ./docs
-        run: npm ci && npm run build
+        run: npm ci --ignore-scripts && npm run build
 
       - name: Verify LLM artifacts
         run: |
