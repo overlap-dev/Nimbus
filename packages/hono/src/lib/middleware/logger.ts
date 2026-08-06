@@ -1,4 +1,4 @@
-import { getLogger } from '@nimbus-cqrs/core';
+import { getLogger, type LogInput, type LogLevel } from '@nimbus-cqrs/core';
 import {
     context,
     propagation,
@@ -24,6 +24,12 @@ export type LoggerOptions = {
      * Defaults to "nimbus".
      */
     tracerName?: string;
+    /**
+     * Log level used for request and response log lines.
+     * Defaults to "info". When set to "silent", request/response
+     * logs are skipped.
+     */
+    logLevel?: LogLevel;
 };
 
 const humanize = (times: string[]) => {
@@ -58,19 +64,28 @@ const time = (start: number) => {
  * import { logger } from '@nimbus-cqrs/hono';
  *
  * const app = new Hono();
- * app.use(logger({ enableTracing: true }));
+ * app.use(logger({ enableTracing: true, logLevel: 'debug' }));
  * ```
  */
 export const logger = (options?: LoggerOptions): MiddlewareHandler => {
     const enableTracing = options?.enableTracing ?? true;
     const tracerName = options?.tracerName ?? 'nimbus';
+    const logLevel = options?.logLevel ?? 'info';
     const tracer = trace.getTracer(tracerName);
+
+    const log = (logInput: LogInput): void => {
+        if (logLevel === 'silent') {
+            return;
+        }
+
+        getLogger()[logLevel](logInput);
+    };
 
     return async (c, next) => {
         const startTime = Date.now();
         const correlationId = getCorrelationId(c);
 
-        getLogger().info({
+        log({
             category: 'API',
             message: `REQ: [${c.req.method}] ${c.req.path}`,
             correlationId,
@@ -126,7 +141,7 @@ export const logger = (options?: LoggerOptions): MiddlewareHandler => {
             await next();
         }
 
-        getLogger().info({
+        log({
             category: 'API',
             message: `RES: [${c.req.method}] ${c.req.path} - ${
                 time(startTime)

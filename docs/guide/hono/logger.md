@@ -34,10 +34,11 @@ app.use(logger());
 
 ## Configuration Options
 
-| Option          | Type      | Default    | Description                               |
-| --------------- | --------- | ---------- | ----------------------------------------- |
-| `enableTracing` | `boolean` | `true`     | Enable OpenTelemetry tracing for requests |
-| `tracerName`    | `string`  | `"nimbus"` | The name of the tracer for OpenTelemetry  |
+| Option          | Type       | Default    | Description                                                              |
+| --------------- | ---------- | ---------- | ------------------------------------------------------------------------ |
+| `enableTracing` | `boolean`  | `true`     | Enable OpenTelemetry tracing for requests                                |
+| `tracerName`    | `string`   | `"nimbus"` | The name of the tracer for OpenTelemetry                                 |
+| `logLevel`      | `LogLevel` | `"info"`   | Severity used for request/response logs (`silent` skips those log lines) |
 
 ```typescript
 import { logger } from "@nimbus-cqrs/hono";
@@ -46,13 +47,14 @@ app.use(
     logger({
         enableTracing: true,
         tracerName: "api",
-    })
+        logLevel: "debug",
+    }),
 );
 ```
 
 ## Log Output
 
-The middleware logs each request and response using the Nimbus logger:
+The middleware logs each request and response using the Nimbus logger at the configured `logLevel` (default `info`):
 
 **Request log:**
 
@@ -100,7 +102,7 @@ app.use(
     logger({
         enableTracing: true,
         tracerName: "api",
-    })
+    }),
 );
 
 app.get("/users/:id", async (c) => {
@@ -118,7 +120,7 @@ app.get("/users/:id", async (c) => {
 
 When an error occurs during request handling:
 
--   The span status is set to `ERROR`
--   The error message is recorded in the span
--   The exception is recorded for debugging
--   The error is re-thrown for the error handler to process
+- The span status is set to `ERROR`
+- The error message is recorded in the span
+- The exception is recorded for debugging
+- The error is re-thrown for the error handler to process

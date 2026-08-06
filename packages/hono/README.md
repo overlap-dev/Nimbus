@@ -101,11 +101,12 @@ app.use(
     logger({
         enableTracing: true,
         tracerName: "api",
+        logLevel: "debug",
     })
 );
 ```
 
-Set `enableTracing: false` if you only want the request/response log lines and don't run an OpenTelemetry SDK.
+Set `enableTracing: false` if you only want the request/response log lines and don't run an OpenTelemetry SDK. Use `logLevel` to control the severity of those request/response lines (defaults to `info`; `silent` skips them).
 
 ## handleError
 
