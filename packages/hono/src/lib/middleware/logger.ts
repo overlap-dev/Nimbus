@@ -49,6 +49,30 @@ const time = (start: number) => {
     ]);
 };
 
+const logAtLevel = (logLevel: LogLevel, logInput: LogInput): void => {
+    const loggerInstance = getLogger();
+
+    switch (logLevel) {
+        case 'debug':
+            loggerInstance.debug(logInput);
+            break;
+        case 'info':
+            loggerInstance.info(logInput);
+            break;
+        case 'warn':
+            loggerInstance.warn(logInput);
+            break;
+        case 'error':
+            loggerInstance.error(logInput);
+            break;
+        case 'critical':
+            loggerInstance.critical(logInput);
+            break;
+        case 'silent':
+            break;
+    }
+};
+
 /**
  * Logger middleware for Hono with optional OpenTelemetry tracing.
  *
@@ -73,19 +97,11 @@ export const logger = (options?: LoggerOptions): MiddlewareHandler => {
     const logLevel = options?.logLevel ?? 'info';
     const tracer = trace.getTracer(tracerName);
 
-    const log = (logInput: LogInput): void => {
-        if (logLevel === 'silent') {
-            return;
-        }
-
-        getLogger()[logLevel](logInput);
-    };
-
     return async (c, next) => {
         const startTime = Date.now();
         const correlationId = getCorrelationId(c);
 
-        log({
+        logAtLevel(logLevel, {
             category: 'API',
             message: `REQ: [${c.req.method}] ${c.req.path}`,
             correlationId,
@@ -141,7 +157,7 @@ export const logger = (options?: LoggerOptions): MiddlewareHandler => {
             await next();
         }
 
-        log({
+        logAtLevel(logLevel, {
             category: 'API',
             message: `RES: [${c.req.method}] ${c.req.path} - ${
                 time(startTime)
