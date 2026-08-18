@@ -1,4 +1,4 @@
-import { getLogger } from '@nimbus-cqrs/core';
+import { getLogger, type LogInput, type LogLevel } from '@nimbus-cqrs/core';
 import {
     context,
     propagation,
@@ -24,6 +24,12 @@ export type LoggerOptions = {
      * Defaults to "nimbus".
      */
     tracerName?: string;
+    /**
+     * Log level used for request and response log lines.
+     * Defaults to "info". When set to "silent", request/response
+     * logs are skipped.
+     */
+    logLevel?: LogLevel;
 };
 
 const humanize = (times: string[]) => {
@@ -43,6 +49,30 @@ const time = (start: number) => {
     ]);
 };
 
+const logAtLevel = (logLevel: LogLevel, logInput: LogInput): void => {
+    const loggerInstance = getLogger();
+
+    switch (logLevel) {
+        case 'debug':
+            loggerInstance.debug(logInput);
+            break;
+        case 'info':
+            loggerInstance.info(logInput);
+            break;
+        case 'warn':
+            loggerInstance.warn(logInput);
+            break;
+        case 'error':
+            loggerInstance.error(logInput);
+            break;
+        case 'critical':
+            loggerInstance.critical(logInput);
+            break;
+        case 'silent':
+            break;
+    }
+};
+
 /**
  * Logger middleware for Hono with optional OpenTelemetry tracing.
  *
@@ -58,19 +88,20 @@ const time = (start: number) => {
  * import { logger } from '@nimbus-cqrs/hono';
  *
  * const app = new Hono();
- * app.use(logger({ enableTracing: true }));
+ * app.use(logger({ enableTracing: true, logLevel: 'debug' }));
  * ```
  */
 export const logger = (options?: LoggerOptions): MiddlewareHandler => {
     const enableTracing = options?.enableTracing ?? true;
     const tracerName = options?.tracerName ?? 'nimbus';
+    const logLevel = options?.logLevel ?? 'info';
     const tracer = trace.getTracer(tracerName);
 
     return async (c, next) => {
         const startTime = Date.now();
         const correlationId = getCorrelationId(c);
 
-        getLogger().info({
+        logAtLevel(logLevel, {
             category: 'API',
             message: `REQ: [${c.req.method}] ${c.req.path}`,
             correlationId,
@@ -126,7 +157,7 @@ export const logger = (options?: LoggerOptions): MiddlewareHandler => {
             await next();
         }
 
-        getLogger().info({
+        logAtLevel(logLevel, {
             category: 'API',
             message: `RES: [${c.req.method}] ${c.req.path} - ${
                 time(startTime)

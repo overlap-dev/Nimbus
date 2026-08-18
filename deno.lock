@@ -1037,6 +1037,7 @@
       },
       "packages/hono": {
         "dependencies": [
+          "jsr:@std/assert@^1.0.19",
           "jsr:@std/ulid@1",
           "npm:@opentelemetry/api@^1.9.1",
           "npm:hono@^4.12.27"
