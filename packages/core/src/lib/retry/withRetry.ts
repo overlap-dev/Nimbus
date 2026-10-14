@@ -261,7 +261,7 @@ const delay = (ms: number, signal?: AbortSignal): Promise<void> => {
  * );
  * ```
  */
-export const withRetry = <T>(
+export const withRetry = async <T>(
     fn: (attempt: number) => Promise<T> | T,
     options: WithRetryOptions = {},
 ): Promise<T> => {
@@ -274,16 +274,18 @@ export const withRetry = <T>(
     const signal = options.signal;
 
     const startedAt = performance.now();
+    let attempt = 0;
 
-    // Each attempt waits for the previous failure and backoff delay
-    // before the next one starts.
-    const runAttempt = async (attempt: number): Promise<T> => {
+    // Sequential on purpose: the next attempt depends on this failure.
+    while (true) {
         if (signal?.aborted) {
             throw getAbortReason(signal);
         }
 
+        attempt++;
+
         try {
-            return await fn(attempt);
+            return await fn(attempt); // NOSONAR
         } catch (error: unknown) {
             if (error instanceof RetryAbortedError) {
                 throw error;
@@ -330,20 +332,17 @@ export const withRetry = <T>(
             };
 
             if (options.shouldRetry) {
-                const shouldRetry = await options.shouldRetry(context);
+                const shouldRetry = await options.shouldRetry(context); // NOSONAR
                 if (!shouldRetry) {
                     throw err;
                 }
             }
 
             if (options.onRetry) {
-                await options.onRetry(context);
+                await options.onRetry(context); // NOSONAR
             }
 
-            await delay(delayMs, signal);
-            return runAttempt(attempt + 1);
+            await delay(delayMs, signal); // NOSONAR
         }
-    };
-
-    return runAttempt(1);
+    }
 };
