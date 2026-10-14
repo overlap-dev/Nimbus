@@ -276,6 +276,7 @@ export const withRetry = async <T>(
     const startedAt = performance.now();
     let attempt = 0;
 
+    // Sequential on purpose: the next attempt depends on this failure.
     while (true) {
         if (signal?.aborted) {
             throw getAbortReason(signal);
@@ -284,7 +285,7 @@ export const withRetry = async <T>(
         attempt++;
 
         try {
-            return await fn(attempt);
+            return await fn(attempt); // NOSONAR
         } catch (error: unknown) {
             if (error instanceof RetryAbortedError) {
                 throw error;
@@ -331,17 +332,17 @@ export const withRetry = async <T>(
             };
 
             if (options.shouldRetry) {
-                const shouldRetry = await options.shouldRetry(context);
+                const shouldRetry = await options.shouldRetry(context); // NOSONAR
                 if (!shouldRetry) {
                     throw err;
                 }
             }
 
             if (options.onRetry) {
-                await options.onRetry(context);
+                await options.onRetry(context); // NOSONAR
             }
 
-            await delay(delayMs, signal);
+            await delay(delayMs, signal); // NOSONAR
         }
     }
 };

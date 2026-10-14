@@ -32,12 +32,27 @@ export type LoggerOptions = {
     logLevel?: LogLevel;
 };
 
-const humanize = (times: string[]) => {
+const groupDigits = (digits: string, delimiter: string): string => {
+    const firstGroupLength = digits.length % 3 || 3;
+    const parts = [digits.slice(0, firstGroupLength)];
+
+    for (let index = firstGroupLength; index < digits.length; index += 3) {
+        parts.push(digits.slice(index, index + 3));
+    }
+
+    return parts.join(delimiter);
+};
+
+const humanize = (times: string[]): string => {
     const [delimiter, separator] = [',', '.'];
 
-    const orderTimes = times.map((v) =>
-        v.replaceAll(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1' + delimiter)
-    );
+    const orderTimes = times.map((value) => {
+        const suffixIndex = value.search(/\D/);
+        const digits = suffixIndex === -1 ? value : value.slice(0, suffixIndex);
+        const suffix = suffixIndex === -1 ? '' : value.slice(suffixIndex);
+
+        return groupDigits(digits, delimiter) + suffix;
+    });
 
     return orderTimes.join(separator);
 };
