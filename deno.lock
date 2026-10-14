@@ -20,7 +20,9 @@
     "jsr:@ts-morph/bootstrap@0.27": "0.27.0",
     "jsr:@ts-morph/common@0.27": "0.27.0",
     "npm:@opentelemetry/api@^1.9.1": "1.9.1",
-    "npm:eventsourcingdb@^1.8.2": "1.8.5",
+    "npm:@opentelemetry/sdk-metrics@^2.12.0": "2.12.0_@opentelemetry+api@1.9.1",
+    "npm:eventsourcingdb@1.8.2": "1.8.2",
+    "npm:eventsourcingdb@^1.8.2": "1.8.2",
     "npm:hono@^4.13.7": "4.13.7",
     "npm:mongodb@7.1.1": "7.1.1",
     "npm:zod@^4.4.3": "4.6.2"
@@ -152,6 +154,32 @@
     },
     "@opentelemetry/api@1.9.1": {
       "integrity": "sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q=="
+    },
+    "@opentelemetry/core@2.12.0_@opentelemetry+api@1.9.1": {
+      "integrity": "sha512-1HsSAuvT4/my0QrXWsyXFdWjKaPeCHsismKZgEEIb8NK13LP6DrMRlsUbvD/0F9mDWK3xDom9AMv3IscxgOnOQ==",
+      "dependencies": [
+        "@opentelemetry/api",
+        "@opentelemetry/semantic-conventions"
+      ]
+    },
+    "@opentelemetry/resources@2.12.0_@opentelemetry+api@1.9.1": {
+      "integrity": "sha512-+rSRoOdln6NhXTVcBdHSlZxJDNzwxadeweK2ltZO3tVtfp6aklABc06xclDk6ovRR+EiGgIcSbh/6NgjFhnb3A==",
+      "dependencies": [
+        "@opentelemetry/api",
+        "@opentelemetry/core",
+        "@opentelemetry/semantic-conventions"
+      ]
+    },
+    "@opentelemetry/sdk-metrics@2.12.0_@opentelemetry+api@1.9.1": {
+      "integrity": "sha512-mVMaEHwCUJuY3S4Esn+nT0yQA3qCEGh+SOPJsXygU0Gl453WcsDNjtEa8EfdewMwoLyr1tlofB4fXytVpiXuow==",
+      "dependencies": [
+        "@opentelemetry/api",
+        "@opentelemetry/core",
+        "@opentelemetry/resources"
+      ]
+    },
+    "@opentelemetry/semantic-conventions@1.43.0": {
+      "integrity": "sha512-eSYWTm620tTk45EKSedaUL8MFYI8hW164hIXsgIHyxu3VobUB3fFCu5t0hQby6OoWRPsG1KkKUG2M5UadiLiVg=="
     },
     "@pkgjs/parseargs@0.11.0": {
       "integrity": "sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg=="
@@ -497,8 +525,8 @@
     "events@3.3.0": {
       "integrity": "sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q=="
     },
-    "eventsourcingdb@1.8.5": {
-      "integrity": "sha512-ETkfSXEwcQNrJ2ePPkkIoY271GZ3d7CgH2XTre81jhC4Cqh1xC/D5lsem5mJWJ8+O03FjmcotrLKCgOAK/wsaA==",
+    "eventsourcingdb@1.8.2": {
+      "integrity": "sha512-JXph6wV1ORV7oJcrzIY12+PLUmLnhorwaxQHBVAWqiQCcBjRAmu4r3/8lqrGbI1Vw4fA94IeLW2UVG3XLa/ZvA==",
       "dependencies": [
         "testcontainers"
       ]
@@ -889,8 +917,8 @@
         "streamx"
       ]
     },
-    "testcontainers@12.1.0": {
-      "integrity": "sha512-YjDLqIITuhGLMnM10yhg3oV6lIG5IMpz1R1DPBZoOOks83q7i7IVpeSWRTiyl7roozjiyLmwIoLK/KY8OnZmIA==",
+    "testcontainers@12.0.4": {
+      "integrity": "sha512-QIR/8xF1+F/26cIM+9B4yyxNTbKJxAv3hygZyhPRgZ8Q2AhlPZjDdpXRuk16V37X4bgJRI3hXFhoEICMBA7Adg==",
       "dependencies": [
         "@balena/dockerignore",
         "@types/dockerode",
@@ -1038,6 +1066,7 @@
           "jsr:@std/assert@^1.0.19",
           "jsr:@std/ulid@1",
           "npm:@opentelemetry/api@^1.9.1",
+          "npm:@opentelemetry/sdk-metrics@^2.12.0",
           "npm:eventsourcingdb@^1.8.2"
         ]
       },
