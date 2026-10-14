@@ -119,6 +119,11 @@ export type EventObserver = {
 const delay = (ms: number): Promise<void> =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
+const OBSERVER_BACKOFF_OPTIONS = {
+    jitterFactor: 0.3,
+    maxDelayMs: Infinity,
+} as const;
+
 /**
  * Calculates an exponential backoff delay with jitter for a given
  * retry attempt. The jitter adds up to 30% of the base delay to
@@ -137,27 +142,39 @@ export const calculateBackoffDelay = (
     initialDelayMs: number,
     attempt: number,
 ): number =>
-    coreCalculateBackoffDelay(initialDelayMs, attempt, {
-        jitterFactor: 0.3,
-        maxDelayMs: Infinity,
-    });
+    coreCalculateBackoffDelay(
+        initialDelayMs,
+        attempt,
+        OBSERVER_BACKOFF_OPTIONS,
+    );
+
+/**
+ * Reads the legacy connection-retry alias accepted on an event observer.
+ */
+const readLegacyRetryOptions = (
+    eventObserver: { retryOptions?: RetryOptions },
+): RetryOptions | undefined => eventObserver.retryOptions;
 
 /**
  * Resolves connection retry options, preferring
- * {@link EventObserver.connectionRetryOptions} over the deprecated
- * {@link EventObserver.retryOptions}.
+ * {@link EventObserver.connectionRetryOptions} and falling back to the
+ * legacy retryOptions alias.
  */
 const resolveConnectionRetryOptions = (
     eventObserver: EventObserver,
-): RetryOptions => ({
-    maxRetries: eventObserver.connectionRetryOptions?.maxRetries ??
-        eventObserver.retryOptions?.maxRetries ??
-        DEFAULT_RETRY_OPTIONS.maxRetries,
-    initialRetryDelayMs:
-        eventObserver.connectionRetryOptions?.initialRetryDelayMs ??
-            eventObserver.retryOptions?.initialRetryDelayMs ??
-            DEFAULT_RETRY_OPTIONS.initialRetryDelayMs,
-});
+): RetryOptions => {
+    const legacyRetryOptions = readLegacyRetryOptions(eventObserver);
+
+    return {
+        maxRetries: eventObserver.connectionRetryOptions?.maxRetries ??
+            legacyRetryOptions?.maxRetries ??
+            DEFAULT_RETRY_OPTIONS.maxRetries,
+        initialRetryDelayMs:
+            eventObserver.connectionRetryOptions?.initialRetryDelayMs ??
+                legacyRetryOptions?.initialRetryDelayMs ??
+                DEFAULT_RETRY_OPTIONS.initialRetryDelayMs,
+    };
+};
 
 /**
  * Resolves handler retry options from {@link EventObserver.handlerRetryOptions}.
@@ -230,9 +247,10 @@ const handleConnectionError = async (
 
     observerConnectionRetryAttemptsCounter.add(1, { subject });
 
-    const backoffDelay = calculateBackoffDelay(
+    const backoffDelay = coreCalculateBackoffDelay(
         initialRetryDelayMs,
         retryCount - 1,
+        OBSERVER_BACKOFF_OPTIONS,
     );
 
     getLogger().error({
@@ -511,5 +529,5 @@ export const observeWithRetry = async (
  * @param eventObserver - The event observer configuration.
  */
 export const initEventObserver = (eventObserver: EventObserver): void => {
-    observeWithRetry(eventObserver);
+    void observeWithRetry(eventObserver);
 };

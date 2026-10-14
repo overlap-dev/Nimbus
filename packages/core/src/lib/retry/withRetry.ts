@@ -261,7 +261,7 @@ const delay = (ms: number, signal?: AbortSignal): Promise<void> => {
  * );
  * ```
  */
-export const withRetry = async <T>(
+export const withRetry = <T>(
     fn: (attempt: number) => Promise<T> | T,
     options: WithRetryOptions = {},
 ): Promise<T> => {
@@ -274,14 +274,13 @@ export const withRetry = async <T>(
     const signal = options.signal;
 
     const startedAt = performance.now();
-    let attempt = 0;
 
-    while (true) {
+    // Each attempt waits for the previous failure and backoff delay
+    // before the next one starts.
+    const runAttempt = async (attempt: number): Promise<T> => {
         if (signal?.aborted) {
             throw getAbortReason(signal);
         }
-
-        attempt++;
 
         try {
             return await fn(attempt);
@@ -342,6 +341,9 @@ export const withRetry = async <T>(
             }
 
             await delay(delayMs, signal);
+            return runAttempt(attempt + 1);
         }
-    }
+    };
+
+    return runAttempt(1);
 };

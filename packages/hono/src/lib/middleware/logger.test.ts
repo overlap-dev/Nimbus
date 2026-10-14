@@ -1,5 +1,5 @@
-import { assertEquals, assertStringIncludes } from '@std/assert';
 import { setupLogger } from '@nimbus-cqrs/core';
+import { assertEquals, assertStringIncludes } from '@std/assert';
 import { Hono } from 'hono';
 import { logger } from './logger.ts';
 
@@ -34,6 +34,38 @@ Deno.test('logger middleware logs request and response at configured logLevel', 
     } finally {
         console.debug = originalDebug;
         console.info = originalInfo;
+        setupLogger({ logLevel: 'silent' });
+    }
+});
+
+Deno.test('logger middleware groups long durations with a thousands separator', async () => {
+    const infoOutputs: string[] = [];
+    const originalInfo = console.info;
+    const originalNow = Date.now;
+    let now = 0;
+
+    console.info = (...args: unknown[]) => {
+        infoOutputs.push(args.map(String).join(' '));
+    };
+    Date.now = () => now;
+
+    try {
+        setupLogger({ logLevel: 'info' });
+
+        const app = new Hono();
+        app.use(logger({ enableTracing: false, logLevel: 'info' }));
+        app.get('/users', (c) => {
+            now = 1_234_000;
+            return c.text('ok');
+        });
+
+        const response = await app.request('/users');
+        assertEquals(response.status, 200);
+        assertEquals(infoOutputs.length, 2);
+        assertStringIncludes(infoOutputs[1]!, 'RES: [GET] /users - 1,234s');
+    } finally {
+        console.info = originalInfo;
+        Date.now = originalNow;
         setupLogger({ logLevel: 'silent' });
     }
 });
