@@ -31,10 +31,7 @@ export const writeEvents = (
         propagation.inject(context.active(), carrier);
 
         const eventCandidates: EventCandidate[] = events.map((event) => {
-            eventSizeBytes.record(getEventSizeBytes(event), {
-                subject: event.subject,
-                event_type: event.type,
-            });
+            eventSizeBytes.record(getEventSizeBytes(event));
 
             return nimbusEventToEventSourcingDBEventCandidate(
                 event,

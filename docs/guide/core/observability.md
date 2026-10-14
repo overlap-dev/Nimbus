@@ -98,7 +98,7 @@ The [EventSourcingDB package](/guide/eventsourcingdb/) instruments writes, reads
 
 - `eventsourcingdb_operation_total` - Counter for read/write operations (with `status: success|error`)
 - `eventsourcingdb_operation_duration_seconds` - Histogram of operation duration
-- `eventsourcingdb_event_size_bytes` - Histogram of written event sizes (`subject`, `event_type`)
+- `eventsourcingdb_event_size_bytes` - Histogram of written event sizes (no labels)
 - `eventsourcingdb_observer_events_handled_total` - Counter for handled events (`status: success|skipped`)
 - `eventsourcingdb_observer_handling_duration_seconds` - Histogram of observer handler duration
 - `eventsourcingdb_observer_handler_retry_attempts_total` - Counter for handler retries

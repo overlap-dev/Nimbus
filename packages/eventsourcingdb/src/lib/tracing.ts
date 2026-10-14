@@ -31,6 +31,9 @@ const operationDuration = meter.createHistogram(
 
 /**
  * Histogram of serialized Nimbus event sizes written via writeEvents.
+ *
+ * Recorded without attributes so the series count does not grow with
+ * streams or event types.
  */
 export const eventSizeBytes = meter.createHistogram(
     'eventsourcingdb_event_size_bytes',
