@@ -1,7 +1,6 @@
 import process from 'node:process';
 import {
     createLogTruncator,
-    getEnv,
     getLogger,
     jsonLogFormatter,
     parseLogLevel,
@@ -55,22 +54,6 @@ const server = startHttpServer();
 // We want to shutdown gracefully
 
 const shutdown = async (signal: string) => {
-    const env = getEnv({
-        variables: ['NODE_ENV'],
-    });
-
-    // We skip graceful shutdown in development mode to avoid
-    // having to restart the application manually each time
-    // we change something in the code and hot reloads are triggered.
-
-    if (env.NODE_ENV === 'development') {
-        getLogger().info({
-            message: `Received ${signal}, skipping graceful shutdown in development mode...`,
-        });
-
-        return;
-    }
-
     getLogger().info({
         message: `Received ${signal}, shutting down gracefully...`,
     });
