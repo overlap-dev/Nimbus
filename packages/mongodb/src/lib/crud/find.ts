@@ -29,9 +29,7 @@ export type FindInput<TData> = {
 /**
  * Type to define the find function.
  */
-export type Find = <TData>(
-    input: FindInput<TData>,
-) => Promise<TData[]>;
+export type Find = <TData>(input: FindInput<TData>) => Promise<TData[]>;
 
 /**
  * Finds documents in a MongoDB collection and returns
@@ -90,12 +88,13 @@ export const find: Find = <TData>({
 
         try {
             return res.map((item) =>
-                outputType.parse(mapDocument(item))
+                outputType.parse(mapDocument(item)),
             ) as TData[];
         } catch (error) {
-            const exception = error instanceof Error
-                ? new GenericException().fromError(error)
-                : new GenericException();
+            const exception =
+                error instanceof Error
+                    ? new GenericException().fromError(error)
+                    : new GenericException();
 
             throw exception;
         }

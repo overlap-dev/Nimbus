@@ -29,4 +29,4 @@ Nimbus is a good fit if you are:
 -   **Type-safe validation** - Message validation with [Zod](https://zod.dev/) schemas
 -   **MongoDB integration** - Repository pattern and CRUD operations with automatic tracing
 -   **Hono middleware** - Ready-to-use middleware for HTTP APIs
--   **Runtime flexibility** - Deno-first with NPM and Bun support
+-   **Runtime flexibility** - Published as plain ESM on npm; runs on Node.js, Bun and Deno

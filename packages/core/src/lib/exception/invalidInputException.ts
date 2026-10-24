@@ -6,12 +6,7 @@ import { Exception } from './exception.ts';
  */
 export class InvalidInputException extends Exception {
     constructor(message?: string, details?: Record<string, unknown>) {
-        super(
-            'INVALID_INPUT',
-            message ?? 'Invalid input',
-            details,
-            400,
-        );
+        super('INVALID_INPUT', message ?? 'Invalid input', details, 400);
     }
 
     /**

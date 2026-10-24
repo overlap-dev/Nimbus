@@ -20,9 +20,7 @@ export type DeleteOneInput = {
 /**
  * Type to define the deleteOne function.
  */
-export type DeleteOne = (
-    input: DeleteOneInput,
-) => Promise<DeleteResult>;
+export type DeleteOne = (input: DeleteOneInput) => Promise<DeleteResult>;
 
 /**
  * Deletes a single document from a MongoDB collection.
@@ -34,11 +32,7 @@ export type DeleteOne = (
  *
  * @returns {Promise<DeleteResult>} The result of the delete operation.
  */
-export const deleteOne: DeleteOne = ({
-    collection,
-    filter,
-    options,
-}) => {
+export const deleteOne: DeleteOne = ({ collection, filter, options }) => {
     return withSpan('deleteOne', collection, async () => {
         try {
             return await collection.deleteOne(filter, options);

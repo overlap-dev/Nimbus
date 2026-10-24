@@ -1,18 +1,19 @@
-import { assertEquals, assertInstanceOf } from '@std/assert';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import { NotFoundException } from './notFoundException.ts';
 
-Deno.test('NotFoundException without constructor input', () => {
+test('NotFoundException without constructor input', () => {
     const exception = new NotFoundException();
 
-    assertInstanceOf(exception, NotFoundException);
-    assertEquals(exception.name, 'NOT_FOUND');
-    assertEquals(exception.message, 'Not found');
-    assertEquals(exception.statusCode, 404);
-    assertEquals(typeof exception.details, 'undefined');
-    assertEquals(typeof exception.stack, 'string');
+    assert.ok(exception instanceof NotFoundException);
+    assert.deepEqual(exception.name, 'NOT_FOUND');
+    assert.deepEqual(exception.message, 'Not found');
+    assert.deepEqual(exception.statusCode, 404);
+    assert.deepEqual(typeof exception.details, 'undefined');
+    assert.deepEqual(typeof exception.stack, 'string');
 });
 
-Deno.test('NotFoundException with constructor input', () => {
+test('NotFoundException with constructor input', () => {
     const message = 'My custom message';
     const details = {
         foo: 'bar',
@@ -20,43 +21,42 @@ Deno.test('NotFoundException with constructor input', () => {
 
     const exception = new NotFoundException(message, details);
 
-    assertInstanceOf(exception, NotFoundException);
-    assertEquals(exception.name, 'NOT_FOUND');
-    assertEquals(exception.message, message);
-    assertEquals(exception.statusCode, 404);
-    assertEquals(exception.details, details);
-    assertEquals(typeof exception.stack, 'string');
+    assert.ok(exception instanceof NotFoundException);
+    assert.deepEqual(exception.name, 'NOT_FOUND');
+    assert.deepEqual(exception.message, message);
+    assert.deepEqual(exception.statusCode, 404);
+    assert.deepEqual(exception.details, details);
+    assert.deepEqual(typeof exception.stack, 'string');
 });
 
-Deno.test('NotFoundException from error without constructor input', () => {
+test('NotFoundException from error without constructor input', () => {
     const nativeError = new Error('Something unexpected happened!');
 
     const exception = new NotFoundException().fromError(nativeError);
 
-    assertInstanceOf(exception, NotFoundException);
-    assertEquals(exception.name, 'NOT_FOUND');
-    assertEquals(exception.message, nativeError.message);
-    assertEquals(exception.statusCode, 404);
-    assertEquals(typeof exception.details, 'undefined');
-    assertEquals(exception.stack, nativeError.stack);
+    assert.ok(exception instanceof NotFoundException);
+    assert.deepEqual(exception.name, 'NOT_FOUND');
+    assert.deepEqual(exception.message, nativeError.message);
+    assert.deepEqual(exception.statusCode, 404);
+    assert.deepEqual(typeof exception.details, 'undefined');
+    assert.deepEqual(exception.stack, nativeError.stack);
 });
 
-Deno.test('NotFoundException from error with constructor input', () => {
+test('NotFoundException from error with constructor input', () => {
     const nativeError = new Error('Something unexpected happened!');
     const message = 'My custom message';
     const details = {
         foo: 'bar',
     };
 
-    const exception = new NotFoundException(
-        message,
-        details,
-    ).fromError(nativeError);
+    const exception = new NotFoundException(message, details).fromError(
+        nativeError,
+    );
 
-    assertInstanceOf(exception, NotFoundException);
-    assertEquals(exception.name, 'NOT_FOUND');
-    assertEquals(exception.message, nativeError.message);
-    assertEquals(exception.statusCode, 404);
-    assertEquals(exception.details, details);
-    assertEquals(exception.stack, nativeError.stack);
+    assert.ok(exception instanceof NotFoundException);
+    assert.deepEqual(exception.name, 'NOT_FOUND');
+    assert.deepEqual(exception.message, nativeError.message);
+    assert.deepEqual(exception.statusCode, 404);
+    assert.deepEqual(exception.details, details);
+    assert.deepEqual(exception.stack, nativeError.stack);
 });

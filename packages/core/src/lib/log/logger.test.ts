@@ -1,8 +1,9 @@
-import { assertEquals, assertStringIncludes } from '@std/assert';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import { getLogger, setupLogger } from './logger.ts';
 import { createLogTruncator } from './logTruncator.ts';
 
-Deno.test('Logger applies configured truncator to log input', () => {
+test('Logger applies configured truncator to log input', () => {
     const outputs: string[] = [];
     const originalInfo = console.info;
     console.info = (...args: unknown[]) => {
@@ -20,15 +21,15 @@ Deno.test('Logger applies configured truncator to log input', () => {
             category: 'Test',
         });
 
-        assertEquals(outputs.length, 1);
-        assertStringIncludes(outputs[0]!, '0123456789 [... __truncated]');
+        assert.deepEqual(outputs.length, 1);
+        assert.ok(outputs[0]!.includes('0123456789 [... __truncated]'));
     } finally {
         console.info = originalInfo;
         setupLogger({ logLevel: 'silent' });
     }
 });
 
-Deno.test('Logger fails open when truncator throws', () => {
+test('Logger fails open when truncator throws', () => {
     const outputs: string[] = [];
     const warnings: unknown[][] = [];
     const originalInfo = console.info;
@@ -54,9 +55,9 @@ Deno.test('Logger fails open when truncator throws', () => {
             category: 'Test',
         });
 
-        assertEquals(outputs.length, 1);
-        assertStringIncludes(outputs[0]!, 'original-message');
-        assertEquals(warnings.length, 1);
+        assert.deepEqual(outputs.length, 1);
+        assert.ok(outputs[0]!.includes('original-message'));
+        assert.deepEqual(warnings.length, 1);
     } finally {
         console.info = originalInfo;
         console.warn = originalWarn;
@@ -64,7 +65,7 @@ Deno.test('Logger fails open when truncator throws', () => {
     }
 });
 
-Deno.test('Logger skips truncator when skipTruncation is true', () => {
+test('Logger skips truncator when skipTruncation is true', () => {
     const outputs: string[] = [];
     const originalInfo = console.info;
     console.info = (...args: unknown[]) => {
@@ -83,10 +84,10 @@ Deno.test('Logger skips truncator when skipTruncation is true', () => {
             skipTruncation: true,
         });
 
-        assertEquals(outputs.length, 1);
-        assertStringIncludes(outputs[0]!, '0123456789ABCDEF');
-        assertEquals(outputs[0]!.includes(' [... __truncated]'), false);
-        assertEquals(outputs[0]!.includes('skipTruncation'), false);
+        assert.deepEqual(outputs.length, 1);
+        assert.ok(outputs[0]!.includes('0123456789ABCDEF'));
+        assert.deepEqual(outputs[0]!.includes(' [... __truncated]'), false);
+        assert.deepEqual(outputs[0]!.includes('skipTruncation'), false);
     } finally {
         console.info = originalInfo;
         setupLogger({ logLevel: 'silent' });

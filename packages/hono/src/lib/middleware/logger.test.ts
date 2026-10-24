@@ -1,9 +1,10 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import { setupLogger } from '@nimbus-cqrs/core';
-import { assertEquals, assertStringIncludes } from '@std/assert';
 import { Hono } from 'hono';
 import { logger } from './logger.ts';
 
-Deno.test('logger middleware logs request and response at configured logLevel', async () => {
+test('logger middleware logs request and response at configured logLevel', async () => {
     const debugOutputs: string[] = [];
     const infoOutputs: string[] = [];
     const originalDebug = console.debug;
@@ -24,13 +25,13 @@ Deno.test('logger middleware logs request and response at configured logLevel', 
         app.get('/users', (c) => c.text('ok'));
 
         const response = await app.request('/users');
-        assertEquals(response.status, 200);
-        assertEquals(await response.text(), 'ok');
+        assert.deepEqual(response.status, 200);
+        assert.deepEqual(await response.text(), 'ok');
 
-        assertEquals(debugOutputs.length, 2);
-        assertEquals(infoOutputs.length, 0);
-        assertStringIncludes(debugOutputs[0]!, 'REQ: [GET] /users');
-        assertStringIncludes(debugOutputs[1]!, 'RES: [GET] /users');
+        assert.deepEqual(debugOutputs.length, 2);
+        assert.deepEqual(infoOutputs.length, 0);
+        assert.ok(debugOutputs[0]!.includes('REQ: [GET] /users'));
+        assert.ok(debugOutputs[1]!.includes('RES: [GET] /users'));
     } finally {
         console.debug = originalDebug;
         console.info = originalInfo;
@@ -38,7 +39,7 @@ Deno.test('logger middleware logs request and response at configured logLevel', 
     }
 });
 
-Deno.test('logger middleware groups long durations with a thousands separator', async () => {
+test('logger middleware groups long durations with a thousands separator', async () => {
     const infoOutputs: string[] = [];
     const originalInfo = console.info;
     const originalNow = Date.now;
@@ -60,9 +61,9 @@ Deno.test('logger middleware groups long durations with a thousands separator', 
         });
 
         const response = await app.request('/users');
-        assertEquals(response.status, 200);
-        assertEquals(infoOutputs.length, 2);
-        assertStringIncludes(infoOutputs[1]!, 'RES: [GET] /users - 1,234s');
+        assert.deepEqual(response.status, 200);
+        assert.deepEqual(infoOutputs.length, 2);
+        assert.ok(infoOutputs[1]!.includes('RES: [GET] /users - 1,234s'));
     } finally {
         console.info = originalInfo;
         Date.now = originalNow;
@@ -70,7 +71,7 @@ Deno.test('logger middleware groups long durations with a thousands separator', 
     }
 });
 
-Deno.test('logger middleware skips request and response logs when logLevel is silent', async () => {
+test('logger middleware skips request and response logs when logLevel is silent', async () => {
     const infoOutputs: string[] = [];
     const originalInfo = console.info;
 
@@ -86,8 +87,8 @@ Deno.test('logger middleware skips request and response logs when logLevel is si
         app.get('/users', (c) => c.text('ok'));
 
         const response = await app.request('/users');
-        assertEquals(response.status, 200);
-        assertEquals(infoOutputs.length, 0);
+        assert.deepEqual(response.status, 200);
+        assert.deepEqual(infoOutputs.length, 0);
     } finally {
         console.info = originalInfo;
         setupLogger({ logLevel: 'silent' });

@@ -1,10 +1,10 @@
+import { getEnv } from '@nimbus-cqrs/core';
 import {
     getMongoConnectionManager,
     MongoDBRepository,
 } from '@nimbus-cqrs/mongodb';
-import { getEnv } from '@nimbus-cqrs/core';
-import { Document, ObjectId } from 'mongodb';
-import { Contact, CONTACTS_COLLECTION } from './contacts.collection.ts';
+import { type Document, ObjectId } from 'mongodb';
+import { CONTACTS_COLLECTION, Contact } from './contacts.collection.ts';
 
 class ContactRepository extends MongoDBRepository<Contact> {
     constructor() {

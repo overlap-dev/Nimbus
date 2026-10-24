@@ -6,12 +6,12 @@ import {
 } from '@nimbus-cqrs/eventsourcingdb';
 import { isSubjectOnEventId } from 'eventsourcingdb';
 import {
+    type AcceptUserInvitationCommand,
     acceptUserInvitation,
-    AcceptUserInvitationCommand,
 } from '../../core/commands/acceptUserInvitation.command.ts';
 import {
     applyEventToUserState,
-    UserState,
+    type UserState,
 } from '../../core/domain/user.state.ts';
 
 export const acceptUserInvitationCommandHandler = async (
@@ -24,17 +24,13 @@ export const acceptUserInvitationCommandHandler = async (
     // to rebuild the current state.
     let state: UserState = { id: command.data.id };
 
-    for await (
-        const eventSourcingDBEvent of readEvents(
-            `/users/${command.data.id}`,
-            {
-                recursive: false,
-            },
-        )
-    ) {
-        const event = eventSourcingDBEventToNimbusEvent(
-            eventSourcingDBEvent,
-        );
+    for await (const eventSourcingDBEvent of readEvents(
+        `/users/${command.data.id}`,
+        {
+            recursive: false,
+        },
+    )) {
+        const event = eventSourcingDBEventToNimbusEvent(eventSourcingDBEvent);
 
         state = applyEventToUserState(state, event);
     }
@@ -64,8 +60,8 @@ export const acceptUserInvitationCommandHandler = async (
             ),
         ]);
     } catch (error) {
-        const isStateConflict = error &&
-            (error as any).message.includes(`code '409'`);
+        const isStateConflict =
+            error && (error as any).message.includes(`code '409'`);
 
         getLogger().error({
             category: 'AcceptUserInvitationCommandHandler',

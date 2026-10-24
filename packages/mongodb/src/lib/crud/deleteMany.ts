@@ -20,9 +20,7 @@ export type DeleteManyInput = {
 /**
  * Type to define the deleteMany function.
  */
-export type DeleteMany = (
-    input: DeleteManyInput,
-) => Promise<DeleteResult>;
+export type DeleteMany = (input: DeleteManyInput) => Promise<DeleteResult>;
 
 /**
  * Deletes multiple documents from a MongoDB collection.
@@ -34,11 +32,7 @@ export type DeleteMany = (
  *
  * @returns {Promise<DeleteResult>} The result of the delete operation.
  */
-export const deleteMany: DeleteMany = ({
-    collection,
-    filter,
-    options,
-}) => {
+export const deleteMany: DeleteMany = ({ collection, filter, options }) => {
     return withSpan('deleteMany', collection, async () => {
         try {
             return await collection.deleteMany(filter, options);

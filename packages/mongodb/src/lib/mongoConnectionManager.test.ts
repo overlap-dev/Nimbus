@@ -1,4 +1,5 @@
-import { assertEquals, assertNotEquals, assertRejects } from '@std/assert';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import { MongoClient } from 'mongodb';
 import { MongoConnectionManager } from './mongoConnectionManager.ts';
 
@@ -16,7 +17,9 @@ type Stubs = {
     db: { calls: { dbName: string }[]; impl: (dbName: string) => unknown };
 };
 
-const installStubs = (overrides: Partial<Stubs> = {}): {
+const installStubs = (
+    overrides: Partial<Stubs> = {},
+): {
     stubs: Stubs;
     restore: () => void;
 } => {
@@ -42,18 +45,18 @@ const installStubs = (overrides: Partial<Stubs> = {}): {
         },
     };
 
-    proto.connect = (async function (this: MongoClient) {
+    proto.connect = async function (this: MongoClient) {
         stubs.connect.calls += 1;
         await stubs.connect.impl();
         return this;
-    }) as MongoClient['connect'];
+    } as MongoClient['connect'];
 
-    proto.close = (function () {
+    proto.close = (() => {
         stubs.close.calls += 1;
         return stubs.close.impl();
     }) as MongoClient['close'];
 
-    proto.db = (function (dbName: string) {
+    proto.db = ((dbName: string) => {
         stubs.db.calls.push({ dbName });
         return stubs.db.impl(dbName);
     }) as MongoClient['db'];
@@ -73,11 +76,11 @@ const resetSingleton = () => {
 };
 
 // All tests share a global stub of `MongoClient.prototype`, so they are
-// grouped into a single `Deno.test` with sequential `t.step(...)` calls. This
+// grouped into a single `test` with sequential `t.test(...)` calls. This
 // guarantees one test never observes another test's stubs even if the test
 // runner is configured to execute test cases concurrently.
-Deno.test('MongoConnectionManager', async (t) => {
-    await t.step(
+test('MongoConnectionManager', async (t) => {
+    await t.test(
         'getInstance returns the same instance for repeated calls',
         () => {
             resetSingleton();
@@ -87,11 +90,11 @@ Deno.test('MongoConnectionManager', async (t) => {
                 { appName: 'other' },
             );
 
-            assertEquals(a, b);
+            assert.deepEqual(a, b);
         },
     );
 
-    await t.step(
+    await t.test(
         'getClient connects only once across sequential calls',
         async () => {
             resetSingleton();
@@ -102,20 +105,20 @@ Deno.test('MongoConnectionManager', async (t) => {
                 const c1 = await manager.getClient();
                 const c2 = await manager.getClient();
 
-                assertEquals(stubs.connect.calls, 1);
-                assertEquals(c1, c2);
+                assert.deepEqual(stubs.connect.calls, 1);
+                assert.deepEqual(c1, c2);
             } finally {
                 restore();
             }
         },
     );
 
-    await t.step(
+    await t.test(
         'getClient connects only once across concurrent calls',
         async () => {
             resetSingleton();
-            const { promise: connectPromise, resolve: resolveConnect } = Promise
-                .withResolvers<void>();
+            const { promise: connectPromise, resolve: resolveConnect } =
+                Promise.withResolvers<void>();
 
             const { stubs, restore } = installStubs({
                 connect: { calls: 0, impl: () => connectPromise },
@@ -132,16 +135,16 @@ Deno.test('MongoConnectionManager', async (t) => {
                 resolveConnect();
                 const [c1, c2, c3] = await pending;
 
-                assertEquals(stubs.connect.calls, 1);
-                assertEquals(c1, c2);
-                assertEquals(c2, c3);
+                assert.deepEqual(stubs.connect.calls, 1);
+                assert.deepEqual(c1, c2);
+                assert.deepEqual(c2, c3);
             } finally {
                 restore();
             }
         },
     );
 
-    await t.step(
+    await t.test(
         'getClient propagates connection errors and allows retry',
         async () => {
             resetSingleton();
@@ -162,92 +165,85 @@ Deno.test('MongoConnectionManager', async (t) => {
             try {
                 const manager = MongoConnectionManager.getInstance(TEST_URI);
 
-                await assertRejects(() => manager.getClient(), Error, 'boom');
+                await assert.rejects(() => manager.getClient(), {
+                    message: /boom/,
+                });
                 await manager.getClient();
 
-                assertEquals(stubs.connect.calls, 2);
+                assert.deepEqual(stubs.connect.calls, 2);
             } finally {
                 restore();
             }
         },
     );
 
-    await t.step(
-        'getDatabase delegates to the cached client',
-        async () => {
-            resetSingleton();
-            const fakeDb = { name: 'my-db' };
-            const { stubs, restore } = installStubs({
-                db: { calls: [], impl: () => fakeDb },
-            });
+    await t.test('getDatabase delegates to the cached client', async () => {
+        resetSingleton();
+        const fakeDb = { name: 'my-db' };
+        const { stubs, restore } = installStubs({
+            db: { calls: [], impl: () => fakeDb },
+        });
 
-            try {
-                const manager = MongoConnectionManager.getInstance(TEST_URI);
-                const db = await manager.getDatabase('my-db');
+        try {
+            const manager = MongoConnectionManager.getInstance(TEST_URI);
+            const db = await manager.getDatabase('my-db');
 
-                assertEquals(stubs.connect.calls, 1);
-                assertEquals(stubs.db.calls, [{ dbName: 'my-db' }]);
-                assertEquals(db as unknown, fakeDb);
-            } finally {
-                restore();
-            }
-        },
-    );
+            assert.deepEqual(stubs.connect.calls, 1);
+            assert.deepEqual(stubs.db.calls, [{ dbName: 'my-db' }]);
+            assert.deepEqual(db as unknown, fakeDb);
+        } finally {
+            restore();
+        }
+    });
 
-    await t.step(
-        'getCollection delegates to the cached client',
-        async () => {
-            resetSingleton();
-            const collectionCalls: string[] = [];
-            const fakeCollection = { name: 'users' };
-            const fakeDb = {
-                collection(name: string) {
-                    collectionCalls.push(name);
-                    return fakeCollection;
-                },
-            };
+    await t.test('getCollection delegates to the cached client', async () => {
+        resetSingleton();
+        const collectionCalls: string[] = [];
+        const fakeCollection = { name: 'users' };
+        const fakeDb = {
+            collection(name: string) {
+                collectionCalls.push(name);
+                return fakeCollection;
+            },
+        };
 
-            const { stubs, restore } = installStubs({
-                db: { calls: [], impl: () => fakeDb },
-            });
+        const { stubs, restore } = installStubs({
+            db: { calls: [], impl: () => fakeDb },
+        });
 
-            try {
-                const manager = MongoConnectionManager.getInstance(TEST_URI);
-                const col = await manager.getCollection('my-db', 'users');
+        try {
+            const manager = MongoConnectionManager.getInstance(TEST_URI);
+            const col = await manager.getCollection('my-db', 'users');
 
-                assertEquals(stubs.db.calls, [{ dbName: 'my-db' }]);
-                assertEquals(collectionCalls, ['users']);
-                assertEquals(col as unknown, fakeCollection);
-            } finally {
-                restore();
-            }
-        },
-    );
+            assert.deepEqual(stubs.db.calls, [{ dbName: 'my-db' }]);
+            assert.deepEqual(collectionCalls, ['users']);
+            assert.deepEqual(col as unknown, fakeCollection);
+        } finally {
+            restore();
+        }
+    });
 
-    await t.step(
-        'healthCheck returns healthy when ping succeeds',
-        async () => {
-            resetSingleton();
-            const fakeDb = {
-                command: (_cmd: unknown) => Promise.resolve({ ok: 1 }),
-            };
+    await t.test('healthCheck returns healthy when ping succeeds', async () => {
+        resetSingleton();
+        const fakeDb = {
+            command: (_cmd: unknown) => Promise.resolve({ ok: 1 }),
+        };
 
-            const { restore } = installStubs({
-                db: { calls: [], impl: () => fakeDb },
-            });
+        const { restore } = installStubs({
+            db: { calls: [], impl: () => fakeDb },
+        });
 
-            try {
-                const manager = MongoConnectionManager.getInstance(TEST_URI);
-                const result = await manager.healthCheck();
+        try {
+            const manager = MongoConnectionManager.getInstance(TEST_URI);
+            const result = await manager.healthCheck();
 
-                assertEquals(result, { status: 'healthy' });
-            } finally {
-                restore();
-            }
-        },
-    );
+            assert.deepEqual(result, { status: 'healthy' });
+        } finally {
+            restore();
+        }
+    });
 
-    await t.step(
+    await t.test(
         'healthCheck returns error details when ping fails',
         async () => {
             resetSingleton();
@@ -263,15 +259,15 @@ Deno.test('MongoConnectionManager', async (t) => {
                 const manager = MongoConnectionManager.getInstance(TEST_URI);
                 const result = await manager.healthCheck();
 
-                assertEquals(result.status, 'error');
-                assertEquals(result.details, 'ping failed');
+                assert.deepEqual(result.status, 'error');
+                assert.deepEqual(result.details, 'ping failed');
             } finally {
                 restore();
             }
         },
     );
 
-    await t.step(
+    await t.test(
         'close drains the pool and triggers a fresh connect on next getClient',
         async () => {
             resetSingleton();
@@ -282,19 +278,19 @@ Deno.test('MongoConnectionManager', async (t) => {
                 const first = await manager.getClient();
                 await manager.close();
 
-                assertEquals(stubs.close.calls, 1);
+                assert.deepEqual(stubs.close.calls, 1);
 
                 const second = await manager.getClient();
 
-                assertEquals(stubs.connect.calls, 2);
-                assertNotEquals(first, second);
+                assert.deepEqual(stubs.connect.calls, 2);
+                assert.notDeepEqual(first, second);
             } finally {
                 restore();
             }
         },
     );
 
-    await t.step(
+    await t.test(
         'close is a no-op when no client has been created',
         async () => {
             resetSingleton();
@@ -304,20 +300,20 @@ Deno.test('MongoConnectionManager', async (t) => {
                 const manager = MongoConnectionManager.getInstance(TEST_URI);
                 await manager.close();
 
-                assertEquals(stubs.close.calls, 0);
-                assertEquals(stubs.connect.calls, 0);
+                assert.deepEqual(stubs.close.calls, 0);
+                assert.deepEqual(stubs.connect.calls, 0);
             } finally {
                 restore();
             }
         },
     );
 
-    await t.step(
+    await t.test(
         'close awaits an in-flight connect and then closes the resulting client',
         async () => {
             resetSingleton();
-            const { promise: connectPromise, resolve: resolveConnect } = Promise
-                .withResolvers<void>();
+            const { promise: connectPromise, resolve: resolveConnect } =
+                Promise.withResolvers<void>();
 
             const { stubs, restore } = installStubs({
                 connect: { calls: 0, impl: () => connectPromise },
@@ -334,15 +330,15 @@ Deno.test('MongoConnectionManager', async (t) => {
                 await inflight;
                 await closing;
 
-                assertEquals(stubs.connect.calls, 1);
-                assertEquals(stubs.close.calls, 1);
+                assert.deepEqual(stubs.connect.calls, 1);
+                assert.deepEqual(stubs.close.calls, 1);
             } finally {
                 restore();
             }
         },
     );
 
-    await t.step(
+    await t.test(
         'close keeps the client reference when client.close throws so it can be retried',
         async () => {
             resetSingleton();
@@ -363,26 +359,24 @@ Deno.test('MongoConnectionManager', async (t) => {
                 const manager = MongoConnectionManager.getInstance(TEST_URI);
                 const first = await manager.getClient();
 
-                await assertRejects(
-                    () => manager.close(),
-                    Error,
-                    'close failed',
-                );
+                await assert.rejects(() => manager.close(), {
+                    message: /close failed/,
+                });
 
                 // The same client is still cached because close() failed.
                 const stillFirst = await manager.getClient();
-                assertEquals(stillFirst, first);
-                assertEquals(stubs.connect.calls, 1);
+                assert.deepEqual(stillFirst, first);
+                assert.deepEqual(stubs.connect.calls, 1);
 
                 // A retry now succeeds and frees the reference.
                 shouldThrow = false;
                 await manager.close();
 
-                assertEquals(stubs.close.calls, 2);
+                assert.deepEqual(stubs.close.calls, 2);
 
                 const fresh = await manager.getClient();
-                assertNotEquals(fresh, first);
-                assertEquals(stubs.connect.calls, 2);
+                assert.notDeepEqual(fresh, first);
+                assert.deepEqual(stubs.connect.calls, 2);
             } finally {
                 restore();
             }

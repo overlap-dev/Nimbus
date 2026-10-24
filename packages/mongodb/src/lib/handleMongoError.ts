@@ -15,8 +15,8 @@ export const handleMongoError = (error: any): Exception => {
     if (error.code && error.code === 121) {
         return new InvalidInputException(error.message, {
             code: error.code,
-            ...(error.errInfo?.['details'] && {
-                details: error.errInfo?.['details'],
+            ...(error.errInfo?.details && {
+                details: error.errInfo?.details,
             }),
             ...(error.writeErrors && { writeErrors: error.writeErrors }),
             ...(error.result && { result: error.result }),
@@ -29,7 +29,7 @@ export const handleMongoError = (error: any): Exception => {
 
     if (error.code && error.code === 11000) {
         return new InvalidInputException(error.message, {
-            keyValue: error['keyValue'],
+            keyValue: error.keyValue,
         }).fromError(error);
     }
 

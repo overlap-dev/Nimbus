@@ -14,24 +14,29 @@ next:
 Adapters and useful functionality to bridge Nimbus and [Hono](https://hono.dev/).
 
 - npm: [@nimbus-cqrs/hono](https://www.npmjs.com/package/@nimbus-cqrs/hono)
-- JSR: [@nimbus-cqrs/hono](https://jsr.io/@nimbus-cqrs/hono)
 
-### Deno
-
-```bash
-deno add npm:@nimbus-cqrs/hono
-```
-
-### NPM
+### npm
 
 ```bash
 npm install @nimbus-cqrs/hono
+```
+
+### pnpm
+
+```bash
+pnpm add @nimbus-cqrs/hono
 ```
 
 ### Bun
 
 ```bash
 bun add @nimbus-cqrs/hono
+```
+
+### Deno
+
+```bash
+deno add npm:@nimbus-cqrs/hono
 ```
 
 ## Example Application

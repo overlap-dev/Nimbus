@@ -1,3 +1,5 @@
+import process from 'node:process';
+import { serve } from '@hono/node-server';
 import { getEnv, getLogger } from '@nimbus-cqrs/core';
 import { getEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
 import {
@@ -18,16 +20,20 @@ export const app = new Hono();
 
 app.use(correlationId());
 
-app.use(logger({
-    enableTracing: true,
-    tracerName: 'api',
-}));
+app.use(
+    logger({
+        enableTracing: true,
+        tracerName: 'api',
+    }),
+);
 
 app.use(cors());
 
-app.use(secureHeaders({
-    crossOriginResourcePolicy: 'cross-origin',
-}));
+app.use(
+    secureHeaders({
+        crossOriginResourcePolicy: 'cross-origin',
+    }),
+);
 
 app.use(compress());
 
@@ -65,7 +71,7 @@ export const startHttpServer = () => {
             variables: ['HTTP_PORT'],
         });
 
-        port = Number.parseInt(env.HTTP_PORT);
+        port = Number.parseInt(env.HTTP_PORT, 10);
     } catch (error) {
         getLogger().critical({
             category: 'HttpApi',
@@ -73,19 +79,27 @@ export const startHttpServer = () => {
             error: error as Error,
         });
 
-        Deno.exit(1);
+        process.exit(1);
     }
 
-    const server = Deno.serve({
-        hostname: '0.0.0.0',
-        port: port!,
-        onListen: ({ port, hostname }) => {
+    const server = serve(
+        {
+            fetch: app.fetch,
+            hostname: '0.0.0.0',
+            port,
+        },
+        ({ address, port }) => {
             getLogger().info({
                 category: 'HttpApi',
-                message: `Started HTTP API on http://${hostname}:${port}`,
+                message: `Started HTTP API on http://${address}:${port}`,
             });
         },
-    }, app.fetch);
+    );
 
-    return server;
+    return {
+        shutdown: () =>
+            new Promise<void>((resolve, reject) => {
+                server.close((error) => (error ? reject(error) : resolve()));
+            }),
+    };
 };

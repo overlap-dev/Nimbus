@@ -6,7 +6,6 @@
 # Nimbus EventSourcingDB
 
 Integration between Nimbus and [EventSourcingDB](https://www.eventsourcingdb.io/). The package wraps the official `eventsourcingdb` client with:
-
 - a **singleton setup** that pings the server, verifies the API token and registers long-running observers in one call,
 - typed **`writeEvents` / `readEvents`** helpers that translate between Nimbus events and EventSourcingDB events while preserving correlation IDs, data schemas and W3C trace context (`traceparent` / `tracestate`),
 - resilient **event observers** with exponential-backoff retries, jitter, position tracking across reconnects and OpenTelemetry span linking back to the original writer.
@@ -18,17 +17,20 @@ Also refer to the [EventSourcingDB documentation](https://docs.eventsourcingdb.i
 ## Install
 
 ```bash
-# Deno
-deno add npm:@nimbus-cqrs/eventsourcingdb
-
-# NPM
+# npm
 npm install @nimbus-cqrs/eventsourcingdb
+
+# pnpm
+pnpm add @nimbus-cqrs/eventsourcingdb
 
 # Bun
 bun add @nimbus-cqrs/eventsourcingdb
+
+# Deno
+deno add npm:@nimbus-cqrs/eventsourcingdb
 ```
 
-`eventsourcingdb` is a peer dependency — install it (or use one of the runtimes that resolves it via `npm:`/`jsr:` specifiers).
+`eventsourcingdb` is a peer dependency — install it alongside this package.
 
 # Examples
 
@@ -41,23 +43,23 @@ The snippets below use a tiny `Todo` domain to walk through the package — even
 A typical wiring at application startup: configure the client, register the observers you want to keep running, then write events from your command handlers.
 
 ```typescript
-import { createEvent } from "@nimbus-cqrs/core";
+import { createEvent } from '@nimbus-cqrs/core';
 import {
     eventSourcingDBEventToNimbusEvent,
     setupEventSourcingDBClient,
     writeEvents,
-} from "@nimbus-cqrs/eventsourcingdb";
+} from '@nimbus-cqrs/eventsourcingdb';
 
 await setupEventSourcingDBClient({
-    url: new URL(process.env.ESDB_URL ?? ""),
-    apiToken: process.env.ESDB_API_TOKEN ?? "",
+    url: new URL(process.env.ESDB_URL ?? ''),
+    apiToken: process.env.ESDB_API_TOKEN ?? '',
     eventObservers: [
         {
-            subject: "/todos",
+            subject: '/todos',
             recursive: true,
             eventHandler: async (event) => {
                 const nimbusEvent = eventSourcingDBEventToNimbusEvent(event);
-                console.log("reacting to", nimbusEvent.type, nimbusEvent.data);
+                console.log('reacting to', nimbusEvent.type, nimbusEvent.data);
             },
         },
     ],
@@ -65,10 +67,10 @@ await setupEventSourcingDBClient({
 
 await writeEvents([
     createEvent({
-        type: "com.example.todo.added",
-        source: "https://app.example.com",
-        subject: "/todos/todo-1",
-        data: { id: "todo-1", title: "Write the README" },
+        type: 'com.example.todo.added',
+        source: 'https://app.example.com',
+        subject: '/todos/todo-1',
+        data: { id: 'todo-1', title: 'Write the README' },
     }),
 ]);
 ```
@@ -81,11 +83,11 @@ await writeEvents([
 import {
     getEventSourcingDBClient,
     setupEventSourcingDBClient,
-} from "@nimbus-cqrs/eventsourcingdb";
+} from '@nimbus-cqrs/eventsourcingdb';
 
 await setupEventSourcingDBClient({
-    url: new URL(process.env.ESDB_URL ?? ""),
-    apiToken: process.env.ESDB_API_TOKEN ?? "",
+    url: new URL(process.env.ESDB_URL ?? ''),
+    apiToken: process.env.ESDB_API_TOKEN ?? '',
 });
 
 // Anywhere else:
@@ -99,15 +101,15 @@ The `eventObservers` array is optional; passing observers here is just a conveni
 `writeEvents` takes an array of Nimbus events and persists them to EventSourcingDB. Before writing it wraps each event payload with Nimbus metadata (`payload` + `nimbusMeta`) so the correlation ID and optional `dataschema` survive a round-trip, and it injects the active OpenTelemetry context as `traceparent` / `tracestate` so distributed traces stitch together end-to-end.
 
 ```typescript
-import { createEvent } from "@nimbus-cqrs/core";
-import { writeEvents } from "@nimbus-cqrs/eventsourcingdb";
+import { createEvent } from '@nimbus-cqrs/core';
+import { writeEvents } from '@nimbus-cqrs/eventsourcingdb';
 
 await writeEvents([
     createEvent({
-        type: "com.example.todo.added",
-        source: "https://app.example.com",
-        subject: "/todos/todo-1",
-        data: { id: "todo-1", title: "Write the README" },
+        type: 'com.example.todo.added',
+        source: 'https://app.example.com',
+        subject: '/todos/todo-1',
+        data: { id: 'todo-1', title: 'Write the README' },
     }),
 ]);
 ```
@@ -119,8 +121,8 @@ await writeEvents(
     [todoAddedEvent],
     [
         {
-            type: "isSubjectPristine",
-            payload: { subject: "/todos/todo-1" },
+            type: 'isSubjectPristine',
+            payload: { subject: '/todos/todo-1' },
         },
     ],
 );
@@ -134,9 +136,9 @@ await writeEvents(
 import {
     eventSourcingDBEventToNimbusEvent,
     readEvents,
-} from "@nimbus-cqrs/eventsourcingdb";
+} from '@nimbus-cqrs/eventsourcingdb';
 
-for await (const event of readEvents("/todos/todo-1", { recursive: false })) {
+for await (const event of readEvents('/todos/todo-1', { recursive: false })) {
     const nimbusEvent = eventSourcingDBEventToNimbusEvent(event);
     // ...rebuild your aggregate, replay state, etc.
 }
@@ -147,7 +149,6 @@ Pass an `AbortSignal` as the third argument if you need to cancel a long-running
 ## Event observers
 
 An `EventObserver` is a long-running consumer attached to a subject. `initEventObserver` (or the `eventObservers` array on `setupEventSourcingDBClient`) starts it in the background and keeps it alive. Connection and handler failures are retried separately with exponential backoff plus jitter (defaults: 3 retries, 3000 ms initial delay for each):
-
 - **Connection failures** reconnect the observe stream (`connectionRetryOptions`; deprecated alias: `retryOptions`).
 - **Handler failures** are retried in-place without reconnecting (`handlerRetryOptions`). After handler retries are exhausted the event is skipped (optional `onHandlerError`) and observation continues.
 
@@ -156,19 +157,19 @@ On every handled or skipped event the observer advances its lower bound so a rec
 Each event handler runs inside an OpenTelemetry span. If the source event carries a `traceparent`, that span is linked back to the writer's trace, giving you end-to-end visibility from the command that produced the event to every subscriber that reacted to it.
 
 ```typescript
-import { getLogger } from "@nimbus-cqrs/core";
-import { initEventObserver } from "@nimbus-cqrs/eventsourcingdb";
+import { getLogger } from '@nimbus-cqrs/core';
+import { initEventObserver } from '@nimbus-cqrs/eventsourcingdb';
 
 initEventObserver({
-    subject: "/todos",
+    subject: '/todos',
     recursive: true,
     fromLatestEvent: {
-        subject: "/todos",
-        type: "com.example.todo.added",
-        ifEventIsMissing: "read-everything",
+        subject: '/todos',
+        type: 'com.example.todo.added',
+        ifEventIsMissing: 'read-everything',
     },
     eventHandler: async (event) => {
-        if (event.type === "com.example.todo.added") {
+        if (event.type === 'com.example.todo.added') {
             // ...update a read model, send a notification, ...
         }
     },
@@ -182,7 +183,7 @@ initEventObserver({
     },
     onHandlerError: (error, event) => {
         getLogger().error({
-            category: "EventObserver",
+            category: 'EventObserver',
             message: `Skipping event after handler retries: ${event.id}`,
             error,
         });
@@ -215,7 +216,7 @@ import {
     eventSourcingDBEventToNimbusEvent,
     isEventData,
     nimbusEventToEventSourcingDBEventCandidate,
-} from "@nimbus-cqrs/eventsourcingdb";
+} from '@nimbus-cqrs/eventsourcingdb';
 ```
 
 - `nimbusEventToEventSourcingDBEventCandidate(event)` — manual conversion, e.g. when batching with the raw client.

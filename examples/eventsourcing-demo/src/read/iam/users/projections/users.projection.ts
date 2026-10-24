@@ -1,16 +1,16 @@
 import { getLogger } from '@nimbus-cqrs/core';
 import { eventSourcingDBEventToNimbusEvent } from '@nimbus-cqrs/eventsourcingdb';
-import { Event as EventSourcingDBEvent } from 'eventsourcingdb';
+import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import { ObjectId } from 'mongodb';
 import {
     isUserInvitationAcceptedEvent,
-    UserInvitationAcceptedEvent,
+    type UserInvitationAcceptedEvent,
 } from '../../../../write/iam/users/core/events/userInvitationAccepted.event.ts';
 import {
     isUserInvitedEvent,
-    UserInvitedEvent,
+    type UserInvitedEvent,
 } from '../../../../write/iam/users/core/events/userInvited.event.ts';
-import { User } from './users.collection.ts';
+import type { User } from './users.collection.ts';
 import { userRepository } from './users.repository.ts';
 
 // Here we define the "users" projection.
@@ -38,9 +38,7 @@ export const projectUsers = async (
 
     const event = eventSourcingDBEventToNimbusEvent<
         UserInvitedEvent | UserInvitationAcceptedEvent
-    >(
-        eventSourcingDBEvent,
-    );
+    >(eventSourcingDBEvent);
 
     // Now we can apply the event to the projection
     // based on the type of the event.

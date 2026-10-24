@@ -1,10 +1,10 @@
 ---
-description: Structured console logging with JSON or pretty formatters and OpenTelemetry log export via Deno.
+description: Structured console logging with JSON or pretty formatters, truncation, and OpenTelemetry integration.
 ---
 
 # Logging
 
-Nimbus provides a structured logger that outputs consistent, formatted log messages to the console. The logger integrates with Deno's native OpenTelemetry support for automatic log export to observability backends.
+Nimbus provides a structured logger that outputs consistent, formatted log messages to the console. Because it writes plain structured output, it works with any log collector and with runtimes that export `console` output through OpenTelemetry.
 
 ::: tip An in Depth Example
 This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
@@ -241,15 +241,12 @@ getLogger().info({
 
 ## OpenTelemetry Integration
 
-When combined with Deno's native OpenTelemetry support, logs are automatically exported alongside traces and metrics. See the [Observability](/guide/core/observability) documentation for details on enabling OTEL export.
+The logger writes structured JSON (or pretty) output to the console. How that output reaches your observability backend depends on the runtime:
 
-```bash
-export OTEL_DENO=true
-export OTEL_EXPORTER_OTLP_ENDPOINT="https://your-otlp-endpoint.com/otlp"
-export OTEL_SERVICE_NAME=your-service-name
+-   **Node.js** - Ship stdout to your log collector (the usual approach in containers), or register an OpenTelemetry Node SDK with a `console` instrumentation to export logs over OTLP.
+-   **Deno** - The built-in OpenTelemetry SDK captures `console` output automatically when `OTEL_DENO=true` is set, so logs are exported alongside traces and metrics.
 
-deno run src/main.ts
-```
+See the [Observability](/guide/core/observability) documentation for details on enabling OTEL export.
 
 ## Default Settings
 

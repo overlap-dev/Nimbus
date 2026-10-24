@@ -22,7 +22,7 @@ export default withMermaid(defineConfig({
                     description:
                         "TypeScript framework for event-driven apps: CQRS, Event Sourcing, CloudEvents messaging, OpenTelemetry.",
                     details:
-                        "Start with /guide/glossary.md and /guide/in-depth-example.md for terminology and a full walkthrough. Package API reference: https://jsr.io/@nimbus-cqrs",
+                        "Start with /guide/glossary.md and /guide/in-depth-example.md for terminology and a full walkthrough. Packages: https://www.npmjs.com/org/nimbus-cqrs",
                 },
                 customLLMsTxtTemplate: `# {title}
 
@@ -37,7 +37,7 @@ export default withMermaid(defineConfig({
 ## Optional
 
 - [eventsourcing-demo](https://github.com/overlap-dev/Nimbus/tree/main/examples/eventsourcing-demo): Full CQRS + Event Sourcing example application
-- [JSR @nimbus-cqrs](https://jsr.io/@nimbus-cqrs): Generated API documentation for all packages
+- [npm @nimbus-cqrs](https://www.npmjs.com/org/nimbus-cqrs): Published packages
 - [EventSourcingDB docs](https://docs.eventsourcingdb.io/): Event store used by the EventSourcingDB package
 - [CloudEvents](https://cloudevents.io/): Message format used by Commands, Events, and Queries
 `,

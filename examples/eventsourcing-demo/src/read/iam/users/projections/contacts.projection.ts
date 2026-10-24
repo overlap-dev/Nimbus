@@ -1,12 +1,12 @@
 import { getLogger } from '@nimbus-cqrs/core';
 import { eventSourcingDBEventToNimbusEvent } from '@nimbus-cqrs/eventsourcingdb';
-import { Event as EventSourcingDBEvent } from 'eventsourcingdb';
+import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import { ObjectId } from 'mongodb';
 import {
     isUserInvitedEvent,
-    UserInvitedEvent,
+    type UserInvitedEvent,
 } from '../../../../write/iam/users/core/events/userInvited.event.ts';
-import { Contact } from './contacts.collection.ts';
+import type { Contact } from './contacts.collection.ts';
 import { contactRepository } from './contacts.repository.ts';
 
 // Here we define the "contacts" projection.
@@ -21,11 +21,10 @@ export const projectContacts = async (
         message: `Projecting event ${eventSourcingDBEvent.type} to contacts.`,
     });
 
-    const event = eventSourcingDBEventToNimbusEvent<
-        UserInvitedEvent
-    >(
-        eventSourcingDBEvent,
-    );
+    const event =
+        eventSourcingDBEventToNimbusEvent<UserInvitedEvent>(
+            eventSourcingDBEvent,
+        );
 
     if (isUserInvitedEvent(event)) {
         const contact: Contact = {
@@ -44,8 +43,7 @@ export const projectContacts = async (
         } catch (error) {
             getLogger().error({
                 category: 'ProjectContacts',
-                message:
-                    `Could not project event ${event.type} to contacts view.`,
+                message: `Could not project event ${event.type} to contacts view.`,
                 error: error as Error,
             });
 

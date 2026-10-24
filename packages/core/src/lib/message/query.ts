@@ -1,4 +1,4 @@
-import { ulid } from '@std/ulid';
+import { ulid } from 'ulid';
 import { z } from 'zod';
 import { warnOnInvalidExtensionAttributeNames } from './message.ts';
 
@@ -102,8 +102,8 @@ export type QuerySchemaType = z.ZodObject<{
  *
  * Zod is the default for validating incomming messages.
  *
- * We do not infer the Query type from this schema because of
- * slow type issues see https://jsr.io/docs/about-slow-types for more details.
+ * We do not infer the Query type from this schema and give the schema an
+ * explicit type so the emitted declaration files stay small and readable.
  */
 export const querySchema: QuerySchemaType = z.looseObject({
     specversion: z.literal('1.0'),
@@ -130,15 +130,14 @@ export const querySchema: QuerySchemaType = z.looseObject({
  * the input is validated against that type. This means fields like
  * `type` and `data` must match the narrower types of `TQuery`.
  */
-export type CreateQueryInput<TQuery extends Query = Query> =
-    & Partial<
-        Pick<
-            TQuery,
-            'id' | 'correlationid' | 'time' | 'datacontenttype' | 'dataschema'
-        >
+export type CreateQueryInput<TQuery extends Query = Query> = Partial<
+    Pick<
+        TQuery,
+        'id' | 'correlationid' | 'time' | 'datacontenttype' | 'dataschema'
     >
-    & Pick<TQuery, 'type' | 'source' | 'data'>
-    & Partial<Omit<TQuery, QueryKnownProperty>>;
+> &
+    Pick<TQuery, 'type' | 'source' | 'data'> &
+    Partial<Omit<TQuery, QueryKnownProperty>>;
 
 /**
  * Creates a query based on input data with the convenience

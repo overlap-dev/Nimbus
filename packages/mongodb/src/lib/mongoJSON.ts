@@ -43,7 +43,7 @@ const mongoJSONParse = (
         } else if (value.startsWith('date::')) {
             return new Date(value.replace('date::', ''));
         } else if (value.startsWith('int::')) {
-            return Number.parseInt(value.replace('int::', ''));
+            return Number.parseInt(value.replace('int::', ''), 10);
         } else if (value.startsWith('double::')) {
             return Number.parseFloat(value.replace('double::', ''));
         } else {

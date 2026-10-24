@@ -1,4 +1,4 @@
-import { MongoCollectionDefinition } from '@nimbus-cqrs/mongodb';
+import type { MongoCollectionDefinition } from '@nimbus-cqrs/mongodb';
 import { z } from 'zod';
 
 // For demo purposes we define a second projection for contacts.
@@ -19,13 +19,7 @@ export const CONTACTS_COLLECTION: MongoCollectionDefinition = {
         validator: {
             $jsonSchema: {
                 bsonType: 'object',
-                required: [
-                    'id',
-                    'revision',
-                    'email',
-                    'firstName',
-                    'lastName',
-                ],
+                required: ['id', 'revision', 'email', 'firstName', 'lastName'],
                 properties: {
                     id: {
                         bsonType: 'string',
@@ -47,7 +41,12 @@ export const CONTACTS_COLLECTION: MongoCollectionDefinition = {
         },
     },
     indexes: [
-        { key: { id: 1 }, unique: true },
-        { key: { revision: 1 } },
+        {
+            key: { id: 1 },
+            unique: true,
+        },
+        {
+            key: { revision: 1 },
+        },
     ],
 };

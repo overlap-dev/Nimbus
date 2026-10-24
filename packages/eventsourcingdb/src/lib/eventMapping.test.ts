@@ -1,6 +1,7 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import type { Event } from '@nimbus-cqrs/core';
 import { createEvent } from '@nimbus-cqrs/core';
-import { assertEquals, assertNotEquals } from '@std/assert';
 import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import {
     type EventData,
@@ -13,9 +14,7 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 
-const createTestNimbusEvent = (
-    overrides: Partial<Event> = {},
-): Event => {
+const createTestNimbusEvent = (overrides: Partial<Event> = {}): Event => {
     return createEvent({
         source: 'https://nimbus.test',
         type: 'at.test.nimbus.test-event',
@@ -61,16 +60,16 @@ const createTestEventSourcingDBEvent = (
 // isEventData
 // ---------------------------------------------------------------------------
 
-Deno.test('isEventData returns true for valid EventData', () => {
+test('isEventData returns true for valid EventData', () => {
     const data: EventData = {
         payload: { key: 'value' },
         nimbusMeta: { correlationid: 'corr-1' },
     };
 
-    assertEquals(isEventData(data), true);
+    assert.deepEqual(isEventData(data), true);
 });
 
-Deno.test('isEventData returns true when nimbusMeta includes dataschema', () => {
+test('isEventData returns true when nimbusMeta includes dataschema', () => {
     const data: EventData = {
         payload: { key: 'value' },
         nimbusMeta: {
@@ -79,65 +78,65 @@ Deno.test('isEventData returns true when nimbusMeta includes dataschema', () => 
         },
     };
 
-    assertEquals(isEventData(data), true);
+    assert.deepEqual(isEventData(data), true);
 });
 
-Deno.test('isEventData returns false for null', () => {
-    assertEquals(isEventData(null), false);
+test('isEventData returns false for null', () => {
+    assert.deepEqual(isEventData(null), false);
 });
 
-Deno.test('isEventData returns false for undefined', () => {
-    assertEquals(isEventData(undefined), false);
+test('isEventData returns false for undefined', () => {
+    assert.deepEqual(isEventData(undefined), false);
 });
 
-Deno.test('isEventData returns false for a string', () => {
-    assertEquals(isEventData('not an object'), false);
+test('isEventData returns false for a string', () => {
+    assert.deepEqual(isEventData('not an object'), false);
 });
 
-Deno.test('isEventData returns false for a number', () => {
-    assertEquals(isEventData(42), false);
+test('isEventData returns false for a number', () => {
+    assert.deepEqual(isEventData(42), false);
 });
 
-Deno.test('isEventData returns false for an object missing nimbusMeta', () => {
-    assertEquals(isEventData({ payload: { key: 'value' } }), false);
+test('isEventData returns false for an object missing nimbusMeta', () => {
+    assert.deepEqual(isEventData({ payload: { key: 'value' } }), false);
 });
 
-Deno.test('isEventData returns false for an object missing payload', () => {
-    assertEquals(
+test('isEventData returns false for an object missing payload', () => {
+    assert.deepEqual(
         isEventData({ nimbusMeta: { correlationid: 'corr-1' } }),
         false,
     );
 });
 
-Deno.test('isEventData returns false for an empty object', () => {
-    assertEquals(isEventData({}), false);
+test('isEventData returns false for an empty object', () => {
+    assert.deepEqual(isEventData({}), false);
 });
 
 // ---------------------------------------------------------------------------
 // nimbusEventToEventSourcingDBEventCandidate
 // ---------------------------------------------------------------------------
 
-Deno.test('nimbusEventToEventSourcingDBEventCandidate maps basic properties', () => {
+test('nimbusEventToEventSourcingDBEventCandidate maps basic properties', () => {
     const event = createTestNimbusEvent();
 
     const candidate = nimbusEventToEventSourcingDBEventCandidate(event);
 
-    assertEquals(candidate.source, event.source);
-    assertEquals(candidate.subject, event.subject);
-    assertEquals(candidate.type, event.type);
+    assert.deepEqual(candidate.source, event.source);
+    assert.deepEqual(candidate.subject, event.subject);
+    assert.deepEqual(candidate.type, event.type);
 });
 
-Deno.test('nimbusEventToEventSourcingDBEventCandidate wraps data with nimbusMeta', () => {
+test('nimbusEventToEventSourcingDBEventCandidate wraps data with nimbusMeta', () => {
     const event = createTestNimbusEvent();
 
     const candidate = nimbusEventToEventSourcingDBEventCandidate(event);
     const data = candidate.data as EventData;
 
-    assertEquals(data.payload, event.data);
-    assertEquals(data.nimbusMeta.correlationid, event.correlationid);
+    assert.deepEqual(data.payload, event.data);
+    assert.deepEqual(data.nimbusMeta.correlationid, event.correlationid);
 });
 
-Deno.test('nimbusEventToEventSourcingDBEventCandidate includes dataschema in nimbusMeta when present', () => {
+test('nimbusEventToEventSourcingDBEventCandidate includes dataschema in nimbusMeta when present', () => {
     const event = createTestNimbusEvent({
         dataschema: 'https://schema.example.com/v1',
     });
@@ -145,22 +144,22 @@ Deno.test('nimbusEventToEventSourcingDBEventCandidate includes dataschema in nim
     const candidate = nimbusEventToEventSourcingDBEventCandidate(event);
     const data = candidate.data as EventData;
 
-    assertEquals(
+    assert.deepEqual(
         data.nimbusMeta.dataschema,
         'https://schema.example.com/v1',
     );
 });
 
-Deno.test('nimbusEventToEventSourcingDBEventCandidate omits dataschema from nimbusMeta when absent', () => {
+test('nimbusEventToEventSourcingDBEventCandidate omits dataschema from nimbusMeta when absent', () => {
     const event = createTestNimbusEvent();
 
     const candidate = nimbusEventToEventSourcingDBEventCandidate(event);
     const data = candidate.data as EventData;
 
-    assertEquals(data.nimbusMeta.dataschema, undefined);
+    assert.deepEqual(data.nimbusMeta.dataschema, undefined);
 });
 
-Deno.test('nimbusEventToEventSourcingDBEventCandidate includes traceparent when provided', () => {
+test('nimbusEventToEventSourcingDBEventCandidate includes traceparent when provided', () => {
     const event = createTestNimbusEvent();
 
     const candidate = nimbusEventToEventSourcingDBEventCandidate(
@@ -168,10 +167,10 @@ Deno.test('nimbusEventToEventSourcingDBEventCandidate includes traceparent when 
         '00-abc-def-01',
     );
 
-    assertEquals(candidate.traceparent, '00-abc-def-01');
+    assert.deepEqual(candidate.traceparent, '00-abc-def-01');
 });
 
-Deno.test('nimbusEventToEventSourcingDBEventCandidate includes tracestate when provided', () => {
+test('nimbusEventToEventSourcingDBEventCandidate includes tracestate when provided', () => {
     const event = createTestNimbusEvent();
 
     const candidate = nimbusEventToEventSourcingDBEventCandidate(
@@ -180,19 +179,19 @@ Deno.test('nimbusEventToEventSourcingDBEventCandidate includes tracestate when p
         'vendor=value',
     );
 
-    assertEquals(candidate.traceparent, '00-abc-def-01');
-    assertEquals(candidate.tracestate, 'vendor=value');
+    assert.deepEqual(candidate.traceparent, '00-abc-def-01');
+    assert.deepEqual(candidate.tracestate, 'vendor=value');
 });
 
-Deno.test('nimbusEventToEventSourcingDBEventCandidate omits traceparent when not provided', () => {
+test('nimbusEventToEventSourcingDBEventCandidate omits traceparent when not provided', () => {
     const event = createTestNimbusEvent();
 
     const candidate = nimbusEventToEventSourcingDBEventCandidate(event);
 
-    assertEquals(candidate.traceparent, undefined);
+    assert.deepEqual(candidate.traceparent, undefined);
 });
 
-Deno.test('nimbusEventToEventSourcingDBEventCandidate omits tracestate when not provided', () => {
+test('nimbusEventToEventSourcingDBEventCandidate omits tracestate when not provided', () => {
     const event = createTestNimbusEvent();
 
     const candidate = nimbusEventToEventSourcingDBEventCandidate(
@@ -200,29 +199,29 @@ Deno.test('nimbusEventToEventSourcingDBEventCandidate omits tracestate when not 
         '00-abc-def-01',
     );
 
-    assertEquals(candidate.tracestate, undefined);
+    assert.deepEqual(candidate.tracestate, undefined);
 });
 
 // ---------------------------------------------------------------------------
 // eventSourcingDBEventToNimbusEvent
 // ---------------------------------------------------------------------------
 
-Deno.test('eventSourcingDBEventToNimbusEvent maps event with nimbusMeta correctly', () => {
+test('eventSourcingDBEventToNimbusEvent maps event with nimbusMeta correctly', () => {
     const esdbEvent = createTestEventSourcingDBEvent();
 
     const nimbusEvent = eventSourcingDBEventToNimbusEvent(esdbEvent);
 
-    assertEquals(nimbusEvent.specversion, '1.0');
-    assertEquals(nimbusEvent.id, '1');
-    assertEquals(nimbusEvent.time, '2025-06-01T12:00:00.000Z');
-    assertEquals(nimbusEvent.source, 'https://nimbus.test');
-    assertEquals(nimbusEvent.subject, '/tests/1');
-    assertEquals(nimbusEvent.type, 'at.test.nimbus.test-event');
-    assertEquals(nimbusEvent.data, { message: 'hello' });
-    assertEquals(nimbusEvent.correlationid, 'corr-123');
+    assert.deepEqual(nimbusEvent.specversion, '1.0');
+    assert.deepEqual(nimbusEvent.id, '1');
+    assert.deepEqual(nimbusEvent.time, '2025-06-01T12:00:00.000Z');
+    assert.deepEqual(nimbusEvent.source, 'https://nimbus.test');
+    assert.deepEqual(nimbusEvent.subject, '/tests/1');
+    assert.deepEqual(nimbusEvent.type, 'at.test.nimbus.test-event');
+    assert.deepEqual(nimbusEvent.data, { message: 'hello' });
+    assert.deepEqual(nimbusEvent.correlationid, 'corr-123');
 });
 
-Deno.test('eventSourcingDBEventToNimbusEvent extracts dataschema from nimbusMeta', () => {
+test('eventSourcingDBEventToNimbusEvent extracts dataschema from nimbusMeta', () => {
     const esdbEvent = createTestEventSourcingDBEvent({
         data: {
             payload: { message: 'hello' },
@@ -235,35 +234,32 @@ Deno.test('eventSourcingDBEventToNimbusEvent extracts dataschema from nimbusMeta
 
     const nimbusEvent = eventSourcingDBEventToNimbusEvent(esdbEvent);
 
-    assertEquals(
-        nimbusEvent.dataschema,
-        'https://schema.example.com/v1',
-    );
+    assert.deepEqual(nimbusEvent.dataschema, 'https://schema.example.com/v1');
 });
 
-Deno.test('eventSourcingDBEventToNimbusEvent omits dataschema when nimbusMeta has none', () => {
+test('eventSourcingDBEventToNimbusEvent omits dataschema when nimbusMeta has none', () => {
     const esdbEvent = createTestEventSourcingDBEvent();
 
     const nimbusEvent = eventSourcingDBEventToNimbusEvent(esdbEvent);
 
-    assertEquals(nimbusEvent.dataschema, undefined);
+    assert.deepEqual(nimbusEvent.dataschema, undefined);
 });
 
-Deno.test('eventSourcingDBEventToNimbusEvent handles event without nimbusMeta', () => {
+test('eventSourcingDBEventToNimbusEvent handles event without nimbusMeta', () => {
     const esdbEvent = createTestEventSourcingDBEvent({
         data: { rawKey: 'rawValue' },
     });
 
     const nimbusEvent = eventSourcingDBEventToNimbusEvent(esdbEvent);
 
-    assertEquals(nimbusEvent.data, { rawKey: 'rawValue' });
-    assertEquals(nimbusEvent.dataschema, undefined);
+    assert.deepEqual(nimbusEvent.data, { rawKey: 'rawValue' });
+    assert.deepEqual(nimbusEvent.dataschema, undefined);
     // A new correlationid should be generated (ULID format)
-    assertNotEquals(nimbusEvent.correlationid, undefined);
-    assertNotEquals(nimbusEvent.correlationid, '');
+    assert.notDeepEqual(nimbusEvent.correlationid, undefined);
+    assert.notDeepEqual(nimbusEvent.correlationid, '');
 });
 
-Deno.test('eventSourcingDBEventToNimbusEvent generates different correlationid for non-nimbus events', () => {
+test('eventSourcingDBEventToNimbusEvent generates different correlationid for non-nimbus events', () => {
     const esdbEvent = createTestEventSourcingDBEvent({
         data: { rawKey: 'rawValue' },
     });
@@ -272,14 +268,14 @@ Deno.test('eventSourcingDBEventToNimbusEvent generates different correlationid f
     const second = eventSourcingDBEventToNimbusEvent(esdbEvent);
 
     // Each call should produce a unique correlation id
-    assertNotEquals(first.correlationid, second.correlationid);
+    assert.notDeepEqual(first.correlationid, second.correlationid);
 });
 
 // ---------------------------------------------------------------------------
 // Round-trip: Nimbus → EventSourcingDB → Nimbus
 // ---------------------------------------------------------------------------
 
-Deno.test('round-trip preserves event data through mapping', () => {
+test('round-trip preserves event data through mapping', () => {
     const original = createTestNimbusEvent({
         id: 'round-trip-id',
         correlationid: 'round-trip-corr',
@@ -300,11 +296,11 @@ Deno.test('round-trip preserves event data through mapping', () => {
 
     const restored = eventSourcingDBEventToNimbusEvent(storedEvent);
 
-    assertEquals(restored.id, original.id);
-    assertEquals(restored.source, original.source);
-    assertEquals(restored.subject, original.subject);
-    assertEquals(restored.type, original.type);
-    assertEquals(restored.data, original.data);
-    assertEquals(restored.correlationid, original.correlationid);
-    assertEquals(restored.dataschema, original.dataschema);
+    assert.deepEqual(restored.id, original.id);
+    assert.deepEqual(restored.source, original.source);
+    assert.deepEqual(restored.subject, original.subject);
+    assert.deepEqual(restored.type, original.type);
+    assert.deepEqual(restored.data, original.data);
+    assert.deepEqual(restored.correlationid, original.correlationid);
+    assert.deepEqual(restored.dataschema, original.dataschema);
 });

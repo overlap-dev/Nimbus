@@ -32,25 +32,45 @@ Nimbus uses the [OpenTelemetry API](https://opentelemetry.io/) (`@opentelemetry/
 - **Industry standard** - Wide ecosystem support and community adoption
 - **Future-proof** - Backed by CNCF with active development
 
-## Deno Native Observability
+## Enabling OpenTelemetry
 
-Nimbus builds upon [Deno's native OpenTelemetry support](https://docs.deno.com/runtime/fundamentals/open_telemetry/). With Deno 2.x, you can enable OTEL export with zero additional dependencies.
+Nimbus only depends on the OpenTelemetry *API*. Nothing is exported until your application registers an OpenTelemetry SDK, which is runtime specific.
 
-### Enabling OpenTelemetry
+### Node.js
 
-Set environment variables to enable OTEL export:
+Install the Node SDK and start it before any application code runs. The simplest way is a small bootstrap module that is loaded with `node --import`:
 
 ```bash
-export OTEL_DENO=true
+npm install @opentelemetry/sdk-node
+```
+
+```typescript
+// src/otel.ts
+import { NodeSDK } from "@opentelemetry/sdk-node";
+
+const sdk = new NodeSDK();
+sdk.start();
+
+process.once("SIGTERM", () => sdk.shutdown());
+process.once("SIGINT", () => sdk.shutdown());
+```
+
+The SDK is configured through the standard `OTEL_*` environment variables:
+
+```bash
 export OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
 export OTEL_EXPORTER_OTLP_ENDPOINT="https://your-otlp-endpoint.com/otlp"
 export OTEL_SERVICE_NAME=your-service-name
 export OTEL_RESOURCE_ATTRIBUTES=deployment.environment=production
 
-deno run -A src/main.ts
+node --import ./src/otel.ts src/main.ts
 ```
 
-All traces, metrics, and logs from Nimbus will automatically be exported to your configured backend.
+All traces and metrics from Nimbus will be exported to your configured backend. See `examples/eventsourcing-demo/src/otel.ts` in the repository for a complete example.
+
+### Deno
+
+Deno ships a built-in OpenTelemetry SDK, so no additional dependency is needed. Set `OTEL_DENO=true` together with the same `OTEL_*` variables as above and run your application with `deno run -A src/main.ts`. See [Deno's OpenTelemetry documentation](https://docs.deno.com/runtime/fundamentals/open_telemetry/) for details.
 
 ## Built-in Instrumentation
 
@@ -109,7 +129,7 @@ See [Event Observer](/guide/eventsourcingdb/event-observer) and [Write Events](/
 
 ### Logger
 
-The [Logger](/guide/core/logging) outputs structured logs to the console. When combined with Deno's OTEL support, logs are automatically exported alongside traces and metrics.
+The [Logger](/guide/core/logging) outputs structured logs to the console. Runtimes that capture `console` output for OpenTelemetry (such as Deno's built-in SDK) export these logs alongside traces and metrics; on Node.js, forward stdout to your log collector or add a `console` instrumentation to the Node SDK.
 
 ## Custom Tracing with withSpan()
 

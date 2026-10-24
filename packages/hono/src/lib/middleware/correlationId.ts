@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from 'hono';
-import { ulid } from '@std/ulid';
+import { ulid } from 'ulid';
 
 /**
  * Header names to check for an existing correlation ID.
@@ -62,8 +62,8 @@ export const correlationId = (
     options?: CorrelationIdOptions,
 ): MiddlewareHandler => {
     const addToResponseHeaders = options?.addToResponseHeaders ?? true;
-    const responseHeaderName = options?.responseHeaderName ??
-        'x-correlation-id';
+    const responseHeaderName =
+        options?.responseHeaderName ?? 'x-correlation-id';
 
     return async (c, next) => {
         let id: string | undefined;

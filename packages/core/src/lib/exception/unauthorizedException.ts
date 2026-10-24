@@ -5,11 +5,6 @@ import { Exception } from './exception.ts';
  */
 export class UnauthorizedException extends Exception {
     constructor(message?: string, details?: Record<string, unknown>) {
-        super(
-            'UNAUTHORIZED',
-            message ?? 'Unauthorized',
-            details,
-            401,
-        );
+        super('UNAUTHORIZED', message ?? 'Unauthorized', details, 401);
     }
 }

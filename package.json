@@ -1,0 +1,22 @@
+{
+  "name": "nimbus",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.28.6",
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter './packages/*' run build",
+    "check": "pnpm -r run check",
+    "lint": "biome ci .",
+    "fmt": "biome check --write .",
+    "test": "pnpm -r --filter './packages/*' run test",
+    "version:set": "node scripts/set_version.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

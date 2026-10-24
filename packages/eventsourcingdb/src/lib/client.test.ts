@@ -1,11 +1,10 @@
-import { assertInstanceOf, assertThrows } from '@std/assert';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import { GenericException } from '@nimbus-cqrs/core';
 import { getEventSourcingDBClient } from './client.ts';
 
-Deno.test('getEventSourcingDBClient throws GenericException before init', () => {
-    const error = assertThrows(() => {
+test('getEventSourcingDBClient throws GenericException before init', () => {
+    assert.throws(() => {
         getEventSourcingDBClient();
-    });
-
-    assertInstanceOf(error, GenericException);
+    }, GenericException);
 });

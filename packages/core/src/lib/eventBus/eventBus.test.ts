@@ -1,4 +1,5 @@
-import { assertEquals, assertExists, assertInstanceOf } from '@std/assert';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import { GenericException } from '../exception/genericException.ts';
 import type { Event } from '../message/event.ts';
 import { getEventBus, NimbusEventBus, setupEventBus } from './eventBus.ts';
@@ -20,7 +21,7 @@ const createTestEvent = (
     data: data ?? { testData: 'value' },
 });
 
-Deno.test('EventBus rejects event that exceeds the 64KB size limit', () => {
+test('EventBus rejects event that exceeds the 64KB size limit', () => {
     const eventBus = new NimbusEventBus({
         name: 'size-test',
         maxRetries: 3,
@@ -46,11 +47,11 @@ Deno.test('EventBus rejects event that exceeds the 64KB size limit', () => {
         exception = ex;
     }
 
-    assertInstanceOf(exception, GenericException);
-    assertEquals(exception.message, 'Event size exceeds the limit of 64KB');
+    assert.ok(exception instanceof GenericException);
+    assert.deepEqual(exception.message, 'Event size exceeds the limit of 64KB');
 });
 
-Deno.test('EventBus delivers event to subscriber', async () => {
+test('EventBus delivers event to subscriber', async () => {
     const eventBus = new NimbusEventBus({ name: 'deliver-test' });
     let receivedEvent: Event | undefined;
 
@@ -70,15 +71,15 @@ Deno.test('EventBus delivers event to subscriber', async () => {
     // Wait for async handler to complete
     await new Promise((r) => setTimeout(r, 50));
 
-    assertExists(receivedEvent);
-    assertEquals(receivedEvent.type, 'test.event.deliver');
-    assertEquals(
+    assert.ok(receivedEvent !== undefined && receivedEvent !== null);
+    assert.deepEqual(receivedEvent.type, 'test.event.deliver');
+    assert.deepEqual(
         (receivedEvent.data as Record<string, unknown>).message,
         'hello',
     );
 });
 
-Deno.test('EventBus delivers event to multiple subscribers', async () => {
+test('EventBus delivers event to multiple subscribers', async () => {
     const eventBus = new NimbusEventBus({ name: 'multi-sub-test' });
     const receivedEvents: Event[] = [];
 
@@ -106,12 +107,12 @@ Deno.test('EventBus delivers event to multiple subscribers', async () => {
     // Wait for async handlers to complete
     await new Promise((r) => setTimeout(r, 50));
 
-    assertEquals(receivedEvents.length, 2);
-    assertEquals(receivedEvents[0].id, testEvent.id);
-    assertEquals(receivedEvents[1].id, testEvent.id);
+    assert.deepEqual(receivedEvents.length, 2);
+    assert.deepEqual(receivedEvents[0].id, testEvent.id);
+    assert.deepEqual(receivedEvents[1].id, testEvent.id);
 });
 
-Deno.test('EventBus retries on handler failure and eventually succeeds', async () => {
+test('EventBus retries on handler failure and eventually succeeds', async () => {
     const eventBus = new NimbusEventBus({
         name: 'retry-success-test',
         maxRetries: 3,
@@ -139,10 +140,10 @@ Deno.test('EventBus retries on handler failure and eventually succeeds', async (
     // Wait for retries to complete (base delay * 2^0 + base delay * 2^1 = 10 + 20 = 30ms + buffer)
     await new Promise((r) => setTimeout(r, 200));
 
-    assertEquals(attempts, 3);
+    assert.deepEqual(attempts, 3);
 });
 
-Deno.test('EventBus exhausts retries and invokes onError callback', async () => {
+test('EventBus exhausts retries and invokes onError callback', async () => {
     const eventBus = new NimbusEventBus({
         name: 'retry-exhausted-test',
         maxRetries: 2,
@@ -173,13 +174,13 @@ Deno.test('EventBus exhausts retries and invokes onError callback', async () => 
     await new Promise((r) => setTimeout(r, 200));
 
     // Initial attempt + 2 retries = 3 total attempts
-    assertEquals(attempts, 3);
-    assertInstanceOf(errorReceived, GenericException);
-    assertExists(eventReceived);
-    assertEquals(eventReceived.id, testEvent.id);
+    assert.deepEqual(attempts, 3);
+    assert.ok(errorReceived instanceof GenericException);
+    assert.ok(eventReceived !== undefined && eventReceived !== null);
+    assert.deepEqual(eventReceived.id, testEvent.id);
 });
 
-Deno.test('EventBus onError callback receives error and event', async () => {
+test('EventBus onError callback receives error and event', async () => {
     const eventBus = new NimbusEventBus({
         name: 'onerror-test',
         maxRetries: 0,
@@ -205,35 +206,35 @@ Deno.test('EventBus onError callback receives error and event', async () => {
     // Wait for handler to fail
     await new Promise((r) => setTimeout(r, 50));
 
-    assertEquals(
+    assert.deepEqual(
         errorMessage,
         'Failed to handle event: test.event.onerror from https://test.nimbus.overlap.at',
     );
-    assertEquals(eventType, 'test.event.onerror');
+    assert.deepEqual(eventType, 'test.event.onerror');
 });
 
-Deno.test('setupEventBus creates and registers an EventBus instance', () => {
+test('setupEventBus creates and registers an EventBus instance', () => {
     setupEventBus('test-setup-bus', { maxRetries: 5 });
     const bus = getEventBus('test-setup-bus');
 
-    assertInstanceOf(bus, NimbusEventBus);
+    assert.ok(bus instanceof NimbusEventBus);
 });
 
-Deno.test('getEventBus creates default instance if not found', () => {
-    const bus = getEventBus('test-new-bus-' + crypto.randomUUID());
+test('getEventBus creates default instance if not found', () => {
+    const bus = getEventBus(`test-new-bus-${crypto.randomUUID()}`);
 
-    assertInstanceOf(bus, NimbusEventBus);
+    assert.ok(bus instanceof NimbusEventBus);
 });
 
-Deno.test('getEventBus returns same instance on repeated calls', () => {
-    const busName = 'test-same-instance-' + crypto.randomUUID();
+test('getEventBus returns same instance on repeated calls', () => {
+    const busName = `test-same-instance-${crypto.randomUUID()}`;
     const bus1 = getEventBus(busName);
     const bus2 = getEventBus(busName);
 
-    assertEquals(bus1, bus2);
+    assert.deepEqual(bus1, bus2);
 });
 
-Deno.test('Multiple named EventBus instances are independent', async () => {
+test('Multiple named EventBus instances are independent', async () => {
     const ordersBus = new NimbusEventBus({ name: 'orders-independent' });
     const notificationsBus = new NimbusEventBus({
         name: 'notifications-independent',
@@ -263,11 +264,11 @@ Deno.test('Multiple named EventBus instances are independent', async () => {
 
     await new Promise((r) => setTimeout(r, 50));
 
-    assertEquals(ordersReceived, 1);
-    assertEquals(notificationsReceived, 0);
+    assert.deepEqual(ordersReceived, 1);
+    assert.deepEqual(notificationsReceived, 0);
 });
 
-Deno.test('EventBus logPublish callback is invoked when publishing an event', () => {
+test('EventBus logPublish callback is invoked when publishing an event', () => {
     const loggedEvents: Event[] = [];
 
     const eventBus = new NimbusEventBus({
@@ -282,16 +283,16 @@ Deno.test('EventBus logPublish callback is invoked when publishing an event', ()
     });
     eventBus.putEvent(testEvent);
 
-    assertEquals(loggedEvents.length, 1);
-    assertEquals(loggedEvents[0].id, testEvent.id);
-    assertEquals(loggedEvents[0].type, 'test.event.log-publish');
-    assertEquals(
+    assert.deepEqual(loggedEvents.length, 1);
+    assert.deepEqual(loggedEvents[0].id, testEvent.id);
+    assert.deepEqual(loggedEvents[0].type, 'test.event.log-publish');
+    assert.deepEqual(
         (loggedEvents[0].data as Record<string, unknown>).message,
         'logged',
     );
 });
 
-Deno.test('EventBus logPublish callback receives correct event for each publish', () => {
+test('EventBus logPublish callback receives correct event for each publish', () => {
     const loggedEvents: Event[] = [];
 
     const eventBus = new NimbusEventBus({
@@ -309,13 +310,13 @@ Deno.test('EventBus logPublish callback receives correct event for each publish'
     eventBus.putEvent(event2);
     eventBus.putEvent(event3);
 
-    assertEquals(loggedEvents.length, 3);
-    assertEquals(loggedEvents[0].type, 'test.event.first');
-    assertEquals(loggedEvents[1].type, 'test.event.second');
-    assertEquals(loggedEvents[2].type, 'test.event.third');
+    assert.deepEqual(loggedEvents.length, 3);
+    assert.deepEqual(loggedEvents[0].type, 'test.event.first');
+    assert.deepEqual(loggedEvents[1].type, 'test.event.second');
+    assert.deepEqual(loggedEvents[2].type, 'test.event.third');
 });
 
-Deno.test('EventBus works without logPublish callback', () => {
+test('EventBus works without logPublish callback', () => {
     const eventBus = new NimbusEventBus({
         name: 'no-log-publish-test',
     });

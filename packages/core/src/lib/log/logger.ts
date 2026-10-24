@@ -1,9 +1,14 @@
-import { blue, bold, red, yellow } from '@std/fmt/colors';
+import { createColors } from 'picocolors';
+
+// Colors are only applied when `useConsoleColors` is enabled, so force them
+// on here instead of letting picocolors decide based on TTY detection.
+const { blue, bold, red, yellow } = createColors(true);
+
 import type { Exception } from '../exception/exception.ts';
 import type { LogFormatter } from './logFormatter.ts';
 import { type LogLevel, numericLogLevel } from './logLevel.ts';
-import { defaultLogOptions, type LogOptions } from './options.ts';
 import type { LogTruncator } from './logTruncator.ts';
+import { defaultLogOptions, type LogOptions } from './options.ts';
 
 /**
  * The input for a log message.
@@ -138,8 +143,8 @@ export class Logger {
     constructor(options: LogOptions) {
         this._logLevel = options.logLevel ?? defaultLogOptions.logLevel;
         this._formatter = options.formatter ?? defaultLogOptions.formatter;
-        this._useConsoleColors = options.useConsoleColors ??
-            defaultLogOptions.useConsoleColors;
+        this._useConsoleColors =
+            options.useConsoleColors ?? defaultLogOptions.useConsoleColors;
         this._truncator = options.truncator ?? defaultLogOptions.truncator;
     }
 
@@ -194,7 +199,7 @@ export class Logger {
      * ```
      */
     public debug(logInput: LogInput): void {
-        if (numericLogLevel['debug'] >= numericLogLevel[this._logLevel]) {
+        if (numericLogLevel.debug >= numericLogLevel[this._logLevel]) {
             this._log(logInput, 'debug', console.debug);
         }
     }
@@ -225,7 +230,7 @@ export class Logger {
      * ```
      */
     public info(logInput: LogInput): void {
-        if (numericLogLevel['info'] >= numericLogLevel[this._logLevel]) {
+        if (numericLogLevel.info >= numericLogLevel[this._logLevel]) {
             this._log(logInput, 'info', console.info);
         }
     }
@@ -256,7 +261,7 @@ export class Logger {
      * ```
      */
     public warn(logInput: LogInput): void {
-        if (numericLogLevel['warn'] >= numericLogLevel[this._logLevel]) {
+        if (numericLogLevel.warn >= numericLogLevel[this._logLevel]) {
             this._log(logInput, 'warn', console.warn);
         }
     }
@@ -287,7 +292,7 @@ export class Logger {
      * ```
      */
     public error(logInput: LogInput): void {
-        if (numericLogLevel['error'] >= numericLogLevel[this._logLevel]) {
+        if (numericLogLevel.error >= numericLogLevel[this._logLevel]) {
             this._log(logInput, 'error', console.error);
         }
     }
@@ -318,7 +323,7 @@ export class Logger {
      * ```
      */
     public critical(logInput: LogInput): void {
-        if (numericLogLevel['critical'] >= numericLogLevel[this._logLevel]) {
+        if (numericLogLevel.critical >= numericLogLevel[this._logLevel]) {
             this._log(logInput, 'critical', console.error);
         }
     }
@@ -331,10 +336,7 @@ export class Logger {
      *
      * @returns {LogRecord} The log record
      */
-    private _produceLogRecord(
-        logInput: LogInput,
-        level: LogLevel,
-    ): LogRecord {
+    private _produceLogRecord(logInput: LogInput, level: LogLevel): LogRecord {
         return {
             timestamp: new Date(),
             level,
@@ -342,8 +344,9 @@ export class Logger {
             message: logInput.message,
             ...(logInput.data && { data: logInput.data }),
             ...(logInput.error && { error: logInput.error }),
-            ...(logInput.correlationId &&
-                { correlationId: logInput.correlationId }),
+            ...(logInput.correlationId && {
+                correlationId: logInput.correlationId,
+            }),
         };
     }
 
@@ -354,9 +357,7 @@ export class Logger {
      *
      * @returns {string} The formatted log record
      */
-    private _formatLogRecord(
-        logRecord: LogRecord,
-    ): string | string[] {
+    private _formatLogRecord(logRecord: LogRecord): string | string[] {
         return this._formatter(logRecord);
     }
 
@@ -368,10 +369,7 @@ export class Logger {
      *
      * @returns {string} The colorized string
      */
-    private _colorizeString(
-        string: string,
-        logLevel: LogLevel,
-    ): string {
+    private _colorizeString(string: string, logLevel: LogLevel): string {
         switch (logLevel) {
             case 'info':
                 string = blue(string);
@@ -434,7 +432,7 @@ export class Logger {
         if (Array.isArray(formattedLogRecord)) {
             if (this._useConsoleColors) {
                 const coloredLogs = formattedLogRecord.map((log) =>
-                    this._colorizeString(log, logLevel)
+                    this._colorizeString(log, logLevel),
                 );
 
                 logFunction(...coloredLogs);

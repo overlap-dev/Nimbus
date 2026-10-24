@@ -34,11 +34,7 @@ export type InsertMany = (
  *
  * @returns {Promise<InsertManyResult<Document>} The result of the insert operation.
  */
-export const insertMany: InsertMany = ({
-    collection,
-    documents,
-    options,
-}) => {
+export const insertMany: InsertMany = ({ collection, documents, options }) => {
     return withSpan('insertMany', collection, async () => {
         try {
             return await collection.insertMany(documents, options);

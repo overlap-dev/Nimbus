@@ -75,7 +75,7 @@ export type WithSpanOptions = {
 export const withSpan = <TArgs extends unknown[], TReturn>(
     options: WithSpanOptions,
     fn: (...args: [...TArgs, Span]) => TReturn,
-): (...args: TArgs) => TReturn => {
+): ((...args: TArgs) => TReturn) => {
     const tracerName = options.tracerName ?? 'nimbus';
     const tracer = trace.getTracer(tracerName);
 

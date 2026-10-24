@@ -19,9 +19,7 @@ export type CountDocumentsInput = {
 /**
  * Type to define the countDocuments function.
  */
-export type CountDocuments = (
-    input: CountDocumentsInput,
-) => Promise<number>;
+export type CountDocuments = (input: CountDocumentsInput) => Promise<number>;
 
 /**
  * Count the number of documents in a MongoDB collection.

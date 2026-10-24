@@ -1,4 +1,3 @@
-export OTEL_DENO=true
 export OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
 export OTEL_EXPORTER_OTLP_ENDPOINT="https://otlp-gateway-prod-eu-west-2.grafana.net/otlp"
 
@@ -13,4 +12,5 @@ fi
 export OTEL_SERVICE_NAME=nimbus-eventsourcing-demo
 export OTEL_RESOURCE_ATTRIBUTES=deployment.environment=development
 
-deno run -A src/main.ts
+# src/otel.ts starts the OpenTelemetry Node SDK before the application loads.
+node --import ./src/otel.ts --env-file=.env src/main.ts

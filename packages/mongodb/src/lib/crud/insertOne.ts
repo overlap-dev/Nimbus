@@ -34,11 +34,7 @@ export type InsertOne = (
  *
  * @returns {Promise<InsertOneResult<Document>} The result of the insert operation.
  */
-export const insertOne: InsertOne = ({
-    collection,
-    document,
-    options,
-}) => {
+export const insertOne: InsertOne = ({ collection, document, options }) => {
     return withSpan('insertOne', collection, async () => {
         try {
             return await collection.insertOne(document, options);

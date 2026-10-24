@@ -23,10 +23,6 @@ export const readEvents = (
     return withAsyncGeneratorSpan('readEvents', () => {
         const eventSourcingDBClient = getEventSourcingDBClient();
 
-        return eventSourcingDBClient.readEvents(
-            subject,
-            options,
-            signal,
-        );
+        return eventSourcingDBClient.readEvents(subject, options, signal);
     });
 };

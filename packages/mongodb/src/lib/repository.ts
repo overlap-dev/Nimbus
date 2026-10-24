@@ -1,5 +1,4 @@
 import { NotFoundException } from '@nimbus-cqrs/core';
-import { toSnakeCase } from '@std/text';
 import type {
     BulkWriteOptions,
     Collection,
@@ -28,6 +27,7 @@ import { insertOne } from './crud/insertOne.ts';
 import { replaceOne } from './crud/replaceOne.ts';
 import { updateMany } from './crud/updateMany.ts';
 import { updateOne } from './crud/updateOne.ts';
+import { toSnakeCase } from './toSnakeCase.ts';
 
 /**
  * Type for entities that have a string id.
@@ -144,16 +144,12 @@ export class MongoDBRepository<
             return res;
         } catch (error: any) {
             if (error.name === 'NOT_FOUND') {
-                throw new NotFoundException(
-                    `${this._entityName} not found`,
-                    {
-                        errorCode: `${
-                            toSnakeCase(this._entityName).toUpperCase()
-                        }_NOT_FOUND`,
-                        reason:
-                            `Could not find ${this._entityName} matching the given filter`,
-                    },
-                );
+                throw new NotFoundException(`${this._entityName} not found`, {
+                    errorCode: `${toSnakeCase(
+                        this._entityName,
+                    ).toUpperCase()}_NOT_FOUND`,
+                    reason: `Could not find ${this._entityName} matching the given filter`,
+                });
             }
 
             throw error;
@@ -274,16 +270,12 @@ export class MongoDBRepository<
         });
 
         if (res.matchedCount === 0) {
-            throw new NotFoundException(
-                `${this._entityName} not found`,
-                {
-                    errorCode: `${
-                        toSnakeCase(this._entityName).toUpperCase()
-                    }_NOT_FOUND`,
-                    reason:
-                        `Could not find ${this._entityName} matching the given filter`,
-                },
-            );
+            throw new NotFoundException(`${this._entityName} not found`, {
+                errorCode: `${toSnakeCase(
+                    this._entityName,
+                ).toUpperCase()}_NOT_FOUND`,
+                reason: `Could not find ${this._entityName} matching the given filter`,
+            });
         }
 
         return res;
@@ -333,16 +325,12 @@ export class MongoDBRepository<
         });
 
         if (res.matchedCount === 0) {
-            throw new NotFoundException(
-                `${this._entityName} not found`,
-                {
-                    errorCode: `${
-                        toSnakeCase(this._entityName).toUpperCase()
-                    }_NOT_FOUND`,
-                    reason:
-                        `Could not find ${this._entityName} with the id: ${item._id}`,
-                },
-            );
+            throw new NotFoundException(`${this._entityName} not found`, {
+                errorCode: `${toSnakeCase(
+                    this._entityName,
+                ).toUpperCase()}_NOT_FOUND`,
+                reason: `Could not find ${this._entityName} with the id: ${item._id}`,
+            });
         }
 
         return item;
@@ -397,16 +385,12 @@ export class MongoDBRepository<
         });
 
         if (res.deletedCount === 0) {
-            throw new NotFoundException(
-                `${this._entityName} not found`,
-                {
-                    errorCode: `${
-                        toSnakeCase(this._entityName).toUpperCase()
-                    }_NOT_FOUND`,
-                    reason:
-                        `Could not find ${this._entityName} with the id: ${item._id}`,
-                },
-            );
+            throw new NotFoundException(`${this._entityName} not found`, {
+                errorCode: `${toSnakeCase(
+                    this._entityName,
+                ).toUpperCase()}_NOT_FOUND`,
+                reason: `Could not find ${this._entityName} with the id: ${item._id}`,
+            });
         }
 
         return item;

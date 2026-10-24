@@ -1,7 +1,8 @@
-import { assertEquals, assertInstanceOf, assertMatch } from '@std/assert';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import { createLogTruncator } from './logTruncator.ts';
 
-Deno.test('createLogTruncator truncates long message and category', () => {
+test('createLogTruncator truncates long message and category', () => {
     const truncator = createLogTruncator({
         maxMessageLength: 10,
         maxCategoryLength: 5,
@@ -13,12 +14,12 @@ Deno.test('createLogTruncator truncates long message and category', () => {
         correlationId: 'keep-me',
     });
 
-    assertEquals(result.message, '0123456789 [... __truncated]');
-    assertEquals(result.category, 'ABCDE [... __truncated]');
-    assertEquals(result.correlationId, 'keep-me');
+    assert.deepEqual(result.message, '0123456789 [... __truncated]');
+    assert.deepEqual(result.category, 'ABCDE [... __truncated]');
+    assert.deepEqual(result.correlationId, 'keep-me');
 });
 
-Deno.test('createLogTruncator leaves correlationId untouched', () => {
+test('createLogTruncator leaves correlationId untouched', () => {
     const longId = 'x'.repeat(1_000);
     const truncator = createLogTruncator({
         maxMessageLength: 5,
@@ -33,11 +34,11 @@ Deno.test('createLogTruncator leaves correlationId untouched', () => {
         data: { id: longId },
     });
 
-    assertEquals(result.correlationId, longId);
-    assertEquals(result.data?.id, `${'x'.repeat(5)} [... __truncated]`);
+    assert.deepEqual(result.correlationId, longId);
+    assert.deepEqual(result.data?.id, `${'x'.repeat(5)} [... __truncated]`);
 });
 
-Deno.test('createLogTruncator truncates data strings, arrays, and depth', () => {
+test('createLogTruncator truncates data strings, arrays, and depth', () => {
     const truncator = createLogTruncator({
         maxDataStringLength: 5,
         maxArrayItems: 2,
@@ -55,16 +56,16 @@ Deno.test('createLogTruncator truncates data strings, arrays, and depth', () => 
         },
     });
 
-    assertEquals(result.data?.text, '01234 [... __truncated]');
-    assertEquals(result.data?.items, [
+    assert.deepEqual(result.data?.text, '01234 [... __truncated]');
+    assert.deepEqual(result.data?.items, [
         1,
         2,
         { __truncated: true, omittedCount: 2 },
     ]);
-    assertEquals(result.data?.nested, { a: '[Max depth]' });
+    assert.deepEqual(result.data?.nested, { a: '[Max depth]' });
 });
 
-Deno.test('createLogTruncator replaces circular refs in data', () => {
+test('createLogTruncator replaces circular refs in data', () => {
     const truncator = createLogTruncator();
     const circular: Record<string, unknown> = { name: 'root' };
     circular.self = circular;
@@ -74,10 +75,10 @@ Deno.test('createLogTruncator replaces circular refs in data', () => {
         data: circular,
     });
 
-    assertEquals(result.data, { name: 'root', self: '[Circular]' });
+    assert.deepEqual(result.data, { name: 'root', self: '[Circular]' });
 });
 
-Deno.test('createLogTruncator keeps shared references (not cycles)', () => {
+test('createLogTruncator keeps shared references (not cycles)', () => {
     const truncator = createLogTruncator();
     const shared = { id: 1 };
     const sharedArray = [1, 2];
@@ -92,7 +93,7 @@ Deno.test('createLogTruncator keeps shared references (not cycles)', () => {
         },
     });
 
-    assertEquals(result.data, {
+    assert.deepEqual(result.data, {
         left: { id: 1 },
         right: { id: 1 },
         items: [1, 2],
@@ -100,7 +101,7 @@ Deno.test('createLogTruncator keeps shared references (not cycles)', () => {
     });
 });
 
-Deno.test('createLogTruncator clamps maxDepth below 1', () => {
+test('createLogTruncator clamps maxDepth below 1', () => {
     const truncator = createLogTruncator({ maxDepth: 0 });
 
     const result = truncator({
@@ -108,11 +109,11 @@ Deno.test('createLogTruncator clamps maxDepth below 1', () => {
         data: { nested: { value: 1 } },
     });
 
-    assertEquals(typeof result.data, 'object');
-    assertEquals(result.data, { nested: '[Max depth]' });
+    assert.deepEqual(typeof result.data, 'object');
+    assert.deepEqual(result.data, { nested: '[Max depth]' });
 });
 
-Deno.test('createLogTruncator replaces oversized data with a size marker', () => {
+test('createLogTruncator replaces oversized data with a size marker', () => {
     const truncator = createLogTruncator({
         maxBytes: 50,
         maxDataStringLength: 10_000,
@@ -127,14 +128,14 @@ Deno.test('createLogTruncator replaces oversized data with a size marker', () =>
         },
     });
 
-    assertEquals(result.data?.__truncated, true);
-    assertEquals(result.data?.reason, 'size');
-    assertEquals(result.data?.maxBytes, 50);
-    assertEquals(typeof result.data?.serializedByteSize, 'number');
-    assertEquals('payload' in (result.data ?? {}), false);
+    assert.deepEqual(result.data?.__truncated, true);
+    assert.deepEqual(result.data?.reason, 'size');
+    assert.deepEqual(result.data?.maxBytes, 50);
+    assert.deepEqual(typeof result.data?.serializedByteSize, 'number');
+    assert.deepEqual('payload' in (result.data ?? {}), false);
 });
 
-Deno.test('createLogTruncator keeps Error shape and truncates message/stack', () => {
+test('createLogTruncator keeps Error shape and truncates message/stack', () => {
     const truncator = createLogTruncator({
         maxMessageLength: 10,
         maxStackLength: 20,
@@ -148,13 +149,16 @@ Deno.test('createLogTruncator keeps Error shape and truncates message/stack', ()
         error,
     });
 
-    assertInstanceOf(result.error, Error);
-    assertEquals(result.error?.message, '0123456789 [... __truncated]');
-    assertEquals(result.error?.stack, 'stack-0123456789ABCD [... __truncated]');
-    assertEquals(result.error?.name, 'Error');
+    assert.ok(result.error instanceof Error);
+    assert.deepEqual(result.error?.message, '0123456789 [... __truncated]');
+    assert.deepEqual(
+        result.error?.stack,
+        'stack-0123456789ABCD [... __truncated]',
+    );
+    assert.deepEqual(result.error?.name, 'Error');
 });
 
-Deno.test('createLogTruncator walks error.cause up to maxDepth', () => {
+test('createLogTruncator walks error.cause up to maxDepth', () => {
     const truncator = createLogTruncator({
         maxDepth: 2,
         maxMessageLength: 100,
@@ -172,17 +176,16 @@ Deno.test('createLogTruncator walks error.cause up to maxDepth', () => {
         error: root,
     });
 
-    assertEquals(result.error?.message, 'root');
-    assertInstanceOf(result.error?.cause, Error);
-    assertEquals((result.error?.cause as Error).message, 'mid');
-    assertInstanceOf((result.error?.cause as Error).cause, Error);
-    assertEquals(
-        ((result.error?.cause as Error).cause as Error).message,
-        '[Max depth]',
-    );
+    assert.deepEqual(result.error?.message, 'root');
+    const midCause = result.error?.cause;
+    assert.ok(midCause instanceof Error);
+    assert.deepEqual(midCause.message, 'mid');
+    const leafCause = midCause.cause;
+    assert.ok(leafCause instanceof Error);
+    assert.deepEqual(leafCause.message, '[Max depth]');
 });
 
-Deno.test('createLogTruncator truncates AggregateError.errors', () => {
+test('createLogTruncator truncates AggregateError.errors', () => {
     const truncator = createLogTruncator({
         maxMessageLength: 5,
         maxStackLength: 500,
@@ -199,28 +202,28 @@ Deno.test('createLogTruncator truncates AggregateError.errors', () => {
         error: aggregate,
     });
 
-    assertInstanceOf(result.error, AggregateError);
-    assertEquals(result.error?.message, 'aggre [... __truncated]');
+    assert.ok(result.error instanceof AggregateError);
+    assert.deepEqual(result.error?.message, 'aggre [... __truncated]');
     const errors = (result.error as AggregateError).errors;
-    assertEquals(errors.length, 2);
-    assertEquals((errors[0] as Error).message, '01234 [... __truncated]');
-    assertEquals((errors[1] as Error).message, 'ABCDE [... __truncated]');
+    assert.deepEqual(errors.length, 2);
+    assert.deepEqual((errors[0] as Error).message, '01234 [... __truncated]');
+    assert.deepEqual((errors[1] as Error).message, 'ABCDE [... __truncated]');
 });
 
-Deno.test('createLogTruncator uses defaults when options are omitted', () => {
+test('createLogTruncator uses defaults when options are omitted', () => {
     const truncator = createLogTruncator();
     const result = truncator({
         message: 'x'.repeat(201),
         category: 'y'.repeat(51),
     });
 
-    assertEquals(result.message.length, 200 + ' [... __truncated]'.length); // 200 + truncation suffix
-    assertMatch(result.message, / \[\.\.\. __truncated\]$/);
-    assertEquals(result.category?.length, 50 + ' [... __truncated]'.length);
-    assertMatch(result.category ?? '', / \[\.\.\. __truncated\]$/);
+    assert.deepEqual(result.message.length, 200 + ' [... __truncated]'.length); // 200 + truncation suffix
+    assert.match(result.message, / \[\.\.\. __truncated\]$/);
+    assert.deepEqual(result.category?.length, 50 + ' [... __truncated]'.length);
+    assert.match(result.category ?? '', / \[\.\.\. __truncated\]$/);
 });
 
-Deno.test('createLogTruncator converts bigint and replaces unserializable data', () => {
+test('createLogTruncator converts bigint and replaces unserializable data', () => {
     const truncator = createLogTruncator({ maxBytes: 16_384 });
 
     const withBigInt = truncator({
@@ -228,7 +231,7 @@ Deno.test('createLogTruncator converts bigint and replaces unserializable data',
         data: { id: 9007199254740993n },
     });
 
-    assertEquals(withBigInt.data, { id: '9007199254740993n' });
+    assert.deepEqual(withBigInt.data, { id: '9007199254740993n' });
 
     const withThrowingToJSON = truncator({
         message: 'ok',
@@ -241,14 +244,14 @@ Deno.test('createLogTruncator converts bigint and replaces unserializable data',
         },
     });
 
-    assertEquals(withThrowingToJSON.data, {
+    assert.deepEqual(withThrowingToJSON.data, {
         __truncated: true,
         reason: 'unserializable',
         maxBytes: 16_384,
     });
 });
 
-Deno.test('createLogTruncator converts Date, Map, Set, and RegExp in data', () => {
+test('createLogTruncator converts Date, Map, Set, and RegExp in data', () => {
     const truncator = createLogTruncator({
         maxArrayItems: 2,
         maxDataStringLength: 500,
@@ -268,21 +271,21 @@ Deno.test('createLogTruncator converts Date, Map, Set, and RegExp in data', () =
         },
     });
 
-    assertEquals(result.data?.at, '2026-07-20T12:00:00.000Z');
-    assertEquals(result.data?.pattern, '/hello/gi');
-    assertEquals(result.data?.map, [
+    assert.deepEqual(result.data?.at, '2026-07-20T12:00:00.000Z');
+    assert.deepEqual(result.data?.pattern, '/hello/gi');
+    assert.deepEqual(result.data?.map, [
         ['a', 1],
         ['b', 2],
         { __truncated: true, omittedCount: 1 },
     ]);
-    assertEquals(result.data?.set, [
+    assert.deepEqual(result.data?.set, [
         1,
         2,
         { __truncated: true, omittedCount: 2 },
     ]);
 });
 
-Deno.test('createLogTruncator summarizes TypedArrays and ArrayBuffers in data', () => {
+test('createLogTruncator summarizes TypedArrays and ArrayBuffers in data', () => {
     const truncator = createLogTruncator();
     const bytes = new Uint8Array([1, 2, 3, 4, 5]);
     const buffer = bytes.buffer;
@@ -295,20 +298,20 @@ Deno.test('createLogTruncator summarizes TypedArrays and ArrayBuffers in data', 
         },
     });
 
-    assertEquals(result.data?.bytes, {
+    assert.deepEqual(result.data?.bytes, {
         __truncated: true,
         reason: 'typedArray',
         type: 'Uint8Array',
         byteLength: 5,
     });
-    assertEquals(result.data?.buffer, {
+    assert.deepEqual(result.data?.buffer, {
         __truncated: true,
         reason: 'arrayBuffer',
         byteLength: 5,
     });
 });
 
-Deno.test('createLogTruncator converts Error values inside data to plain objects', () => {
+test('createLogTruncator converts Error values inside data to plain objects', () => {
     const truncator = createLogTruncator({
         maxMessageLength: 10,
         maxStackLength: 20,
@@ -323,7 +326,7 @@ Deno.test('createLogTruncator converts Error values inside data to plain objects
         data: { err: error },
     });
 
-    assertEquals(result.data?.err, {
+    assert.deepEqual(result.data?.err, {
         name: 'Error',
         message: '0123456789 [... __truncated]',
         stack: 'stack-0123456789ABCD [... __truncated]',
@@ -331,7 +334,7 @@ Deno.test('createLogTruncator converts Error values inside data to plain objects
     });
 });
 
-Deno.test('createLogTruncator preserves custom enumerable fields on log errors', () => {
+test('createLogTruncator preserves custom enumerable fields on log errors', () => {
     const truncator = createLogTruncator({
         maxMessageLength: 100,
         maxDataStringLength: 5,
@@ -346,16 +349,16 @@ Deno.test('createLogTruncator preserves custom enumerable fields on log errors',
         error,
     });
 
-    assertInstanceOf(result.error, Error);
-    assertEquals(result.error?.message, 'boom');
-    assertEquals((result.error as Error & { code: string }).code, 'EFAIL');
-    assertEquals(
+    assert.ok(result.error instanceof Error);
+    assert.deepEqual(result.error?.message, 'boom');
+    assert.deepEqual((result.error as Error & { code: string }).code, 'EFAIL');
+    assert.deepEqual(
         (result.error as Error & { detail: string }).detail,
         '01234 [... __truncated]',
     );
 });
 
-Deno.test('createLogTruncator truncates non-Error cause and AggregateError items', () => {
+test('createLogTruncator truncates non-Error cause and AggregateError items', () => {
     const truncator = createLogTruncator({
         maxMessageLength: 100,
         maxDataStringLength: 5,
@@ -376,7 +379,7 @@ Deno.test('createLogTruncator truncates non-Error cause and AggregateError items
         error: withCause,
     });
 
-    assertEquals(causeResult.error?.cause, {
+    assert.deepEqual(causeResult.error?.cause, {
         reason: '01234 [... __truncated]',
         nested: { ok: true },
     });
@@ -386,14 +389,14 @@ Deno.test('createLogTruncator truncates non-Error cause and AggregateError items
         error: aggregate,
     });
 
-    assertInstanceOf(aggregateResult.error, AggregateError);
+    assert.ok(aggregateResult.error instanceof AggregateError);
     const errors = (aggregateResult.error as AggregateError).errors;
-    assertEquals(errors[0], { info: 'ABCDE [... __truncated]' });
-    assertInstanceOf(errors[1], Error);
-    assertEquals((errors[1] as Error).message, 'inner-error');
+    assert.deepEqual(errors[0], { info: 'ABCDE [... __truncated]' });
+    assert.ok(errors[1] instanceof Error);
+    assert.deepEqual((errors[1] as Error).message, 'inner-error');
 });
 
-Deno.test('createLogTruncator limits object keys in data', () => {
+test('createLogTruncator limits object keys in data', () => {
     const truncator = createLogTruncator({
         maxObjectKeys: 2,
     });
@@ -408,7 +411,7 @@ Deno.test('createLogTruncator limits object keys in data', () => {
         },
     });
 
-    assertEquals(result.data, {
+    assert.deepEqual(result.data, {
         a: 1,
         b: 2,
         __truncated: true,

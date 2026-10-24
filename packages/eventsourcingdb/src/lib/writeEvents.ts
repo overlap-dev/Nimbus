@@ -35,14 +35,11 @@ export const writeEvents = (
 
             return nimbusEventToEventSourcingDBEventCandidate(
                 event,
-                carrier['traceparent'],
-                carrier['tracestate'],
+                carrier.traceparent,
+                carrier.tracestate,
             );
         });
 
-        await eventSourcingDBClient.writeEvents(
-            eventCandidates,
-            preconditions,
-        );
+        await eventSourcingDBClient.writeEvents(eventCandidates, preconditions);
     });
 };

@@ -22,8 +22,8 @@ export type UserInvitationAcceptedEvent = z.infer<
  * @param event - The event to check.
  * @returns `true` if the event is a {@link UserInvitationAcceptedEvent}, `false` otherwise.
  */
-export const isUserInvitationAcceptedEvent = (
-    event: { type: string },
-): event is UserInvitationAcceptedEvent => {
+export const isUserInvitationAcceptedEvent = (event: {
+    type: string;
+}): event is UserInvitationAcceptedEvent => {
     return event.type === USER_INVITATION_ACCEPTED_EVENT_TYPE;
 };

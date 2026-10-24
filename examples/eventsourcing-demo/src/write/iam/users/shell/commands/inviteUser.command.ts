@@ -2,13 +2,13 @@ import {
     getEventSourcingDBClient,
     writeEvents,
 } from '@nimbus-cqrs/eventsourcingdb';
-import { ulid } from '@std/ulid';
 import { isSubjectPristine } from 'eventsourcingdb';
+import { ulid } from 'ulid';
 import {
+    type InviteUserCommand,
     inviteUser,
-    InviteUserCommand,
 } from '../../core/commands/inviteUser.command.ts';
-import { UserState } from '../../core/domain/user.state.ts';
+import type { UserState } from '../../core/domain/user.state.ts';
 import { USER_INVITED_EVENT_TYPE } from '../../core/events/userInvited.event.ts';
 
 // This is the handler for the user invite command.
@@ -43,15 +43,13 @@ export const inviteUserCommandHandler = async (command: InviteUserCommand) => {
 
     const eventSourcingDBClient = getEventSourcingDBClient();
 
-    for await (
-        const row of eventSourcingDBClient.runEventQlQuery(`
+    for await (const row of eventSourcingDBClient.runEventQlQuery(`
         FROM e IN events
 	    WHERE e.type == "${USER_INVITED_EVENT_TYPE}" AND e.data.payload.email == "${command.data.email.toLowerCase()}"
 		PROJECT INTO {
 			total: COUNT()
 		}
-      `)
-    ) {
+      `)) {
         const total = (row as { total: number }).total;
         isEmailPristine = total === 0;
     }
@@ -60,9 +58,7 @@ export const inviteUserCommandHandler = async (command: InviteUserCommand) => {
     const events = inviteUser(state, command, isEmailPristine);
 
     // We persist the events the core logic produced.
-    await writeEvents(events, [
-        isSubjectPristine(events[0].subject),
-    ]);
+    await writeEvents(events, [isSubjectPristine(events[0].subject)]);
 
     return {
         userId: state.id,

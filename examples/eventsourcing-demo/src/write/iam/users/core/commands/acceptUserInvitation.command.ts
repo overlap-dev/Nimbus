@@ -4,10 +4,10 @@ import {
     InvalidInputException,
 } from '@nimbus-cqrs/core';
 import { z } from 'zod';
-import { hasPendingInvitation, UserState } from '../domain/user.state.ts';
+import { hasPendingInvitation, type UserState } from '../domain/user.state.ts';
 import {
     USER_INVITATION_ACCEPTED_EVENT_TYPE,
-    UserInvitationAcceptedEvent,
+    type UserInvitationAcceptedEvent,
 } from '../events/userInvitationAccepted.event.ts';
 
 export const ACCEPT_USER_INVITATION_COMMAND_TYPE =
@@ -47,7 +47,8 @@ export const acceptUserInvitation = (
     if (
         state.invitedAt &&
         new Date(state.invitedAt).getTime() +
-                    inviteExpiredAfterHours * 60 * 60 * 1000 < Date.now()
+            inviteExpiredAfterHours * 60 * 60 * 1000 <
+            Date.now()
     ) {
         throw new InvalidInputException('The invitation has expired', {
             errorCode: 'INVITATION_EXPIRED',
@@ -57,17 +58,16 @@ export const acceptUserInvitation = (
         });
     }
 
-    const userInvitationAcceptedEvent = createEvent<
-        UserInvitationAcceptedEvent
-    >({
-        type: USER_INVITATION_ACCEPTED_EVENT_TYPE,
-        source: command.source,
-        correlationid: command.correlationid,
-        subject: `/users/${state.id}`,
-        data: {
-            acceptedAt: new Date().toISOString(),
-        },
-    });
+    const userInvitationAcceptedEvent =
+        createEvent<UserInvitationAcceptedEvent>({
+            type: USER_INVITATION_ACCEPTED_EVENT_TYPE,
+            source: command.source,
+            correlationid: command.correlationid,
+            subject: `/users/${state.id}`,
+            data: {
+                acceptedAt: new Date().toISOString(),
+            },
+        });
 
     return [userInvitationAcceptedEvent];
 };

@@ -151,9 +151,9 @@ export const calculateBackoffDelay = (
 /**
  * Reads the legacy connection-retry alias accepted on an event observer.
  */
-const readLegacyRetryOptions = (
-    eventObserver: { retryOptions?: RetryOptions },
-): RetryOptions | undefined => eventObserver.retryOptions;
+const readLegacyRetryOptions = (eventObserver: {
+    retryOptions?: RetryOptions;
+}): RetryOptions | undefined => eventObserver.retryOptions;
 
 /**
  * Resolves connection retry options, preferring
@@ -166,13 +166,14 @@ const resolveConnectionRetryOptions = (
     const legacyRetryOptions = readLegacyRetryOptions(eventObserver);
 
     return {
-        maxRetries: eventObserver.connectionRetryOptions?.maxRetries ??
+        maxRetries:
+            eventObserver.connectionRetryOptions?.maxRetries ??
             legacyRetryOptions?.maxRetries ??
             DEFAULT_RETRY_OPTIONS.maxRetries,
         initialRetryDelayMs:
             eventObserver.connectionRetryOptions?.initialRetryDelayMs ??
-                legacyRetryOptions?.initialRetryDelayMs ??
-                DEFAULT_RETRY_OPTIONS.initialRetryDelayMs,
+            legacyRetryOptions?.initialRetryDelayMs ??
+            DEFAULT_RETRY_OPTIONS.initialRetryDelayMs,
     };
 };
 
@@ -182,11 +183,12 @@ const resolveConnectionRetryOptions = (
 const resolveHandlerRetryOptions = (
     eventObserver: EventObserver,
 ): RetryOptions => ({
-    maxRetries: eventObserver.handlerRetryOptions?.maxRetries ??
+    maxRetries:
+        eventObserver.handlerRetryOptions?.maxRetries ??
         DEFAULT_RETRY_OPTIONS.maxRetries,
     initialRetryDelayMs:
         eventObserver.handlerRetryOptions?.initialRetryDelayMs ??
-            DEFAULT_RETRY_OPTIONS.initialRetryDelayMs,
+        DEFAULT_RETRY_OPTIONS.initialRetryDelayMs,
 });
 
 /**
@@ -205,9 +207,10 @@ const logObserverConnection = (
     data: Record<string, unknown>,
 ): void => {
     const retryLabel = retryCount === 1 ? 'retry' : 'retries';
-    const message = retryCount > 0
-        ? `Reconnected event observer for subject "${subject}" after ${retryCount} ${retryLabel}`
-        : `Observing events for subject "${subject}"`;
+    const message =
+        retryCount > 0
+            ? `Reconnected event observer for subject "${subject}" after ${retryCount} ${retryLabel}`
+            : `Observing events for subject "${subject}"`;
 
     getLogger().info({ category: 'Nimbus', message, data });
 };
@@ -237,10 +240,9 @@ const handleConnectionError = async (
     if (retryCount > maxRetries) {
         getLogger().critical({
             category: 'Nimbus',
-            message:
-                `Failed to observe events for subject "${subject}" after ${maxRetries} ${
-                    maxRetries === 1 ? 'retry' : 'retries'
-                }.`,
+            message: `Failed to observe events for subject "${subject}" after ${maxRetries} ${
+                maxRetries === 1 ? 'retry' : 'retries'
+            }.`,
         });
         return false;
     }
@@ -255,8 +257,7 @@ const handleConnectionError = async (
 
     getLogger().error({
         category: 'Nimbus',
-        message:
-            `Error observing events for subject "${subject}" (retry ${retryCount}/${maxRetries}), retrying in ${backoffDelay}ms`,
+        message: `Error observing events for subject "${subject}" (retry ${retryCount}/${maxRetries}), retrying in ${backoffDelay}ms`,
         error: error as Error,
     });
 
@@ -296,41 +297,36 @@ const handleEventWithRetry = async (
     };
 
     try {
-        await withRetry(
-            () => eventObserver.eventHandler(event),
-            {
-                maxRetries,
-                initialDelayMs: initialRetryDelayMs,
-                maxDelayMs: Infinity,
-                jitterFactor: 0.3,
-                onRetry: ({ error, attempt, delayMs }) => {
-                    observerHandlerRetryAttemptsCounter.add(1, metricLabels);
-                    span.addEvent('retry', {
-                        attempt,
-                        delay_ms: delayMs,
-                    });
+        await withRetry(() => eventObserver.eventHandler(event), {
+            maxRetries,
+            initialDelayMs: initialRetryDelayMs,
+            maxDelayMs: Infinity,
+            jitterFactor: 0.3,
+            onRetry: ({ error, attempt, delayMs }) => {
+                observerHandlerRetryAttemptsCounter.add(1, metricLabels);
+                span.addEvent('retry', {
+                    attempt,
+                    delay_ms: delayMs,
+                });
 
-                    getLogger().error({
-                        category: 'Nimbus',
-                        message:
-                            `Error handling event "${event.id}" (${event.type}) for subject "${eventObserver.subject}" (retry ${attempt}/${maxRetries}), retrying in ${delayMs}ms`,
-                        error,
-                        ...(isEventData(event.data)
-                            ? {
-                                correlationId:
-                                    event.data.nimbusMeta.correlationid,
-                            }
-                            : {}),
-                    });
-                },
+                getLogger().error({
+                    category: 'Nimbus',
+                    message: `Error handling event "${event.id}" (${event.type}) for subject "${eventObserver.subject}" (retry ${attempt}/${maxRetries}), retrying in ${delayMs}ms`,
+                    error,
+                    ...(isEventData(event.data)
+                        ? {
+                              correlationId:
+                                  event.data.nimbusMeta.correlationid,
+                          }
+                        : {}),
+                });
             },
-        );
+        });
 
         recordHandlerMetrics(metricLabels, 'success', startTime);
     } catch (error: unknown) {
-        const handlerError = error instanceof Error
-            ? error
-            : new Error(String(error));
+        const handlerError =
+            error instanceof Error ? error : new Error(String(error));
 
         recordHandlerMetrics(metricLabels, 'skipped', startTime);
         span.setStatus({
@@ -364,19 +360,17 @@ const handleHandlerExhausted = async (
         } catch (err: unknown) {
             // Isolate user callback failures so the poison
             // event is still skipped and observation continues.
-            const callbackError = err instanceof Error
-                ? err
-                : new Error(String(err));
+            const callbackError =
+                err instanceof Error ? err : new Error(String(err));
 
             getLogger().critical({
                 category: 'Nimbus',
-                message:
-                    `onHandlerError failed for event "${event.id}" (${event.type}) for subject "${eventObserver.subject}". Skipping event.`,
+                message: `onHandlerError failed for event "${event.id}" (${event.type}) for subject "${eventObserver.subject}". Skipping event.`,
                 error: callbackError,
                 ...(isEventData(event.data)
                     ? {
-                        correlationId: event.data.nimbusMeta.correlationid,
-                    }
+                          correlationId: event.data.nimbusMeta.correlationid,
+                      }
                     : {}),
             });
         }
@@ -385,15 +379,14 @@ const handleHandlerExhausted = async (
 
     getLogger().critical({
         category: 'Nimbus',
-        message:
-            `Failed to handle event "${event.id}" (${event.type}) for subject "${eventObserver.subject}" after ${maxRetries} ${
-                maxRetries === 1 ? 'retry' : 'retries'
-            }. Skipping event.`,
+        message: `Failed to handle event "${event.id}" (${event.type}) for subject "${eventObserver.subject}" after ${maxRetries} ${
+            maxRetries === 1 ? 'retry' : 'retries'
+        }. Skipping event.`,
         error: handlerError,
         ...(isEventData(event.data)
             ? {
-                correlationId: event.data.nimbusMeta.correlationid,
-            }
+                  correlationId: event.data.nimbusMeta.correlationid,
+              }
             : {}),
     });
 };
@@ -421,9 +414,7 @@ const handleHandlerExhausted = async (
 export const observeWithRetry = async (
     eventObserver: EventObserver,
 ): Promise<void> => {
-    const connectionRetryOptions = resolveConnectionRetryOptions(
-        eventObserver,
-    );
+    const connectionRetryOptions = resolveConnectionRetryOptions(eventObserver);
     const handlerRetryOptions = resolveHandlerRetryOptions(eventObserver);
 
     let connectionRetryCount = 0;
@@ -451,16 +442,14 @@ export const observeWithRetry = async (
                 fromLatestEvent,
             });
 
-            for await (
-                const event of eventSourcingDBClient.observeEvents(
-                    eventObserver.subject,
-                    {
-                        recursive: eventObserver.recursive ?? false,
-                        ...(lowerBound ? { lowerBound } : {}),
-                        ...(fromLatestEvent ? { fromLatestEvent } : {}),
-                    },
-                )
-            ) {
+            for await (const event of eventSourcingDBClient.observeEvents(
+                eventObserver.subject,
+                {
+                    recursive: eventObserver.recursive ?? false,
+                    ...(lowerBound ? { lowerBound } : {}),
+                    ...(fromLatestEvent ? { fromLatestEvent } : {}),
+                },
+            )) {
                 // Stream is healthy once events flow again. Count a successful
                 // reconnect only here so failed reconnect attempts are excluded.
                 if (connectionRetryCount > 0) {
@@ -472,9 +461,9 @@ export const observeWithRetry = async (
 
                 const traceContext: TraceContext | undefined = event.traceparent
                     ? {
-                        traceparent: event.traceparent,
-                        tracestate: event.tracestate,
-                    }
+                          traceparent: event.traceparent,
+                          tracestate: event.tracestate,
+                      }
                     : undefined;
 
                 const startTime = performance.now();

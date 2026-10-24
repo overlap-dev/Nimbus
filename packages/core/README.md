@@ -12,14 +12,17 @@ Refer to the [Nimbus main repository](https://github.com/overlap-dev/Nimbus) or 
 ## Install
 
 ```bash
-# Deno
-deno add npm:@nimbus-cqrs/core
-
-# NPM
+# npm
 npm install @nimbus-cqrs/core
+
+# pnpm
+pnpm add @nimbus-cqrs/core
 
 # Bun
 bun add @nimbus-cqrs/core
+
+# Deno
+deno add npm:@nimbus-cqrs/core
 ```
 
 # Examples
@@ -33,10 +36,10 @@ For detailed documentation, please refer to the [Nimbus documentation](https://n
 A **Command** asks the system to _do_ something (a write). You declare a [Zod](https://zod.dev/) schema that extends Nimbus' built-in `commandSchema`, write a handler, and register both on the router. Incoming messages are validated against the schema before they reach your handler.
 
 ```typescript
-import { commandSchema, createCommand, getRouter } from "@nimbus-cqrs/core";
-import { z } from "zod";
+import { commandSchema, createCommand, getRouter } from '@nimbus-cqrs/core';
+import { z } from 'zod';
 
-const ADD_TODO = "com.example.todo.add";
+const ADD_TODO = 'com.example.todo.add';
 
 const addTodoSchema = commandSchema.extend({
     type: z.literal(ADD_TODO),
@@ -48,7 +51,7 @@ type AddTodoCommand = z.infer<typeof addTodoSchema>;
 
 const handleAddTodo = async (cmd: AddTodoCommand) => {
     // ...persist the todo here...
-    return { id: "todo-1", title: cmd.data.title, status: "open" };
+    return { id: 'todo-1', title: cmd.data.title, status: 'open' };
 };
 
 const router = getRouter();
@@ -57,9 +60,9 @@ router.register(ADD_TODO, handleAddTodo, addTodoSchema);
 const result = await router.route(
     createCommand<AddTodoCommand>({
         type: ADD_TODO,
-        source: "https://app.example.com",
-        data: { title: "Write the README" },
-    })
+        source: 'https://app.example.com',
+        data: { title: 'Write the README' },
+    }),
 );
 
 console.log(result);
@@ -73,10 +76,10 @@ console.log(result);
 A **Query** asks the system to _read_ something. Mechanically it is identical to a Command — same router, same validation, same shape — only the intent differs.
 
 ```typescript
-import { createQuery, getRouter, querySchema } from "@nimbus-cqrs/core";
-import { z } from "zod";
+import { createQuery, getRouter, querySchema } from '@nimbus-cqrs/core';
+import { z } from 'zod';
 
-const GET_TODO = "com.example.todo.get";
+const GET_TODO = 'com.example.todo.get';
 
 const getTodoSchema = querySchema.extend({
     type: z.literal(GET_TODO),
@@ -86,7 +89,7 @@ type GetTodoQuery = z.infer<typeof getTodoSchema>;
 
 const handleGetTodo = async (q: GetTodoQuery) => {
     // ...load the todo from your read model...
-    return { id: q.data.id, title: "Write the README", status: "open" };
+    return { id: q.data.id, title: 'Write the README', status: 'open' };
 };
 
 const router = getRouter();
@@ -95,9 +98,9 @@ router.register(GET_TODO, handleGetTodo, getTodoSchema);
 const todo = await router.route(
     createQuery<GetTodoQuery>({
         type: GET_TODO,
-        source: "https://app.example.com",
-        data: { id: "todo-1" },
-    })
+        source: 'https://app.example.com',
+        data: { id: 'todo-1' },
+    }),
 );
 ```
 
@@ -106,10 +109,10 @@ const todo = await router.route(
 An **Event** announces that something _has happened_. Events are published to the in-process EventBus, which delivers them to every matching subscriber asynchronously, with exponential-backoff retries on handler errors and built-in OpenTelemetry traces and metrics.
 
 ```typescript
-import { createEvent, eventSchema, getEventBus } from "@nimbus-cqrs/core";
-import { z } from "zod";
+import { createEvent, eventSchema, getEventBus } from '@nimbus-cqrs/core';
+import { z } from 'zod';
 
-const TODO_ADDED = "com.example.todo.added";
+const TODO_ADDED = 'com.example.todo.added';
 
 const todoAddedSchema = eventSchema.extend({
     type: z.literal(TODO_ADDED),
@@ -135,10 +138,10 @@ eventBus.subscribeEvent<TodoAddedEvent>({
 eventBus.putEvent(
     createEvent<TodoAddedEvent>({
         type: TODO_ADDED,
-        source: "https://app.example.com",
-        subject: "/todos/todo-1",
-        data: { id: "todo-1", title: "Write the README" },
-    })
+        source: 'https://app.example.com',
+        subject: '/todos/todo-1',
+        data: { id: 'todo-1', title: 'Write the README' },
+    }),
 );
 ```
 
@@ -149,27 +152,27 @@ A typical flow is to publish an event from inside a command handler once the wri
 A typical app configures a single named router at startup with cross-cutting concerns (logging, correlation IDs, …) and then resolves it from anywhere via `getRouter()`.
 
 ```typescript
-import { getLogger, getRouter, setupRouter } from "@nimbus-cqrs/core";
+import { getLogger, getRouter, setupRouter } from '@nimbus-cqrs/core';
 
-setupRouter("default", {
+setupRouter('default', {
     logInput: (input) => {
         getLogger().debug({
-            category: "Router",
+            category: 'Router',
             message: `Routing ${input.type}`,
             correlationId: input.correlationid,
         });
     },
     logOutput: (output) => {
         getLogger().debug({
-            category: "Router",
-            message: "Handler completed",
+            category: 'Router',
+            message: 'Handler completed',
             data: { output },
         });
     },
 });
 
 // Anywhere else in your app:
-const router = getRouter("default");
+const router = getRouter('default');
 router.register(/* type, handler, schema */);
 await router.route(/* command or query */);
 ```

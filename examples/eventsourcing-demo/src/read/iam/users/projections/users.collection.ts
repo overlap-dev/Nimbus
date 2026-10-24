@@ -1,4 +1,4 @@
-import { MongoCollectionDefinition } from '@nimbus-cqrs/mongodb';
+import type { MongoCollectionDefinition } from '@nimbus-cqrs/mongodb';
 import { z } from 'zod';
 
 // Here we define the type of a user document and the

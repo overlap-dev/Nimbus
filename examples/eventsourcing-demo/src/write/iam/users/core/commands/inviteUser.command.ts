@@ -1,9 +1,9 @@
 import { commandSchema, createEvent, Exception } from '@nimbus-cqrs/core';
 import { z } from 'zod';
-import { UserState } from '../domain/user.state.ts';
+import type { UserState } from '../domain/user.state.ts';
 import {
     USER_INVITED_EVENT_TYPE,
-    UserInvitedEvent,
+    type UserInvitedEvent,
 } from '../events/userInvited.event.ts';
 
 // Each message needs its unique type.
