@@ -17,7 +17,6 @@
     "@nimbus-cqrs/core": "^2.5.0",
     "@nimbus-cqrs/hono": "^2.5.0",
     "@nimbus-cqrs/mongodb": "^2.5.0",
-    "@nimbus-cqrs/utils": "^2.5.0",
     "hono": "^4.13.7",
     "mongodb": "7.1.1",
     "zod": "^4.4.3"
