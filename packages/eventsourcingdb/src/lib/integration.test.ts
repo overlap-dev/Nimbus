@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createEvent, type Event } from '@nimbus-cqrs/core';
-import { Container, type Event as EventSourcingDBEvent } from 'eventsourcingdb';
+import {
+    Container,
+    DbApiError,
+    ErrorCode,
+    type Event as EventSourcingDBEvent,
+    isSubjectPristine,
+} from 'eventsourcingdb';
 import { setupEventSourcingDBClient } from './client.ts';
 import { eventSourcingDBEventToNimbusEvent } from './eventMapping.ts';
 import { initEventObserver, observeWithRetry } from './eventObserver.ts';
@@ -64,6 +70,17 @@ test('integration: eventsourcingdb', async (t) => {
             // If we reach here, setupEventSourcingDBClient did not
             // throw, meaning ping() and verifyApiToken() both passed.
         });
+
+        await t.test(
+            'setupEventSourcingDBClient accepts a stallTimeout',
+            async () => {
+                await setupEventSourcingDBClient({
+                    url: container.getBaseUrl(),
+                    apiToken: container.getApiToken(),
+                    stallTimeout: 10_000,
+                });
+            },
+        );
 
         // -----------------------------------------------------------------
         // writeEvents + readEvents round-trip
@@ -169,6 +186,81 @@ test('integration: eventsourcingdb', async (t) => {
                 }
 
                 assert.deepEqual(readBack.length, 3);
+            },
+        );
+
+        await t.test(
+            'writeEvents returns the written events with server-assigned fields',
+            async () => {
+                const events = [
+                    createEvent({
+                        source: 'https://nimbus.test',
+                        type: 'at.test.nimbus.written',
+                        subject: '/written/1',
+                        data: { index: 0 },
+                    }),
+                    createEvent({
+                        source: 'https://nimbus.test',
+                        type: 'at.test.nimbus.written',
+                        subject: '/written/1',
+                        data: { index: 1 },
+                    }),
+                ];
+
+                const writtenEvents = await writeEvents(events);
+
+                assert.deepEqual(writtenEvents.length, 2);
+
+                for (const [index, writtenEvent] of writtenEvents.entries()) {
+                    assert.deepEqual(typeof writtenEvent.id, 'string');
+                    assert.ok(writtenEvent.id.length > 0);
+                    assert.ok(writtenEvent.time instanceof Date);
+                    assert.deepEqual(writtenEvent.type, events[index].type);
+                    assert.deepEqual(
+                        writtenEvent.subject,
+                        events[index].subject,
+                    );
+                }
+
+                assert.notDeepEqual(writtenEvents[0].id, writtenEvents[1].id);
+            },
+        );
+
+        await t.test(
+            'writeEvents throws a DbApiError with preconditionViolated when a precondition does not hold',
+            async () => {
+                const subject = '/precondition/1';
+
+                await writeEvents([
+                    createEvent({
+                        source: 'https://nimbus.test',
+                        type: 'at.test.nimbus.precondition',
+                        subject,
+                        data: { index: 0 },
+                    }),
+                ]);
+
+                await assert.rejects(
+                    writeEvents(
+                        [
+                            createEvent({
+                                source: 'https://nimbus.test',
+                                type: 'at.test.nimbus.precondition',
+                                subject,
+                                data: { index: 1 },
+                            }),
+                        ],
+                        [isSubjectPristine(subject)],
+                    ),
+                    (error: unknown) => {
+                        assert.ok(error instanceof DbApiError);
+                        assert.deepEqual(
+                            error.code,
+                            ErrorCode.preconditionViolated,
+                        );
+                        return true;
+                    },
+                );
             },
         );
 
