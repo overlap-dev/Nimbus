@@ -7,14 +7,13 @@ description: >-
   another skill needs Nimbus conventions.
 ---
 
-# Nimbus 
+# Nimbus
 
 Implement from the official guide and the project's ESDM model — **Pure Core** inside an **Imperative Shell**.
 
 ## 1. Load official docs
 
 Before changing Nimbus-related code, load framework docs in this order:
-
 1. [llms.txt](https://nimbus.overlap.at/llms.txt) — index of guide pages
 2. [llms-full.txt](https://nimbus.overlap.at/llms-full.txt) — full guide in one file (preferred when online)
 3. Per-topic `.md` URLs from the index (e.g. [Commands](https://nimbus.overlap.at/guide/core/commands.md))
@@ -25,9 +24,9 @@ Before changing Nimbus-related code, load framework docs in this order:
 
 ## 2. Read the domain model
 
-Read the relevant constructs in `docs/domain-model/` for the work in scope.
+Read the relevant constructs in `docs/domain-model/model/` for the work in scope. The model is the source of truth: when a construct in scope is missing or contradicts the task, switch to the `nimbus-domain-modeling` skill and fix the model before writing code.
 
-**Done when:** every ESDM construct you will implement is located and its ubiquitous-language names are known.
+**Done when:** every ESDM construct you will implement is located in the model and its ubiquitous-language names are known.
 
 ## 3. Structure and map
 

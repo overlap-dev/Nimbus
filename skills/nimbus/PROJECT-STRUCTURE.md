@@ -19,13 +19,17 @@ Everything below applies inside the backend root, except composition files which
 
 ### Folder prefixes (ESDM kind)
 
-| Prefix | ESDM kind                    |
-| ------ | ---------------------------- |
-| `agg-` | Aggregate                    |
-| `rm-`  | Read Model                   |
-| `pm-`  | Process Manager              |
-| `dcb-` | Dynamic Consistency Boundary |
-| `ext-` | External System              |
+| Prefix    | ESDM kind                       |
+| --------- | ------------------------------- |
+| `agg-`    | Aggregate                       |
+| `rm-`     | Read Model                      |
+| `pm-`     | Process Manager                 |
+| `dcb-`    | Dynamic Consistency Boundary    |
+| `ext-`    | External System                 |
+| `map-`    | Context Mapping (owned edge)    |
+| `kernel-` | Context Mapping (shared kernel) |
+
+Actors (`act-` in the model) have no folder; see [ESDM-MAPPING.md](./ESDM-MAPPING.md).
 
 ```
 <backend-root>/
@@ -170,7 +174,6 @@ Default for ACL / customer-supplier: adapting side's context edge, not `shared/`
 ## Subjects
 
 Pattern: `/<bounded-context>/<stream>/<id>`
-
 - The stream segment is the consistency unit’s name in plural form. The kind prefix is stripped. E.g. (`agg-user` → `/iam/users`, not `/iam/user`).
 - One aggregate instance = one subject stream; every event for that instance shares the subject.
 - Observers subscribe at `/<bounded-context>/<stream>` with `recursive: true` to receive all instances.
@@ -184,7 +187,6 @@ Pattern: `/<bounded-context>/<stream>/<id>`
 ## Message types
 
 Pattern: `<reverse-domain>.<bounded-context>.<consistency-unit>.<message>`
-
 - `com.example.iam.user.register`
 - `com.example.iam.user.registered`
 - `com.example.iam.users.get-user`

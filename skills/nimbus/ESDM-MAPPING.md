@@ -23,22 +23,23 @@ Nimbus has no Aggregate / Policy / Process Manager classes — each construct is
 
 ## Behaviour beside aggregates
 
-| ESDM               | Nimbus                                                                                                                  |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| ESDM               | Nimbus                                                                                                                             |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
 | **Policy**         | Stateless observer handler in the target unit's `shell/policies/` — see [PROJECT-STRUCTURE.md](./PROJECT-STRUCTURE.md) (Policies). |
-| **Event Handler**  | Source unit `shell/event-handlers/` — egress via `ext-<system>/shell/client.ts`. Idempotency in the shell.              |
-| **Domain Service** | `core/domain/<name>.service.ts` — pure, no I/O; called from command/process-manager core.                               |
+| **Event Handler**  | Source unit `shell/event-handlers/` — egress via `ext-<system>/shell/client.ts`. Idempotency in the shell.                         |
+| **Domain Service** | `core/domain/<name>.service.ts` — pure, no I/O; called from command/process-manager core.                                          |
 
 ## Structural / vocabulary
 
-| ESDM                | Nimbus                                                                                        |
-| ------------------- | --------------------------------------------------------------------------------------------- |
-| **Bounded Context** | Top-level folder under the backend root.                                                      |
-| **Entity**          | Identity + Zod schema in core — not its own stream.                                           |
-| **Value Object**    | Zod schema in `core/domain/*.value-object.ts`.                                                |
-| **Actor**           | Enforced in the shell (auth), not as an aggregate invariant.                                  |
-| **External System** | `ext-<system>/` in the owning context — client (egress) / webhook HTTP (ingress).             |
-| **Context Mapping** | Place by mapping pattern — [PROJECT-STRUCTURE.md](./PROJECT-STRUCTURE.md) (Context mappings). |
+| ESDM                   | Nimbus                                                                                                     |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Domain / Subdomain** | No code counterpart — strategic classification only; bounded contexts sit directly under the backend root. |
+| **Bounded Context**    | Top-level folder under the backend root.                                                                   |
+| **Entity**             | Identity + Zod schema in core — not its own stream.                                                        |
+| **Value Object**       | Zod schema in `core/domain/*.value-object.ts`.                                                             |
+| **Actor**              | Enforced in the shell (auth), not as an aggregate invariant.                                               |
+| **External System**    | `ext-<system>/` in the owning context — client (egress) / webhook HTTP (ingress).                          |
+| **Context Mapping**    | Place by mapping pattern — [PROJECT-STRUCTURE.md](./PROJECT-STRUCTURE.md) (Context mappings).              |
 
 ## Dynamic Consistency Boundary
 

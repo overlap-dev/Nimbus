@@ -10,6 +10,7 @@
       "packages/**",
       "examples/eventsourcing-demo/**",
       "scripts/**",
+      "skills/**",
       "*.json",
       "!**/dist",
       "!**/node_modules",
@@ -33,6 +34,16 @@
   "json": {
     "formatter": {
       "indentWidth": 2
+    }
+  },
+  "yaml": {
+    "formatter": {
+      "indentWidth": 2
+    }
+  },
+  "markdown": {
+    "parser": {
+      "frontmatter": true
     }
   },
   "linter": {
