@@ -37,6 +37,16 @@ if (!rawArg) {
 
 const version = rawArg.replace(/^v/, '');
 
+// `npm version` also accepts bump keywords like `patch`, which would get
+// written verbatim into the node-demo dependency ranges below. A shape check
+// is enough to reject those; `npm version` validates the full SemVer grammar.
+if (!/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$/.test(version)) {
+    console.error(
+        `Invalid version "${rawArg}": expected a literal SemVer like 2.0.2 or 3.0.0-rc.1`,
+    );
+    process.exit(1);
+}
+
 // The child's output is forwarded as-is, so on failure its own error
 // message has already been printed and we just propagate the exit code.
 const run = (command: string, args: string[]) => {
@@ -50,7 +60,6 @@ const run = (command: string, args: string[]) => {
 
 console.log(`Setting Nimbus version to ${version}\n`);
 
-// `npm version` validates the SemVer string and fails loudly on typos.
 run('pnpm', [
     '-r',
     '--filter',

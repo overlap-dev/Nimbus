@@ -51,8 +51,21 @@ import { NodeSDK } from "@opentelemetry/sdk-node";
 const sdk = new NodeSDK();
 sdk.start();
 
-process.once("SIGTERM", () => sdk.shutdown());
-process.once("SIGINT", () => sdk.shutdown());
+export const shutdownTelemetry = () => sdk.shutdown();
+```
+
+Await `shutdownTelemetry()` as the last step of your graceful shutdown, after the HTTP server and database connections have been drained and before calling `process.exit()`. Shutting the SDK down earlier (for example directly from a signal handler) drops the spans of requests that finish during draining, and exiting without awaiting it can cut off the final export.
+
+```typescript
+// src/main.ts
+import { shutdownTelemetry } from "./otel.ts";
+
+const shutdown = async () => {
+    await server.shutdown();
+    await getMongoConnectionManager("default").close();
+    await shutdownTelemetry();
+    process.exit(0);
+};
 ```
 
 The SDK is configured through the standard `OTEL_*` environment variables:
@@ -66,7 +79,7 @@ export OTEL_RESOURCE_ATTRIBUTES=deployment.environment=production
 node --import ./src/otel.ts src/main.ts
 ```
 
-All traces and metrics from Nimbus will be exported to your configured backend. See `examples/eventsourcing-demo/src/otel.ts` in the repository for a complete example.
+All traces and metrics from Nimbus will be exported to your configured backend. See `examples/eventsourcing-demo/src/otel.ts` in the repository for a complete example. It registers the shutdown through a small `telemetry.ts` module so the application can also be started without the bootstrap.
 
 ### Deno
 

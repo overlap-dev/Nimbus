@@ -321,7 +321,6 @@ test('EventBus works without logPublish callback', () => {
         name: 'no-log-publish-test',
     });
 
-    // Should not throw when logPublish is not provided
     const testEvent = createTestEvent('test.event.no-log');
-    eventBus.putEvent(testEvent);
+    assert.doesNotThrow(() => eventBus.putEvent(testEvent));
 });

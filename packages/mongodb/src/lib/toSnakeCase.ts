@@ -19,7 +19,7 @@ const WORD_OR_NUMBER = new RegExp(
  * @returns The snake_cased string
  */
 export const toSnakeCase = (input: string): string => {
-    return (input.match(WORD_OR_NUMBER) ?? [])
-        .map((word) => word.toLowerCase())
-        .join('_');
+    return Array.from(input.matchAll(WORD_OR_NUMBER), (match) =>
+        match[0].toLowerCase(),
+    ).join('_');
 };

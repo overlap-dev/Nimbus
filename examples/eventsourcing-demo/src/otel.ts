@@ -10,21 +10,18 @@
  * variables (`OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS`,
  * `OTEL_SERVICE_NAME`, `OTEL_RESOURCE_ATTRIBUTES`, ...), see
  * `start-with-otel.sh`.
+ *
+ * The SDK is not shut down on signals here. Instead `main.ts` awaits
+ * `shutdownTelemetry()` after the application has drained, so spans from
+ * in-flight requests are still exported and the final flush completes before
+ * the process exits.
  */
 
-import process from 'node:process';
 import { NodeSDK } from '@opentelemetry/sdk-node';
+import { setTelemetryShutdown } from './telemetry.ts';
 
 const sdk = new NodeSDK();
 
 sdk.start();
 
-const shutdown = () => {
-    sdk.shutdown().catch((error: unknown) => {
-        console.error('Error shutting down the OpenTelemetry SDK', error);
-    });
-};
-
-process.once('SIGTERM', shutdown);
-process.once('SIGINT', shutdown);
-process.once('beforeExit', shutdown);
+setTelemetryShutdown(() => sdk.shutdown());

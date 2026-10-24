@@ -21,7 +21,7 @@ catalog:
   zod: ^4.4.3
 
 # Supply-chain protection: only install package versions that have been on the
-# registry for at least three days (replaces the former `.npmrc`
+# registry for at least two days (replaces the former `.npmrc`
 # `min-release-age=2`).
 minimumReleaseAge: 2880
 minimumReleaseAgeExclude:

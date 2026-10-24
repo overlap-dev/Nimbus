@@ -13,6 +13,7 @@ import { initEventSourcingDB } from './eventsourcingdb.ts';
 import { startHttpServer } from './http.ts';
 import { initMongoDB } from './mongodb.ts';
 import { initQueryRouter } from './read/queryRouter.ts';
+import { shutdownTelemetry } from './telemetry.ts';
 import { initCommandRouter } from './write/commandRouter.ts';
 
 // Set up the logger first to have it available
@@ -76,6 +77,9 @@ const shutdown = async (signal: string) => {
 
     await server.shutdown();
     await getMongoConnectionManager('default').close();
+
+    // Last, so spans from the drained requests are still exported.
+    await shutdownTelemetry();
 
     process.exit(0);
 };
