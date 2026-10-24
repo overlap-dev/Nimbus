@@ -222,19 +222,6 @@ importers:
         specifier: 'catalog:'
         version: 5.9.3
 
-  packages/utils:
-    dependencies:
-      '@nimbus-cqrs/core':
-        specifier: workspace:^
-        version: link:../core
-    devDependencies:
-      '@types/node':
-        specifier: 'catalog:'
-        version: 26.6.5
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-
 packages:
 
   '@11ty/gray-matter@2.1.0':
