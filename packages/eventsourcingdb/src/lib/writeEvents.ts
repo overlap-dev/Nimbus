@@ -63,7 +63,7 @@ export const writeEvents = (
             );
         });
 
-        return eventSourcingDBClient.writeEvents(
+        return await eventSourcingDBClient.writeEvents(
             eventCandidates,
             preconditions,
             signal,

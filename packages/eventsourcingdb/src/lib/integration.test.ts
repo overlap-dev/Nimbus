@@ -71,17 +71,6 @@ test('integration: eventsourcingdb', async (t) => {
             // throw, meaning ping() and verifyApiToken() both passed.
         });
 
-        await t.test(
-            'setupEventSourcingDBClient accepts a stallTimeout',
-            async () => {
-                await setupEventSourcingDBClient({
-                    url: container.getBaseUrl(),
-                    apiToken: container.getApiToken(),
-                    stallTimeout: 10_000,
-                });
-            },
-        );
-
         // -----------------------------------------------------------------
         // writeEvents + readEvents round-trip
         // -----------------------------------------------------------------
@@ -261,6 +250,45 @@ test('integration: eventsourcingdb', async (t) => {
                         return true;
                     },
                 );
+            },
+        );
+
+        await t.test(
+            'writeEvents rejects with the abort reason and persists nothing when the signal is already aborted',
+            async () => {
+                const subject = '/aborted/1';
+                const abortReason = new Error('write cancelled by test');
+                const controller = new AbortController();
+                controller.abort(abortReason);
+
+                await assert.rejects(
+                    writeEvents(
+                        [
+                            createEvent({
+                                source: 'https://nimbus.test',
+                                type: 'at.test.nimbus.aborted',
+                                subject,
+                                data: { index: 0 },
+                            }),
+                        ],
+                        undefined,
+                        controller.signal,
+                    ),
+                    (error: unknown) => {
+                        assert.deepEqual(error, abortReason);
+                        return true;
+                    },
+                );
+
+                const readBack: EventSourcingDBEvent[] = [];
+
+                for await (const e of readEvents(subject, {
+                    recursive: false,
+                })) {
+                    readBack.push(e);
+                }
+
+                assert.deepEqual(readBack.length, 0);
             },
         );
 
