@@ -44,6 +44,13 @@ export default withMermaid(defineConfig({
                 excludeIndexPage: true,
             }),
         ],
+        // mermaid is loaded lazily by vitepress-plugin-mermaid, so Vite's dev
+        // server does not discover it on its own. Without pre-bundling, its
+        // CommonJS dependencies (e.g. dayjs) are served raw from pnpm's strict
+        // node_modules and fail to load as ES modules.
+        optimizeDeps: {
+            include: ["mermaid"],
+        },
     },
     description: "Nimbus is an open-source application framework for building event-driven systems using CQRS and Event Sourcing in TypeScript.",
     head: [
@@ -284,7 +291,7 @@ export default withMermaid(defineConfig({
             message:
                 'Released under the <a href="https://github.com/overlap-dev/Nimbus/blob/main/LICENSE">Apache License 2.0</a>.',
             copyright:
-                'Copyright © 2024-present <a href="https://overlap.at">Overlap GmbH & Co KG</a>',
+                'Copyright 2024-present <a href="https://overlap.at">Overlap GmbH & Co KG</a>',
         },
     },
 }), {
