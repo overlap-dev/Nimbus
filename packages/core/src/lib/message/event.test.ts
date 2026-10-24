@@ -1,10 +1,11 @@
-import { assertEquals, assertExists, assertStringIncludes } from '@std/assert';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import { z } from 'zod';
 import { prettyLogFormatter } from '../log/logFormatter.ts';
 import { setupLogger } from '../log/logger.ts';
 import {
-    createEvent,
     type CreateEventInput,
+    createEvent,
     type Event,
     eventSchema,
 } from './event.ts';
@@ -25,7 +26,7 @@ const testEventSchema = eventSchema.extend({
 
 type TestEvent = z.infer<typeof testEventSchema>;
 
-Deno.test('createEvent passes through CloudEvents extension attributes', () => {
+test('createEvent passes through CloudEvents extension attributes', () => {
     const event = createEvent<TestEvent>({
         type: TEST_EVENT_TYPE,
         source: 'https://example.com',
@@ -36,11 +37,11 @@ Deno.test('createEvent passes through CloudEvents extension attributes', () => {
         metadata: { foo: 'bar' },
     });
 
-    assertEquals(event.type, TEST_EVENT_TYPE);
-    assertEquals(event.metadata, { foo: 'bar' });
+    assert.deepEqual(event.type, TEST_EVENT_TYPE);
+    assert.deepEqual(event.metadata, { foo: 'bar' });
 });
 
-Deno.test('eventSchema preserves extension attributes during validation', () => {
+test('eventSchema preserves extension attributes during validation', () => {
     const event = createEvent<TestEvent>({
         type: TEST_EVENT_TYPE,
         source: 'https://example.com',
@@ -53,13 +54,13 @@ Deno.test('eventSchema preserves extension attributes during validation', () => 
 
     const result = testEventSchema.safeParse(event);
 
-    assertEquals(result.success, true);
+    assert.deepEqual(result.success, true);
     if (result.success) {
-        assertEquals(result.data.metadata, { foo: 'bar' });
+        assert.deepEqual(result.data.metadata, { foo: 'bar' });
     }
 });
 
-Deno.test('eventSchema preserves undeclared extension attributes', () => {
+test('eventSchema preserves undeclared extension attributes', () => {
     const event: Event<TestEventData> & {
         traceparent: string;
     } = {
@@ -78,16 +79,16 @@ Deno.test('eventSchema preserves undeclared extension attributes', () => {
 
     const result = eventSchema.safeParse(event);
 
-    assertEquals(result.success, true);
+    assert.deepEqual(result.success, true);
     if (result.success) {
-        assertEquals(
+        assert.deepEqual(
             (result.data as typeof event).traceparent,
             '00-abc-def-01',
         );
     }
 });
 
-Deno.test('createEvent still applies defaults without extension attributes', () => {
+test('createEvent still applies defaults without extension attributes', () => {
     const event = createEvent({
         type: TEST_EVENT_TYPE,
         source: 'https://example.com',
@@ -97,14 +98,16 @@ Deno.test('createEvent still applies defaults without extension attributes', () 
         },
     });
 
-    assertEquals(event.specversion, '1.0');
-    assertEquals(event.datacontenttype, 'application/json');
-    assertExists(event.id);
-    assertExists(event.correlationid);
-    assertExists(event.time);
+    assert.deepEqual(event.specversion, '1.0');
+    assert.deepEqual(event.datacontenttype, 'application/json');
+    assert.ok(event.id !== undefined && event.id !== null);
+    assert.ok(
+        event.correlationid !== undefined && event.correlationid !== null,
+    );
+    assert.ok(event.time !== undefined && event.time !== null);
 });
 
-Deno.test('createEvent warns when extension attribute names violate CloudEvents naming', () => {
+test('createEvent warns when extension attribute names violate CloudEvents naming', () => {
     const warnings: unknown[][] = [];
     const originalWarn = console.warn;
     console.warn = (...args: unknown[]) => {
@@ -130,18 +133,18 @@ Deno.test('createEvent warns when extension attribute names violate CloudEvents 
             },
         } as unknown as CreateEventInput);
 
-        assertEquals(warnings.length, 1);
+        assert.deepEqual(warnings.length, 1);
         const warning = warnings[0]!.join('\n');
-        assertStringIncludes(warning, 'authContext');
-        assertStringIncludes(warning, 'corr-123');
-        assertStringIncludes(warning, 'event.test.ts');
+        assert.ok(warning.includes('authContext'));
+        assert.ok(warning.includes('corr-123'));
+        assert.ok(warning.includes('event.test.ts'));
     } finally {
         console.warn = originalWarn;
         setupLogger({ logLevel: 'silent' });
     }
 });
 
-Deno.test('createEvent does not warn for valid extension attribute names', () => {
+test('createEvent does not warn for valid extension attribute names', () => {
     const warnings: unknown[][] = [];
     const originalWarn = console.warn;
     console.warn = (...args: unknown[]) => {
@@ -161,7 +164,7 @@ Deno.test('createEvent does not warn for valid extension attribute names', () =>
             metadata: { foo: 'bar' },
         });
 
-        assertEquals(warnings.length, 0);
+        assert.deepEqual(warnings.length, 0);
     } finally {
         console.warn = originalWarn;
         setupLogger({ logLevel: 'silent' });

@@ -20,9 +20,7 @@ export type BulkWriteInput = {
 /**
  * Type to define the bulkWrite function.
  */
-export type BulkWrite = (
-    input: BulkWriteInput,
-) => Promise<BulkWriteResult>;
+export type BulkWrite = (input: BulkWriteInput) => Promise<BulkWriteResult>;
 
 /**
  * Perform multiple write operations in bulk.
@@ -34,11 +32,7 @@ export type BulkWrite = (
  *
  * @returns {Promise<BulkWriteResult>} The result of the bulk write operation.
  */
-export const bulkWrite: BulkWrite = ({
-    collection,
-    operations,
-    options,
-}) => {
+export const bulkWrite: BulkWrite = ({ collection, operations, options }) => {
     return withSpan('bulkWrite', collection, async () => {
         try {
             return await collection.bulkWrite(operations, options);

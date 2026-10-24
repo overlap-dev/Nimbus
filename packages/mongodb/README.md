@@ -6,7 +6,6 @@
 # Nimbus MongoDB
 
 A small, opinionated layer on top of the official [`mongodb`](https://www.mongodb.com/docs/drivers/node/current/) Node driver. The package gives you:
-
 -   a **singleton connection manager** with lazy connect, health check and graceful shutdown,
 -   typed **CRUD helpers** that throw Nimbus exceptions and emit OpenTelemetry spans automatically,
 -   a generic **`MongoDBRepository`** for typed entities with [Zod](https://zod.dev/) validation and pluggable document/entity mapping,
@@ -19,17 +18,20 @@ Refer to the [Nimbus main repository](https://github.com/overlap-dev/Nimbus) or 
 ## Install
 
 ```bash
-# Deno
-deno add npm:@nimbus-cqrs/mongodb
-
-# NPM
+# npm
 npm install @nimbus-cqrs/mongodb
+
+# pnpm
+pnpm add @nimbus-cqrs/mongodb
 
 # Bun
 bun add @nimbus-cqrs/mongodb
+
+# Deno
+deno add npm:@nimbus-cqrs/mongodb
 ```
 
-`mongodb` is a peer dependency — install it (or use one of the runtimes that resolves it via `npm:`/`jsr:` specifiers).
+`mongodb` is a peer dependency — install it alongside this package.
 
 # Examples
 
@@ -42,30 +44,30 @@ The snippets below use a tiny `Todo` entity to walk through the package.
 `MongoConnectionManager` is a thin singleton around a single long-lived `MongoClient` that makes sure your app reuses one client, connects lazily on first use and shuts down cleanly.
 
 ```typescript
-import { MongoConnectionManager } from "@nimbus-cqrs/mongodb";
-import { ServerApiVersion } from "mongodb";
+import { MongoConnectionManager } from '@nimbus-cqrs/mongodb';
+import { ServerApiVersion } from 'mongodb';
 
 export const mongoManager = MongoConnectionManager.getInstance(
-    process.env.MONGO_URI ?? "",
+    process.env.MONGO_URI ?? '',
     {
-        appName: "todo-app",
+        appName: 'todo-app',
         serverApi: {
             version: ServerApiVersion.v1,
             strict: false,
             deprecationErrors: true,
         },
-    }
+    },
 );
 
 // Use it from anywhere in the app.
-const todos = await mongoManager.getCollection("todo-app", "todos");
+const todos = await mongoManager.getCollection('todo-app', 'todos');
 
 // Health endpoint.
 const health = await mongoManager.healthCheck();
 // { status: 'healthy' } | { status: 'error', details: '...' }
 
 // Graceful shutdown.
-process.on("SIGTERM", () => {
+process.on('SIGTERM', () => {
     mongoManager.close().catch(console.error);
 });
 ```
@@ -77,26 +79,26 @@ process.on("SIGTERM", () => {
 Every common operation has a typed wrapper: `findOne`, `find`, `insertOne`, `insertMany`, `updateOne`, `updateMany`, `replaceOne`, `deleteOne`, `deleteMany`, `findOneAndUpdate`, `findOneAndReplace`, `findOneAndDelete`, `aggregate`, `bulkWrite` and `countDocuments`. They all share the same idea: take a Zod schema for the result, run the operation against a `Collection`, validate the output, throw a Nimbus exception on failure, and produce an OpenTelemetry span for observability.
 
 ```typescript
-import { findOne, insertOne } from "@nimbus-cqrs/mongodb";
-import { z } from "zod";
+import { findOne, insertOne } from '@nimbus-cqrs/mongodb';
+import { z } from 'zod';
 
 const Todo = z.object({
     _id: z.string(),
     title: z.string().min(1),
-    status: z.enum(["open", "done"]),
+    status: z.enum(['open', 'done']),
 });
 type Todo = z.infer<typeof Todo>;
 
-const collection = await mongoManager.getCollection("todo-app", "todos");
+const collection = await mongoManager.getCollection('todo-app', 'todos');
 
 await insertOne({
     collection,
-    document: { _id: "todo-1", title: "Write the README", status: "open" },
+    document: { _id: 'todo-1', title: 'Write the README', status: 'open' },
 });
 
 const todo = await findOne<Todo>({
     collection,
-    filter: { _id: "todo-1" },
+    filter: { _id: 'todo-1' },
     mapDocument: (doc) => ({
         _id: doc._id.toString(),
         title: doc.title,
@@ -113,24 +115,24 @@ If the document doesn't exist, `findOne` throws a `NotFoundException` instead of
 For most domains you don't want to call the CRUD helpers directly in every handler. `MongoDBRepository` wraps them in a typed, single-collection class with consistent error handling (entity-specific `NotFoundException` codes), centralized document↔entity mapping and a stable API.
 
 ```typescript
-import { MongoDBRepository } from "@nimbus-cqrs/mongodb";
-import type { Document } from "mongodb";
-import { ObjectId } from "mongodb";
-import { z } from "zod";
+import { MongoDBRepository } from '@nimbus-cqrs/mongodb';
+import type { Document } from 'mongodb';
+import { ObjectId } from 'mongodb';
+import { z } from 'zod';
 
 const Todo = z.object({
     _id: z.string(),
     title: z.string().min(1),
-    status: z.enum(["open", "done"]),
+    status: z.enum(['open', 'done']),
 });
 type Todo = z.infer<typeof Todo>;
 
 class TodoRepository extends MongoDBRepository<Todo> {
     constructor() {
         super(
-            () => mongoManager.getCollection("todo-app", "todos"),
+            () => mongoManager.getCollection('todo-app', 'todos'),
             Todo,
-            "Todo"
+            'Todo',
         );
     }
 
@@ -154,11 +156,11 @@ class TodoRepository extends MongoDBRepository<Todo> {
 export const todoRepository = new TodoRepository();
 
 await todoRepository.insertOne({
-    item: { _id: "507f1f77bcf86cd799439011", title: "Ship v2", status: "open" },
+    item: { _id: '507f1f77bcf86cd799439011', title: 'Ship v2', status: 'open' },
 });
 
 const todo = await todoRepository.findOne({
-    filter: { _id: new ObjectId("507f1f77bcf86cd799439011") },
+    filter: { _id: new ObjectId('507f1f77bcf86cd799439011') },
 });
 ```
 
@@ -169,31 +171,31 @@ Misses, missed updates and missed deletes throw a `NotFoundException` with a dom
 `deployMongoCollection` reads a single `MongoCollectionDefinition` (name + driver options + indexes) and reconciles it against the database: it creates the collection if missing, applies `collMod` if it exists, and — when `allowUpdateIndexes` is enabled — adds new indexes and drops the ones no longer in the definition. Use it at startup or in a one-off migration script.
 
 ```typescript
-import { deployMongoCollection } from "@nimbus-cqrs/mongodb";
+import { deployMongoCollection } from '@nimbus-cqrs/mongodb';
 
 const todoCollection = {
-    name: "todos",
+    name: 'todos',
     options: {
         validator: {
             $jsonSchema: {
-                bsonType: "object",
-                required: ["_id", "title", "status"],
+                bsonType: 'object',
+                required: ['_id', 'title', 'status'],
                 properties: {
-                    _id: { bsonType: "objectId" },
-                    title: { bsonType: "string", minLength: 1 },
-                    status: { enum: ["open", "done"] },
+                    _id: { bsonType: 'objectId' },
+                    title: { bsonType: 'string', minLength: 1 },
+                    status: { enum: ['open', 'done'] },
                 },
             },
         },
     },
-    indexes: [{ key: { status: 1 }, name: "status_1" }],
+    indexes: [{ key: { status: 1 }, name: 'status_1' }],
 };
 
 const client = await mongoManager.getClient();
 
 await deployMongoCollection({
     mongoClient: client,
-    dbName: "todo-app",
+    dbName: 'todo-app',
     collectionDefinition: todoCollection,
     allowUpdateIndexes: true,
 });
@@ -204,7 +206,7 @@ await deployMongoCollection({
 `MongoJSON` is a `parse` / `stringify` pair that preserves Mongo-typed values across JSON boundaries by encoding them with short prefixes (`objectId::`, `date::`, `int::`, `double::`). Handy when filters arrive as query-string parameters or are stored in configuration that has to round-trip through plain JSON.
 
 ```typescript
-import { MongoJSON } from "@nimbus-cqrs/mongodb";
+import { MongoJSON } from '@nimbus-cqrs/mongodb';
 
 const filter = MongoJSON.parse(`{
     "_id":       "objectId::507f1f77bcf86cd799439011",
@@ -224,10 +226,10 @@ const filter = MongoJSON.parse(`{
 `handleMongoError` translates raw driver errors into Nimbus exceptions: schema-validation failures (`121`) and duplicate-key errors (`11000`) become `InvalidInputException` with the offending key/value attached, anything else falls back to `GenericException`. The CRUD helpers call it for you — reach for it directly only when you're using the raw driver inside a handler.
 
 ```typescript
-import { handleMongoError } from "@nimbus-cqrs/mongodb";
+import { handleMongoError } from '@nimbus-cqrs/mongodb';
 
 try {
-    await collection.insertOne({ _id: "duplicate", title: "oops" });
+    await collection.insertOne({ _id: 'duplicate', title: 'oops' });
 } catch (error) {
     throw handleMongoError(error);
     // -> InvalidInputException with { keyValue: { _id: 'duplicate' } }

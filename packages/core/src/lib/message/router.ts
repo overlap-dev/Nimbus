@@ -32,9 +32,7 @@ const routingDuration = meter.createHistogram(
 export type MessageHandler<
     TInput extends Message = Message,
     TOutput = unknown,
-> = (
-    input: TInput,
-) => Promise<TOutput> | TOutput;
+> = (input: TInput) => Promise<TOutput> | TOutput;
 
 /**
  * Options for creating a MessageRouter.
@@ -121,9 +119,7 @@ export class MessageRouter {
     private readonly _logInput?: (input: any) => void;
     private readonly _logOutput?: (output: any) => void;
 
-    constructor(
-        options?: MessageRouterOptions,
-    ) {
+    constructor(options?: MessageRouterOptions) {
         this._handlers = new Map();
         this._name = options?.name ?? 'default';
         this._logInput = options?.logInput;
@@ -252,8 +248,7 @@ export class MessageRouter {
                         throw new NotFoundException(
                             'Message handler not found',
                             {
-                                reason:
-                                    `Could not find a handler for message type: "${input.type}"`,
+                                reason: `Could not find a handler for message type: "${input.type}"`,
                             },
                         );
                     }
@@ -298,9 +293,10 @@ export class MessageRouter {
 
                     span.setStatus({
                         code: SpanStatusCode.ERROR,
-                        message: error instanceof Error
-                            ? error.message
-                            : 'Unknown error',
+                        message:
+                            error instanceof Error
+                                ? error.message
+                                : 'Unknown error',
                     });
                     span.recordException(
                         error instanceof Error

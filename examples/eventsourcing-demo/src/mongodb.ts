@@ -1,5 +1,5 @@
-import { setupMongoConnectionManager } from '@nimbus-cqrs/mongodb';
 import { getEnv } from '@nimbus-cqrs/core';
+import { setupMongoConnectionManager } from '@nimbus-cqrs/mongodb';
 import { ServerApiVersion } from 'mongodb';
 
 export const initMongoDB = () => {
@@ -9,7 +9,7 @@ export const initMongoDB = () => {
 
     setupMongoConnectionManager({
         name: 'default',
-        uri: env['MONGO_URL'],
+        uri: env.MONGO_URL,
         options: {
             appName: 'nimbus-eventsourcing-demo',
             serverApi: {

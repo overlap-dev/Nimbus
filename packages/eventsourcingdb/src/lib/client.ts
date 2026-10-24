@@ -77,13 +77,12 @@ export type SetupEventSourcingDBClientInput = {
  * });
  * ```
  */
-export const setupEventSourcingDBClient = async (
-    { url, apiToken, eventObservers }: SetupEventSourcingDBClientInput,
-): Promise<void> => {
-    eventSourcingDBClient = new Client(
-        url,
-        apiToken,
-    );
+export const setupEventSourcingDBClient = async ({
+    url,
+    apiToken,
+    eventObservers,
+}: SetupEventSourcingDBClientInput): Promise<void> => {
+    eventSourcingDBClient = new Client(url, apiToken);
 
     try {
         await eventSourcingDBClient.ping();
@@ -93,9 +92,7 @@ export const setupEventSourcingDBClient = async (
             message: 'Could not connect to EventSourcingDB',
             error: error as Error,
         });
-        throw new GenericException(
-            'Could not connect to EventSourcingDB',
-        );
+        throw new GenericException('Could not connect to EventSourcingDB');
     }
 
     try {

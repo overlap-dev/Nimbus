@@ -49,22 +49,19 @@ export const deployMongoCollection = async ({
 
     getLogger().info({
         category: 'Nimbus',
-        message:
-            `Deploying collection "${collectionName}" on database "${dbName}" ...`,
+        message: `Deploying collection "${collectionName}" on database "${dbName}" ...`,
     });
 
     if (await collectionExists(db, collectionDefinition)) {
         getLogger().info({
             category: 'Nimbus',
-            message:
-                `Collection "${collectionName}" exists. Updating collection ...`,
+            message: `Collection "${collectionName}" exists. Updating collection ...`,
         });
         await updateCollection(db, allowUpdateIndexes, collectionDefinition);
     } else {
         getLogger().info({
             category: 'Nimbus',
-            message:
-                `Collection "${collectionName}" does not exist. Creating collection ...`,
+            message: `Collection "${collectionName}" does not exist. Creating collection ...`,
         });
         await createCollection(db, collectionDefinition);
     }
@@ -110,8 +107,7 @@ const createCollection = async (
         await db.collection(name).createIndexes(indexes);
         getLogger().info({
             category: 'Nimbus',
-            message:
-                `Added ${indexes.length} indexes for collection "${name}".`,
+            message: `Added ${indexes.length} indexes for collection "${name}".`,
         });
     }
 };
@@ -143,9 +139,7 @@ const updateCollection = async (
             return {
                 ...index,
                 name: Object.entries(index.key)
-                    .reduce((acc: string[], [k, v]) => {
-                        return [...acc, `${k}_${String(v)}`];
-                    }, [])
+                    .map(([k, v]) => `${k}_${String(v)}`)
                     .join('_'),
             };
         });
@@ -168,8 +162,7 @@ const updateCollection = async (
             await db.collection(name).createIndexes(indexesToAdd);
             getLogger().info({
                 category: 'Nimbus',
-                message:
-                    `Added ${indexesToAdd.length} indexes for collection "${name}".`,
+                message: `Added ${indexesToAdd.length} indexes for collection "${name}".`,
             });
         }
 
@@ -182,8 +175,7 @@ const updateCollection = async (
             );
             getLogger().info({
                 category: 'Nimbus',
-                message:
-                    `Deleted ${indexesToDelete.length} indexes for collection "${name}".`,
+                message: `Deleted ${indexesToDelete.length} indexes for collection "${name}".`,
             });
         }
     }

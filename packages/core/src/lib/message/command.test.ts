@@ -1,12 +1,13 @@
-import { assertEquals, assertExists, assertStringIncludes } from '@std/assert';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import { z } from 'zod';
 import { prettyLogFormatter } from '../log/logFormatter.ts';
 import { setupLogger } from '../log/logger.ts';
 import {
     type Command,
+    type CreateCommandInput,
     commandSchema,
     createCommand,
-    type CreateCommandInput,
 } from './command.ts';
 
 const TEST_COMMAND_TYPE = 'at.example.test-command';
@@ -32,7 +33,7 @@ const testCommandSchema = commandSchema.extend({
 
 type TestCommand = z.infer<typeof testCommandSchema>;
 
-Deno.test('createCommand passes through CloudEvents extension attributes', () => {
+test('createCommand passes through CloudEvents extension attributes', () => {
     const command = createCommand<TestCommand>({
         type: TEST_COMMAND_TYPE,
         source: 'https://example.com',
@@ -47,13 +48,13 @@ Deno.test('createCommand passes through CloudEvents extension attributes', () =>
         },
     });
 
-    assertEquals(command.type, TEST_COMMAND_TYPE);
-    assertEquals(command.metadata, { foo: 'bar' });
-    assertEquals(command.authcontext.sub, '123');
-    assertEquals(command.authcontext.groups, ['admin']);
+    assert.deepEqual(command.type, TEST_COMMAND_TYPE);
+    assert.deepEqual(command.metadata, { foo: 'bar' });
+    assert.deepEqual(command.authcontext.sub, '123');
+    assert.deepEqual(command.authcontext.groups, ['admin']);
 });
 
-Deno.test('commandSchema preserves extension attributes during validation', () => {
+test('commandSchema preserves extension attributes during validation', () => {
     const command = createCommand<TestCommand>({
         type: TEST_COMMAND_TYPE,
         source: 'https://example.com',
@@ -70,14 +71,14 @@ Deno.test('commandSchema preserves extension attributes during validation', () =
 
     const result = testCommandSchema.safeParse(command);
 
-    assertEquals(result.success, true);
+    assert.deepEqual(result.success, true);
     if (result.success) {
-        assertEquals(result.data.metadata, { foo: 'bar' });
-        assertEquals(result.data.authcontext.email, 'test@example.com');
+        assert.deepEqual(result.data.metadata, { foo: 'bar' });
+        assert.deepEqual(result.data.authcontext.email, 'test@example.com');
     }
 });
 
-Deno.test('commandSchema preserves undeclared extension attributes', () => {
+test('commandSchema preserves undeclared extension attributes', () => {
     const command: Command<TestCommandData> & {
         traceparent: string;
     } = {
@@ -95,16 +96,16 @@ Deno.test('commandSchema preserves undeclared extension attributes', () => {
 
     const result = commandSchema.safeParse(command);
 
-    assertEquals(result.success, true);
+    assert.deepEqual(result.success, true);
     if (result.success) {
-        assertEquals(
+        assert.deepEqual(
             (result.data as typeof command).traceparent,
             '00-abc-def-01',
         );
     }
 });
 
-Deno.test('createCommand still applies defaults without extension attributes', () => {
+test('createCommand still applies defaults without extension attributes', () => {
     const command = createCommand({
         type: TEST_COMMAND_TYPE,
         source: 'https://example.com',
@@ -113,14 +114,16 @@ Deno.test('createCommand still applies defaults without extension attributes', (
         },
     });
 
-    assertEquals(command.specversion, '1.0');
-    assertEquals(command.datacontenttype, 'application/json');
-    assertExists(command.id);
-    assertExists(command.correlationid);
-    assertExists(command.time);
+    assert.deepEqual(command.specversion, '1.0');
+    assert.deepEqual(command.datacontenttype, 'application/json');
+    assert.ok(command.id !== undefined && command.id !== null);
+    assert.ok(
+        command.correlationid !== undefined && command.correlationid !== null,
+    );
+    assert.ok(command.time !== undefined && command.time !== null);
 });
 
-Deno.test('createCommand warns when extension attribute names violate CloudEvents naming', () => {
+test('createCommand warns when extension attribute names violate CloudEvents naming', () => {
     const warnings: unknown[][] = [];
     const originalWarn = console.warn;
     console.warn = (...args: unknown[]) => {
@@ -146,15 +149,14 @@ Deno.test('createCommand warns when extension attribute names violate CloudEvent
             'foo-bar': 'baz',
         } as unknown as CreateCommandInput);
 
-        assertEquals(warnings.length, 1);
+        assert.deepEqual(warnings.length, 1);
         const warning = warnings[0]!.join('\n');
-        assertStringIncludes(warning, 'authContext');
-        assertStringIncludes(warning, 'foo-bar');
-        assertStringIncludes(warning, 'corr-123');
-        assertStringIncludes(warning, 'command.test.ts');
-        assertStringIncludes(
-            warning,
-            'Invalid CloudEvents extension attribute names',
+        assert.ok(warning.includes('authContext'));
+        assert.ok(warning.includes('foo-bar'));
+        assert.ok(warning.includes('corr-123'));
+        assert.ok(warning.includes('command.test.ts'));
+        assert.ok(
+            warning.includes('Invalid CloudEvents extension attribute names'),
         );
     } finally {
         console.warn = originalWarn;
@@ -162,7 +164,7 @@ Deno.test('createCommand warns when extension attribute names violate CloudEvent
     }
 });
 
-Deno.test('createCommand does not warn for valid extension attribute names', () => {
+test('createCommand does not warn for valid extension attribute names', () => {
     const warnings: unknown[][] = [];
     const originalWarn = console.warn;
     console.warn = (...args: unknown[]) => {
@@ -186,7 +188,7 @@ Deno.test('createCommand does not warn for valid extension attribute names', () 
             },
         });
 
-        assertEquals(warnings.length, 0);
+        assert.deepEqual(warnings.length, 0);
     } finally {
         console.warn = originalWarn;
         setupLogger({ logLevel: 'silent' });

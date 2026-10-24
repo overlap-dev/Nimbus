@@ -1,6 +1,6 @@
 import {
-    context as otelContext,
     metrics,
+    context as otelContext,
     propagation,
     type Span,
     SpanKind,
@@ -174,9 +174,10 @@ export const withSpan = <T>(
 
                 span.setStatus({
                     code: SpanStatusCode.ERROR,
-                    message: error instanceof Error
-                        ? error.message
-                        : 'Unknown error',
+                    message:
+                        error instanceof Error
+                            ? error.message
+                            : 'Unknown error',
                 });
                 span.recordException(
                     error instanceof Error ? error : new Error('Unknown error'),

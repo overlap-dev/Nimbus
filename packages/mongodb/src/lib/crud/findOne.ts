@@ -17,9 +17,7 @@ export type FindOneInput<TData> = {
 /**
  * Type to define the findOne function.
  */
-export type FindOne = <TData>(
-    input: FindOneInput<TData>,
-) => Promise<TData>;
+export type FindOne = <TData>(input: FindOneInput<TData>) => Promise<TData>;
 
 /**
  * Finds a single document in a MongoDB collection and returns
@@ -55,9 +53,10 @@ export const findOne: FindOne = <TData>({
         try {
             return outputType.parse(mapDocument(res)) as TData;
         } catch (error) {
-            const exception = error instanceof Error
-                ? new GenericException().fromError(error)
-                : new GenericException();
+            const exception =
+                error instanceof Error
+                    ? new GenericException().fromError(error)
+                    : new GenericException();
 
             throw exception;
         }

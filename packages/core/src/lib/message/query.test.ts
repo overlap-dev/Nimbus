@@ -1,10 +1,11 @@
-import { assertEquals, assertExists, assertStringIncludes } from '@std/assert';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import { z } from 'zod';
 import { prettyLogFormatter } from '../log/logFormatter.ts';
 import { setupLogger } from '../log/logger.ts';
 import {
-    createQuery,
     type CreateQueryInput,
+    createQuery,
     type Query,
     querySchema,
 } from './query.ts';
@@ -25,7 +26,7 @@ const testQuerySchema = querySchema.extend({
 
 type TestQuery = z.infer<typeof testQuerySchema>;
 
-Deno.test('createQuery passes through CloudEvents extension attributes', () => {
+test('createQuery passes through CloudEvents extension attributes', () => {
     const query = createQuery<TestQuery>({
         type: TEST_QUERY_TYPE,
         source: 'https://example.com',
@@ -35,11 +36,11 @@ Deno.test('createQuery passes through CloudEvents extension attributes', () => {
         metadata: { foo: 'bar' },
     });
 
-    assertEquals(query.type, TEST_QUERY_TYPE);
-    assertEquals(query.metadata, { foo: 'bar' });
+    assert.deepEqual(query.type, TEST_QUERY_TYPE);
+    assert.deepEqual(query.metadata, { foo: 'bar' });
 });
 
-Deno.test('querySchema preserves extension attributes during validation', () => {
+test('querySchema preserves extension attributes during validation', () => {
     const query = createQuery<TestQuery>({
         type: TEST_QUERY_TYPE,
         source: 'https://example.com',
@@ -51,13 +52,13 @@ Deno.test('querySchema preserves extension attributes during validation', () => 
 
     const result = testQuerySchema.safeParse(query);
 
-    assertEquals(result.success, true);
+    assert.deepEqual(result.success, true);
     if (result.success) {
-        assertEquals(result.data.metadata, { foo: 'bar' });
+        assert.deepEqual(result.data.metadata, { foo: 'bar' });
     }
 });
 
-Deno.test('querySchema preserves undeclared extension attributes', () => {
+test('querySchema preserves undeclared extension attributes', () => {
     const query: Query<TestQueryData> & {
         traceparent: string;
     } = {
@@ -75,16 +76,16 @@ Deno.test('querySchema preserves undeclared extension attributes', () => {
 
     const result = querySchema.safeParse(query);
 
-    assertEquals(result.success, true);
+    assert.deepEqual(result.success, true);
     if (result.success) {
-        assertEquals(
+        assert.deepEqual(
             (result.data as typeof query).traceparent,
             '00-abc-def-01',
         );
     }
 });
 
-Deno.test('createQuery still applies defaults without extension attributes', () => {
+test('createQuery still applies defaults without extension attributes', () => {
     const query = createQuery({
         type: TEST_QUERY_TYPE,
         source: 'https://example.com',
@@ -93,14 +94,16 @@ Deno.test('createQuery still applies defaults without extension attributes', () 
         },
     });
 
-    assertEquals(query.specversion, '1.0');
-    assertEquals(query.datacontenttype, 'application/json');
-    assertExists(query.id);
-    assertExists(query.correlationid);
-    assertExists(query.time);
+    assert.deepEqual(query.specversion, '1.0');
+    assert.deepEqual(query.datacontenttype, 'application/json');
+    assert.ok(query.id !== undefined && query.id !== null);
+    assert.ok(
+        query.correlationid !== undefined && query.correlationid !== null,
+    );
+    assert.ok(query.time !== undefined && query.time !== null);
 });
 
-Deno.test('createQuery warns when extension attribute names violate CloudEvents naming', () => {
+test('createQuery warns when extension attribute names violate CloudEvents naming', () => {
     const warnings: unknown[][] = [];
     const originalWarn = console.warn;
     console.warn = (...args: unknown[]) => {
@@ -125,18 +128,18 @@ Deno.test('createQuery warns when extension attribute names violate CloudEvents 
             },
         } as unknown as CreateQueryInput);
 
-        assertEquals(warnings.length, 1);
+        assert.deepEqual(warnings.length, 1);
         const warning = warnings[0]!.join('\n');
-        assertStringIncludes(warning, 'authContext');
-        assertStringIncludes(warning, 'corr-123');
-        assertStringIncludes(warning, 'query.test.ts');
+        assert.ok(warning.includes('authContext'));
+        assert.ok(warning.includes('corr-123'));
+        assert.ok(warning.includes('query.test.ts'));
     } finally {
         console.warn = originalWarn;
         setupLogger({ logLevel: 'silent' });
     }
 });
 
-Deno.test('createQuery does not warn for valid extension attribute names', () => {
+test('createQuery does not warn for valid extension attribute names', () => {
     const warnings: unknown[][] = [];
     const originalWarn = console.warn;
     console.warn = (...args: unknown[]) => {
@@ -155,7 +158,7 @@ Deno.test('createQuery does not warn for valid extension attribute names', () =>
             metadata: { foo: 'bar' },
         });
 
-        assertEquals(warnings.length, 0);
+        assert.deepEqual(warnings.length, 0);
     } finally {
         console.warn = originalWarn;
         setupLogger({ logLevel: 'silent' });

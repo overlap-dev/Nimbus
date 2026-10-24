@@ -1,3 +1,4 @@
+import process from 'node:process';
 import {
     createLogTruncator,
     getEnv,
@@ -8,12 +9,11 @@ import {
     setupLogger,
 } from '@nimbus-cqrs/core';
 import { getMongoConnectionManager } from '@nimbus-cqrs/mongodb';
-import '@std/dotenv/load';
-import process from 'node:process';
 import { initEventSourcingDB } from './eventsourcingdb.ts';
 import { startHttpServer } from './http.ts';
 import { initMongoDB } from './mongodb.ts';
 import { initQueryRouter } from './read/queryRouter.ts';
+import { shutdownTelemetry } from './telemetry.ts';
 import { initCommandRouter } from './write/commandRouter.ts';
 
 // Set up the logger first to have it available
@@ -21,9 +21,10 @@ import { initCommandRouter } from './write/commandRouter.ts';
 
 setupLogger({
     logLevel: parseLogLevel(process.env.LOG_LEVEL),
-    formatter: process.env.LOG_FORMAT === 'pretty'
-        ? prettyLogFormatter
-        : jsonLogFormatter,
+    formatter:
+        process.env.LOG_FORMAT === 'pretty'
+            ? prettyLogFormatter
+            : jsonLogFormatter,
     useConsoleColors: process.env.LOG_FORMAT === 'pretty',
     truncator: createLogTruncator(),
 });
@@ -64,8 +65,7 @@ const shutdown = async (signal: string) => {
 
     if (env.NODE_ENV === 'development') {
         getLogger().info({
-            message:
-                `Received ${signal}, skipping graceful shutdown in development mode...`,
+            message: `Received ${signal}, skipping graceful shutdown in development mode...`,
         });
 
         return;
@@ -78,13 +78,16 @@ const shutdown = async (signal: string) => {
     await server.shutdown();
     await getMongoConnectionManager('default').close();
 
-    Deno.exit(0);
+    // Last, so spans from the drained requests are still exported.
+    await shutdownTelemetry();
+
+    process.exit(0);
 };
 
-Deno.addSignalListener('SIGTERM', async () => {
-    await shutdown('SIGTERM');
+process.on('SIGTERM', () => {
+    shutdown('SIGTERM').catch(() => process.exit(1));
 });
 
-Deno.addSignalListener('SIGINT', async () => {
-    await shutdown('SIGINT');
+process.on('SIGINT', () => {
+    shutdown('SIGINT').catch(() => process.exit(1));
 });

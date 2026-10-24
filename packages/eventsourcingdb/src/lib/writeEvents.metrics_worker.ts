@@ -1,3 +1,4 @@
+import { parentPort } from 'node:worker_threads';
 import { metrics } from '@opentelemetry/api';
 import {
     DataPointType,
@@ -59,26 +60,21 @@ const collected = await reader.collect();
 const collectedMetrics = collected.resourceMetrics.scopeMetrics.flatMap(
     (scope) => scope.metrics,
 );
-const eventSize = collectedMetrics.find((metric) =>
-    metric.descriptor.name === 'eventsourcingdb_event_size_bytes'
+const eventSize = collectedMetrics.find(
+    (metric) => metric.descriptor.name === 'eventsourcingdb_event_size_bytes',
 );
 
-const dataPoints = eventSize?.dataPointType === DataPointType.HISTOGRAM
-    ? eventSize.dataPoints.map((point) => ({
-        attributes: { ...point.attributes },
-        count: point.value.count,
-    }))
-    : [];
+const dataPoints =
+    eventSize?.dataPointType === DataPointType.HISTOGRAM
+        ? eventSize.dataPoints.map((point) => ({
+              attributes: { ...point.attributes },
+              count: point.value.count,
+          }))
+        : [];
 
-const scope = self as unknown as {
-    postMessage: (message: unknown) => void;
-    close: () => void;
-};
-
-scope.postMessage({
+parentPort?.postMessage({
     dataPoints,
     metricNames: collectedMetrics.map((metric) => metric.descriptor.name),
 });
 
 await provider.shutdown();
-scope.close();

@@ -159,9 +159,10 @@ export class MongoConnectionManager {
      *
      * @returns {Promise<{ status: 'healthy' | 'error'; details?: string }>} The health status and optional error details
      */
-    public async healthCheck(): Promise<
-        { status: 'healthy' | 'error'; details?: string }
-    > {
+    public async healthCheck(): Promise<{
+        status: 'healthy' | 'error';
+        details?: string;
+    }> {
         try {
             const client = await this.getClient();
             await client.db('admin').command({ ping: 1 });
@@ -169,9 +170,10 @@ export class MongoConnectionManager {
         } catch (error) {
             return {
                 status: 'error',
-                details: error instanceof Error
-                    ? error.message
-                    : 'Unknown error occurred',
+                details:
+                    error instanceof Error
+                        ? error.message
+                        : 'Unknown error occurred',
             };
         }
     }
@@ -264,13 +266,15 @@ const mongoConnectionManagerRegistry = new Map<
  * });
  * ```
  */
-export const setupMongoConnectionManager = (
-    { uri, options, name = 'default' }: {
-        uri: string;
-        options?: MongoClientOptions;
-        name?: string;
-    },
-): void => {
+export const setupMongoConnectionManager = ({
+    uri,
+    options,
+    name = 'default',
+}: {
+    uri: string;
+    options?: MongoClientOptions;
+    name?: string;
+}): void => {
     mongoConnectionManagerRegistry.set(
         name,
         MongoConnectionManager.getInstance(uri, options),

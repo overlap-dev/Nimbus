@@ -1,4 +1,5 @@
-import { assertEquals, assertRejects } from '@std/assert';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import {
     withAsyncGeneratorSpan,
     withObserveEventSpan,
@@ -9,35 +10,26 @@ import {
 // withSpan
 // ---------------------------------------------------------------------------
 
-Deno.test('withSpan returns the result of the wrapped function', async () => {
-    const result = await withSpan(
-        'testOp',
-        () => Promise.resolve(42),
-    );
+test('withSpan returns the result of the wrapped function', async () => {
+    const result = await withSpan('testOp', () => Promise.resolve(42));
 
-    assertEquals(result, 42);
+    assert.deepEqual(result, 42);
 });
 
-Deno.test('withSpan re-throws errors from the wrapped function', async () => {
-    await assertRejects(
+test('withSpan re-throws errors from the wrapped function', async () => {
+    await assert.rejects(
         () => withSpan('testOp', () => Promise.reject(new Error('boom'))),
-        Error,
-        'boom',
+        { message: /boom/ },
     );
 });
 
-Deno.test('withSpan accepts an optional traceContext without error', async () => {
-    const result = await withSpan(
-        'testOp',
-        () => Promise.resolve('traced'),
-        {
-            traceparent:
-                '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01',
-            tracestate: 'vendor=value',
-        },
-    );
+test('withSpan accepts an optional traceContext without error', async () => {
+    const result = await withSpan('testOp', () => Promise.resolve('traced'), {
+        traceparent: '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01',
+        tracestate: 'vendor=value',
+    });
 
-    assertEquals(result, 'traced');
+    assert.deepEqual(result, 'traced');
 });
 
 // ---------------------------------------------------------------------------
@@ -55,27 +47,25 @@ async function* failingAfterFirst(): AsyncGenerator<number, void, void> {
     throw new Error('generator failed');
 }
 
-Deno.test('withAsyncGeneratorSpan yields all values from the inner generator', async () => {
+test('withAsyncGeneratorSpan yields all values from the inner generator', async () => {
     const values: number[] = [];
 
     for await (const value of withAsyncGeneratorSpan('testOp', threeValues)) {
         values.push(value);
     }
 
-    assertEquals(values, [1, 2, 3]);
+    assert.deepEqual(values, [1, 2, 3]);
 });
 
-Deno.test('withAsyncGeneratorSpan re-throws errors from the inner generator', async () => {
+test('withAsyncGeneratorSpan re-throws errors from the inner generator', async () => {
     const values: number[] = [];
 
-    await assertRejects(
+    await assert.rejects(
         async () => {
-            for await (
-                const value of withAsyncGeneratorSpan(
-                    'testOp',
-                    failingAfterFirst,
-                )
-            ) {
+            for await (const value of withAsyncGeneratorSpan(
+                'testOp',
+                failingAfterFirst,
+            )) {
                 values.push(value);
             }
         },
@@ -84,7 +74,7 @@ Deno.test('withAsyncGeneratorSpan re-throws errors from the inner generator', as
     );
 
     // The value yielded before the error should still have been received
-    assertEquals(values, [1]);
+    assert.deepEqual(values, [1]);
 });
 
 // ---------------------------------------------------------------------------
@@ -97,7 +87,7 @@ const testEvent = {
     subject: '/test',
 };
 
-Deno.test('withObserveEventSpan returns the result of the wrapped function', async () => {
+test('withObserveEventSpan returns the result of the wrapped function', async () => {
     const result = await withObserveEventSpan(
         testEvent,
         '/test',
@@ -105,24 +95,20 @@ Deno.test('withObserveEventSpan returns the result of the wrapped function', asy
         () => Promise.resolve(42),
     );
 
-    assertEquals(result, 42);
+    assert.deepEqual(result, 42);
 });
 
-Deno.test('withObserveEventSpan re-throws errors from the wrapped function', async () => {
-    await assertRejects(
+test('withObserveEventSpan re-throws errors from the wrapped function', async () => {
+    await assert.rejects(
         () =>
-            withObserveEventSpan(
-                testEvent,
-                '/test',
-                undefined,
-                () => Promise.reject(new Error('observe boom')),
+            withObserveEventSpan(testEvent, '/test', undefined, () =>
+                Promise.reject(new Error('observe boom')),
             ),
-        Error,
-        'observe boom',
+        { message: /observe boom/ },
     );
 });
 
-Deno.test('withObserveEventSpan accepts an optional TraceContext without error', async () => {
+test('withObserveEventSpan accepts an optional TraceContext without error', async () => {
     const result = await withObserveEventSpan(
         testEvent,
         '/test',
@@ -134,5 +120,5 @@ Deno.test('withObserveEventSpan accepts an optional TraceContext without error',
         () => Promise.resolve('observed'),
     );
 
-    assertEquals(result, 'observed');
+    assert.deepEqual(result, 'observed');
 });

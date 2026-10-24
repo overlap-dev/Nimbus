@@ -13,23 +13,26 @@ Refer to the [Nimbus main repository](https://github.com/overlap-dev/Nimbus) or 
 
 ```typescript
 // Before
-import { getEnv } from "@nimbus-cqrs/utils";
+import { getEnv } from '@nimbus-cqrs/utils';
 
 // After
-import { getEnv } from "@nimbus-cqrs/core";
+import { getEnv } from '@nimbus-cqrs/core';
 ```
 
 ## Install (legacy)
 
 ```bash
-# Deno
-deno add npm:@nimbus-cqrs/utils
-
-# NPM
+# npm
 npm install @nimbus-cqrs/utils
+
+# pnpm
+pnpm add @nimbus-cqrs/utils
 
 # Bun
 bun add @nimbus-cqrs/utils
+
+# Deno
+deno add npm:@nimbus-cqrs/utils
 ```
 
 Prefer installing `@nimbus-cqrs/core` directly.

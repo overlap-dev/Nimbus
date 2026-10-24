@@ -60,7 +60,7 @@ const humanize = (times: string[]): string => {
 const time = (start: number) => {
     const delta = Date.now() - start;
     return humanize([
-        delta < 1000 ? delta + 'ms' : Math.round(delta / 1000) + 's',
+        delta < 1000 ? `${delta}ms` : `${Math.round(delta / 1000)}s`,
     ]);
 };
 
@@ -174,9 +174,9 @@ export const logger = (options?: LoggerOptions): MiddlewareHandler => {
 
         logAtLevel(logLevel, {
             category: 'API',
-            message: `RES: [${c.req.method}] ${c.req.path} - ${
-                time(startTime)
-            }`,
+            message: `RES: [${c.req.method}] ${c.req.path} - ${time(
+                startTime,
+            )}`,
             correlationId,
         });
     };

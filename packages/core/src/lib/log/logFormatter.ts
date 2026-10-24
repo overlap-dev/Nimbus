@@ -25,18 +25,22 @@ export const jsonLogFormatter: LogFormatter = (
     if (logRecord.error) {
         // Special handling for Error objects to preserve stack traces
         const processedErrorObj = JSON.parse(
-            JSON.stringify(logRecord, (_key, value) => {
-                if (value instanceof Error || value instanceof Exception) {
-                    return {
-                        // Include standard error properties
-                        ...value,
-                        message: value.message,
-                        name: value.name,
-                        stack: value.stack,
-                    };
-                }
-                return value;
-            }, 2),
+            JSON.stringify(
+                logRecord,
+                (_key, value) => {
+                    if (value instanceof Error || value instanceof Exception) {
+                        return {
+                            // Include standard error properties
+                            ...value,
+                            message: value.message,
+                            name: value.name,
+                            stack: value.stack,
+                        };
+                    }
+                    return value;
+                },
+                2,
+            ),
         );
 
         processedLogRecord = {

@@ -1,53 +1,55 @@
-import { assertEquals, assertInstanceOf, assertThrows } from '@std/assert';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import { MongoJSON } from './mongoJSON.ts';
 
-Deno.test('MongoJSON.parse - with ObjectId', () => {
+test('MongoJSON.parse - with ObjectId', () => {
     const input = '{"_id": "objectId::507f1f77bcf86cd799439011"}';
 
     const result = MongoJSON.parse(input);
 
-    assertEquals(result._id.toString(), '507f1f77bcf86cd799439011');
+    assert.deepEqual(result._id.toString(), '507f1f77bcf86cd799439011');
 });
 
-Deno.test('MongoJSON.parse - with Date', () => {
+test('MongoJSON.parse - with Date', () => {
     const input = '{"createdAt": "date::2023-01-01T00:00:00Z"}';
 
     const result = MongoJSON.parse(input);
 
-    assertInstanceOf(result.createdAt, Date);
-    assertEquals(result.createdAt.toISOString(), '2023-01-01T00:00:00.000Z');
+    assert.ok(result.createdAt instanceof Date);
+    assert.deepEqual(
+        result.createdAt.toISOString(),
+        '2023-01-01T00:00:00.000Z',
+    );
 });
 
-Deno.test('MongoJSON.parse - with Integer', () => {
+test('MongoJSON.parse - with Integer', () => {
     const input = '{"age": "int::30"}';
 
     const result = MongoJSON.parse(input);
 
-    assertEquals(result.age, 30);
+    assert.deepEqual(result.age, 30);
 });
 
-Deno.test('MongoJSON.parse - with Double', () => {
+test('MongoJSON.parse - with Double', () => {
     const input = '{"price": "double::19.99"}';
 
     const result = MongoJSON.parse(input);
 
-    assertEquals(result.price, 19.99);
+    assert.deepEqual(result.price, 19.99);
 });
 
-Deno.test('MongoJSON.parse - with String', () => {
+test('MongoJSON.parse - with String', () => {
     const input = '{"name": "John Doe"}';
 
     const result = MongoJSON.parse(input);
 
-    assertEquals(result.name, 'John Doe');
+    assert.deepEqual(result.name, 'John Doe');
 });
 
-Deno.test('MongoJSON.parse - with Blacklisted Operator', () => {
+test('MongoJSON.parse - with Blacklisted Operator', () => {
     const input = '{"$where": "this.age == 30"}';
 
-    assertThrows(
-        () => MongoJSON.parse(input),
-        Error,
-        "Operator '$where' is not allowed",
-    );
+    assert.throws(() => MongoJSON.parse(input), {
+        message: /Operator '\$where' is not allowed/,
+    });
 });

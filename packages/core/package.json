@@ -1,0 +1,60 @@
+{
+  "name": "@nimbus-cqrs/core",
+  "version": "2.5.0",
+  "description": "Simplify Event-Driven Applications - Core building blocks of the Nimbus framework.",
+  "keywords": [
+    "nimbus",
+    "cqrs",
+    "event-sourcing",
+    "eventsourcingdb",
+    "event-driven",
+    "typescript",
+    "command",
+    "query",
+    "event"
+  ],
+  "license": "Apache-2.0",
+  "author": "Daniel Gördes <d.goerdes@overlap.at> (https://overlap.at)",
+  "homepage": "https://nimbus.overlap.at",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/overlap-dev/Nimbus",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/overlap-dev/Nimbus/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "check": "tsc --noEmit",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "catalog:",
+    "picocolors": "catalog:",
+    "ulid": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

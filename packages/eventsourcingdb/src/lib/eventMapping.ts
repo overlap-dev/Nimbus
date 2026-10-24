@@ -1,13 +1,13 @@
 import {
-    createEvent,
     type CreateEventInput,
+    createEvent,
     type Event,
 } from '@nimbus-cqrs/core';
-import { ulid } from '@std/ulid';
 import type {
-    Event as EventSourcingDBEvent,
     EventCandidate,
+    Event as EventSourcingDBEvent,
 } from 'eventsourcingdb';
+import { ulid } from 'ulid';
 
 /**
  * Metadata that Nimbus attaches to events stored in EventSourcingDB

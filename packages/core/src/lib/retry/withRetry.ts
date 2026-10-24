@@ -65,9 +65,7 @@ export type WithRetryOptions = {
      * Decide whether a failed attempt should be retried. Returning
      * `false` rejects with the failure error immediately.
      */
-    shouldRetry?: (
-        context: RetryContext,
-    ) => boolean | Promise<boolean>;
+    shouldRetry?: (context: RetryContext) => boolean | Promise<boolean>;
     /**
      * Called after a failed attempt when another retry will occur,
      * before waiting for {@link RetryContext.delayMs}.
@@ -126,12 +124,12 @@ export class RetryAbortedError extends Error {
     override readonly cause?: Error;
 
     constructor(messageOrError?: string | Error) {
-        const message = messageOrError instanceof Error
-            ? messageOrError.message
-            : (messageOrError ?? 'Retry aborted');
-        const cause = messageOrError instanceof Error
-            ? messageOrError
-            : undefined;
+        const message =
+            messageOrError instanceof Error
+                ? messageOrError.message
+                : (messageOrError ?? 'Retry aborted');
+        const cause =
+            messageOrError instanceof Error ? messageOrError : undefined;
 
         super(message, cause ? { cause } : undefined);
         this.name = 'RetryAbortedError';
@@ -171,13 +169,9 @@ export const calculateBackoffDelay = (
     const maxDelayMs = options.maxDelayMs ?? Infinity;
     const jitterFactor = options.jitterFactor ?? DEFAULT_JITTER_FACTOR;
 
-    const baseDelay = Math.min(
-        initialDelayMs * Math.pow(factor, attempt),
-        maxDelayMs,
-    );
-    const jitter = jitterFactor > 0
-        ? Math.random() * baseDelay * jitterFactor
-        : 0;
+    const baseDelay = Math.min(initialDelayMs * factor ** attempt, maxDelayMs);
+    const jitter =
+        jitterFactor > 0 ? Math.random() * baseDelay * jitterFactor : 0;
 
     return Math.floor(baseDelay + jitter);
 };
@@ -305,15 +299,15 @@ export const withRetry = async <T>(
                 throw err;
             }
 
-            let delayMs = calculateBackoffDelay(
-                initialDelayMs,
-                attempt - 1,
-                { maxDelayMs, factor, jitterFactor },
-            );
+            let delayMs = calculateBackoffDelay(initialDelayMs, attempt - 1, {
+                maxDelayMs,
+                factor,
+                jitterFactor,
+            });
 
             if (maxRetryTimeMs !== undefined) {
-                const remainingMs = maxRetryTimeMs -
-                    (performance.now() - startedAt);
+                const remainingMs =
+                    maxRetryTimeMs - (performance.now() - startedAt);
                 // floor() can turn a sub-millisecond remainder into 0.
                 // delay(0) is a no-op, so sync failures would otherwise
                 // burn through every remaining retry without ever

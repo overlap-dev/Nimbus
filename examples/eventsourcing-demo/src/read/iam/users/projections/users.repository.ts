@@ -1,10 +1,10 @@
+import { getEnv } from '@nimbus-cqrs/core';
 import {
     getMongoConnectionManager,
     MongoDBRepository,
 } from '@nimbus-cqrs/mongodb';
-import { getEnv } from '@nimbus-cqrs/core';
-import { Document, ObjectId } from 'mongodb';
-import { User, USERS_COLLECTION } from './users.collection.ts';
+import { type Document, ObjectId } from 'mongodb';
+import { USERS_COLLECTION, User } from './users.collection.ts';
 
 class UserRepository extends MongoDBRepository<User> {
     constructor() {

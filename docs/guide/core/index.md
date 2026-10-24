@@ -14,7 +14,6 @@ next:
 The core package is the foundation of the entire framework. It provides the essential building blocks for building event-driven applications following the CloudEvents specification.
 
 -   npm: [@nimbus-cqrs/core](https://www.npmjs.com/package/@nimbus-cqrs/core)
--   JSR: [@nimbus-cqrs/core](https://jsr.io/@nimbus-cqrs/core)
 
 ## What's Included
 
@@ -32,22 +31,28 @@ The core package provides:
 
 ## Installation
 
-### Deno
-
-```bash
-deno add npm:@nimbus-cqrs/core
-```
-
-### NPM
+### npm
 
 ```bash
 npm install @nimbus-cqrs/core
+```
+
+### pnpm
+
+```bash
+pnpm add @nimbus-cqrs/core
 ```
 
 ### Bun
 
 ```bash
 bun add @nimbus-cqrs/core
+```
+
+### Deno
+
+```bash
+deno add npm:@nimbus-cqrs/core
 ```
 
 ## Example Application

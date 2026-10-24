@@ -1,4 +1,4 @@
-import { ulid } from '@std/ulid';
+import { ulid } from 'ulid';
 import { z } from 'zod';
 import { warnOnInvalidExtensionAttributeNames } from './message.ts';
 
@@ -111,8 +111,8 @@ export type EventSchemaType = z.ZodObject<{
  *
  * Zod is the default for validating incoming messages.
  *
- * We do not infer the Event type from this schema because of
- * slow type issues see https://jsr.io/docs/about-slow-types for more details.
+ * We do not infer the Event type from this schema and give the schema an
+ * explicit type so the emitted declaration files stay small and readable.
  */
 export const eventSchema: EventSchemaType = z.looseObject({
     specversion: z.literal('1.0'),
@@ -140,15 +140,14 @@ export const eventSchema: EventSchemaType = z.looseObject({
  * the input is validated against that type. This means fields like
  * `type` and `data` must match the narrower types of `TEvent`.
  */
-export type CreateEventInput<TEvent extends Event = Event> =
-    & Partial<
-        Pick<
-            TEvent,
-            'id' | 'correlationid' | 'time' | 'datacontenttype' | 'dataschema'
-        >
+export type CreateEventInput<TEvent extends Event = Event> = Partial<
+    Pick<
+        TEvent,
+        'id' | 'correlationid' | 'time' | 'datacontenttype' | 'dataschema'
     >
-    & Pick<TEvent, 'type' | 'source' | 'subject' | 'data'>
-    & Partial<Omit<TEvent, EventKnownProperty>>;
+> &
+    Pick<TEvent, 'type' | 'source' | 'subject' | 'data'> &
+    Partial<Omit<TEvent, EventKnownProperty>>;
 
 /**
  * Creates an event based on input data with the convenience

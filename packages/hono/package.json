@@ -1,0 +1,63 @@
+{
+  "name": "@nimbus-cqrs/hono",
+  "version": "2.5.0",
+  "description": "Simplify Event-Driven Applications - Hono integration for the Nimbus framework.",
+  "keywords": [
+    "nimbus",
+    "cqrs",
+    "event-sourcing",
+    "event-driven",
+    "typescript",
+    "hono",
+    "http",
+    "middleware",
+    "api"
+  ],
+  "license": "Apache-2.0",
+  "author": "Daniel Gördes <d.goerdes@overlap.at> (https://overlap.at)",
+  "homepage": "https://nimbus.overlap.at",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/overlap-dev/Nimbus",
+    "directory": "packages/hono"
+  },
+  "bugs": {
+    "url": "https://github.com/overlap-dev/Nimbus/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "check": "tsc --noEmit",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@nimbus-cqrs/core": "workspace:^",
+    "@opentelemetry/api": "catalog:",
+    "ulid": "catalog:"
+  },
+  "peerDependencies": {
+    "hono": "^4.13.7"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "hono": "catalog:",
+    "typescript": "catalog:"
+  }
+}

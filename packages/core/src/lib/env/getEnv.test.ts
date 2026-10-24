@@ -1,5 +1,6 @@
-import { assertEquals, assertInstanceOf, assertThrows } from '@std/assert';
+import assert from 'node:assert/strict';
 import process from 'node:process';
+import { test } from 'node:test';
 import { GenericException } from '../exception/genericException.ts';
 import { getEnv } from './getEnv.ts';
 
@@ -13,7 +14,7 @@ const setEnv = (name: string, value: string | undefined) => {
     }
 };
 
-Deno.test('getEnv returns all requested variables when present', () => {
+test('getEnv returns all requested variables when present', () => {
     const a = `${PREFIX}PRESENT_A`;
     const b = `${PREFIX}PRESENT_B`;
 
@@ -23,15 +24,15 @@ Deno.test('getEnv returns all requested variables when present', () => {
     try {
         const env = getEnv({ variables: [a, b] });
 
-        assertEquals(env[a], 'value-a');
-        assertEquals(env[b], 'value-b');
+        assert.deepEqual(env[a], 'value-a');
+        assert.deepEqual(env[b], 'value-b');
     } finally {
         setEnv(a, undefined);
         setEnv(b, undefined);
     }
 });
 
-Deno.test('getEnv throws GenericException when one variable is missing', () => {
+test('getEnv throws GenericException when one variable is missing', () => {
     const present = `${PREFIX}ONE_PRESENT`;
     const missing = `${PREFIX}ONE_MISSING`;
 
@@ -39,56 +40,59 @@ Deno.test('getEnv throws GenericException when one variable is missing', () => {
     setEnv(missing, undefined);
 
     try {
-        const error = assertThrows(
+        assert.throws(
             () => getEnv({ variables: [present, missing] }),
-            GenericException,
-            'Undefined environment variables',
+            (error: unknown) => {
+                assert.ok(error instanceof GenericException);
+                assert.match(error.message, /Undefined environment variables/);
+                assert.deepEqual(error.details, {
+                    undefinedVariables: [missing],
+                });
+                return true;
+            },
         );
-
-        assertInstanceOf(error, GenericException);
-        assertEquals(error.details, {
-            undefinedVariables: [missing],
-        });
     } finally {
         setEnv(present, undefined);
     }
 });
 
-Deno.test('getEnv throws GenericException when all variables are missing', () => {
+test('getEnv throws GenericException when all variables are missing', () => {
     const a = `${PREFIX}ALL_MISSING_A`;
     const b = `${PREFIX}ALL_MISSING_B`;
 
     setEnv(a, undefined);
     setEnv(b, undefined);
 
-    const error = assertThrows(
+    assert.throws(
         () => getEnv({ variables: [a, b] }),
-        GenericException,
-        'Undefined environment variables',
+        (error: unknown) => {
+            assert.ok(error instanceof GenericException);
+            assert.match(error.message, /Undefined environment variables/);
+            assert.deepEqual(error.details, {
+                undefinedVariables: [a, b],
+            });
+            return true;
+        },
     );
-
-    assertInstanceOf(error, GenericException);
-    assertEquals(error.details, {
-        undefinedVariables: [a, b],
-    });
 });
 
-Deno.test('getEnv treats empty string as missing', () => {
+test('getEnv treats empty string as missing', () => {
     const empty = `${PREFIX}EMPTY`;
 
     setEnv(empty, '');
 
     try {
-        const error = assertThrows(
+        assert.throws(
             () => getEnv({ variables: [empty] }),
-            GenericException,
-            'Undefined environment variables',
+            (error: unknown) => {
+                assert.ok(error instanceof GenericException);
+                assert.match(error.message, /Undefined environment variables/);
+                assert.deepEqual(error.details, {
+                    undefinedVariables: [empty],
+                });
+                return true;
+            },
         );
-
-        assertInstanceOf(error, GenericException);
-        assertEquals(error.details, {
-            undefinedVariables: [empty],
-        });
     } finally {
         setEnv(empty, undefined);
     }

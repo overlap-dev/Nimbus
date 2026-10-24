@@ -1,7 +1,8 @@
-import { assertEquals, assertInstanceOf } from '@std/assert';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import { Exception } from './exception.ts';
 
-Deno.test('Create new Exception', () => {
+test('Create new Exception', () => {
     const name = 'TEST_EXCEPTION';
     const message = 'Test exception message';
     const details = { foo: 'bar' };
@@ -9,15 +10,15 @@ Deno.test('Create new Exception', () => {
 
     const exception = new Exception(name, message, details, statusCode);
 
-    assertInstanceOf(exception, Exception);
-    assertEquals(exception.name, name);
-    assertEquals(exception.message, message);
-    assertEquals(exception.statusCode, statusCode);
-    assertEquals(exception.details, details);
-    assertEquals(typeof exception.stack, 'string');
+    assert.ok(exception instanceof Exception);
+    assert.deepEqual(exception.name, name);
+    assert.deepEqual(exception.message, message);
+    assert.deepEqual(exception.statusCode, statusCode);
+    assert.deepEqual(exception.details, details);
+    assert.deepEqual(typeof exception.stack, 'string');
 });
 
-Deno.test('Create new Exception from Error', () => {
+test('Create new Exception from Error', () => {
     const nativeError = new Error('Something unexpected happened!');
 
     const name = 'TEST_EXCEPTION';
@@ -32,10 +33,10 @@ Deno.test('Create new Exception from Error', () => {
         statusCode,
     ).fromError(nativeError);
 
-    assertInstanceOf(exception, Exception);
-    assertEquals(exception.name, name);
-    assertEquals(exception.message, nativeError.message);
-    assertEquals(exception.statusCode, statusCode);
-    assertEquals(exception.details, details);
-    assertEquals(exception.stack, nativeError.stack);
+    assert.ok(exception instanceof Exception);
+    assert.deepEqual(exception.name, name);
+    assert.deepEqual(exception.message, nativeError.message);
+    assert.deepEqual(exception.statusCode, statusCode);
+    assert.deepEqual(exception.details, details);
+    assert.deepEqual(exception.stack, nativeError.stack);
 });

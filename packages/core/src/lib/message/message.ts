@@ -45,9 +45,9 @@ const createInvalidExtensionAttributeNamesError = (
     stackTraceAnchor: (...args: never[]) => unknown,
 ): Error => {
     const error = new Error(
-        `Invalid CloudEvents extension attribute names: ${
-            invalidNames.join(', ')
-        }`,
+        `Invalid CloudEvents extension attribute names: ${invalidNames.join(
+            ', ',
+        )}`,
     );
 
     if (typeof Error.captureStackTrace === 'function') {

@@ -1,5 +1,5 @@
-import { metrics, SpanKind, SpanStatusCode, trace } from '@opentelemetry/api';
 import EventEmitter from 'node:events';
+import { metrics, SpanKind, SpanStatusCode, trace } from '@opentelemetry/api';
 import { GenericException } from '../exception/genericException.ts';
 import { getLogger } from '../log/logger.ts';
 import type { Event } from '../message/event.ts';
@@ -37,13 +37,10 @@ const retryAttemptsCounter = meter.createCounter(
     },
 );
 
-const eventSizeBytes = meter.createHistogram(
-    'eventbus_event_size_bytes',
-    {
-        description: 'Size of events published to the event bus in bytes',
-        unit: 'By',
-    },
-);
+const eventSizeBytes = meter.createHistogram('eventbus_event_size_bytes', {
+    description: 'Size of events published to the event bus in bytes',
+    unit: 'By',
+});
 
 /**
  * The type for the NimbusEventBus options.
@@ -279,9 +276,10 @@ export class NimbusEventBus {
                 } catch (error) {
                     span.setStatus({
                         code: SpanStatusCode.ERROR,
-                        message: error instanceof Error
-                            ? error.message
-                            : 'Unknown error',
+                        message:
+                            error instanceof Error
+                                ? error.message
+                                : 'Unknown error',
                     });
                     span.recordException(
                         error instanceof Error
@@ -493,12 +491,10 @@ export class NimbusEventBus {
 
         this._recordDeliveryMetrics(metricLabels, 'error', startTime);
 
-        const errorMessage = error instanceof Error
-            ? error.message
-            : 'Unknown error';
-        const errorInstance = error instanceof Error
-            ? error
-            : new Error('Unknown error');
+        const errorMessage =
+            error instanceof Error ? error.message : 'Unknown error';
+        const errorInstance =
+            error instanceof Error ? error : new Error('Unknown error');
 
         span.setStatus({ code: SpanStatusCode.ERROR, message: errorMessage });
         span.recordException(errorInstance);
@@ -531,15 +527,12 @@ export class NimbusEventBus {
         const maxSizeBytes = 64 * 1024; // 64KB
 
         if (size > maxSizeBytes) {
-            throw new GenericException(
-                `Event size exceeds the limit of 64KB`,
-                {
-                    eventType: event.type,
-                    eventSource: event.source,
-                    eventSizeBytes: size,
-                    maxSizeBytes,
-                },
-            );
+            throw new GenericException(`Event size exceeds the limit of 64KB`, {
+                eventType: event.type,
+                eventSource: event.source,
+                eventSizeBytes: size,
+                maxSizeBytes,
+            });
         }
 
         return size;

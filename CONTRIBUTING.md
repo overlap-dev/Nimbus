@@ -37,11 +37,17 @@ for clearly broken behavior can usually skip this step.
 
 1. Fork the repository
 2. Clone your fork
-3. Install dependencies:
+3. Make sure you have Node.js 26 (see `.nvmrc`) and [pnpm](https://pnpm.io/)
+   installed. With [Corepack](https://nodejs.org/api/corepack.html) enabled,
+   the pnpm version pinned in `package.json` is picked up automatically:
     ```sh
-    deno install
+    corepack enable
     ```
-4. Create a new branch for your changes
+4. Install dependencies:
+    ```sh
+    pnpm install
+    ```
+5. Create a new branch for your changes
 
 ## Development
 
@@ -51,11 +57,22 @@ Before submitting a pull request, make sure to run the following checks from the
 repository root:
 
 ```sh
-deno check
-deno fmt --check
-deno lint
-deno test --allow-all
+pnpm build
+pnpm check
+pnpm lint
+pnpm test
 ```
+
+- `pnpm build` compiles every package with `tsc` into its `dist/` folder.
+  Dependent packages type check against the built output of their siblings,
+  so always build first.
+- `pnpm check` runs `tsc --noEmit` for every package and the example app,
+  including the test files.
+- `pnpm lint` runs [Biome](https://biomejs.dev/) in CI mode (formatting and
+  linting, read-only). Use `pnpm fmt` to apply formatting and safe fixes.
+- `pnpm test` runs the test suites with the built-in Node.js test runner
+  (`node --test`). The `@nimbus-cqrs/eventsourcingdb` suite starts an
+  EventSourcingDB container via Testcontainers and therefore needs Docker.
 
 ### Documentation
 
@@ -69,34 +86,36 @@ deno test --allow-all
 
 The docs site generates LLM-friendly artifacts on build (`llms.txt`, `llms-full.txt`, and per-page `.md` mirrors) via `vitepress-plugin-llms`.
 
-To locally preview the documentation, run the following commands inside the `docs/` directory:
+The docs are part of the pnpm workspace. To locally preview the documentation,
+run the following command inside the `docs/` directory:
 
 ```sh
-npm install
-npm run dev
+pnpm dev
 ```
 
-The documentation will be available at `http://localhost:5173` when using `npm run dev`.
+The documentation will be available at `http://localhost:5173` when using `pnpm dev`.
 
 To verify the production build (including `llms.txt`):
 
 ```sh
-npm run build
-npm run preview
+pnpm build
+pnpm preview
 ```
 
 The preview of the build will be available at `http://localhost:4173`.  
 You can check the `llms.txt` and `llms-full.txt` under `http://localhost:4173/llms.txt` and `http://localhost:4173/llms-full.txt`.
 
-### Examples on other runtimes
+### Examples
 
-`examples/node-demo` is intentionally **not** part of the Deno workspace. It
-runs on the supported Node.js LTS and consumes the published `@nimbus-cqrs/*`
-npm packages. Use it to smoke test Nimbus on Node.js.
+`examples/eventsourcing-demo` is part of the pnpm workspace and consumes the
+packages directly from source via `workspace:` dependencies. Run it with
+`pnpm dev` inside its directory (it needs MongoDB and EventSourcingDB, see
+below and its `.env.example`).
 
-It has its own `package.json` and `node_modules`, and is excluded from
-`deno fmt`, `deno lint`, `deno check`, and `deno test` via the root
-`deno.json`. To work on it:
+`examples/node-demo` is intentionally **not** part of the workspace. It uses
+plain npm and consumes the *published* `@nimbus-cqrs/*` packages, so it acts
+as a smoke test for what consumers actually install. It is excluded from Biome
+and the workspace scripts. To work on it:
 
 ```sh
 cd examples/node-demo && npm install && npm run dev
@@ -162,28 +181,31 @@ Branch from `main` into a new release branch `release/<VERSION>`.
 
 Stick to the [Semantic Versioning](https://semver.org/) specification.
 
-Bump the version across the repo with the helper task:
+Bump the version across the repo with the helper script:
 
 ```sh
-deno task version:set <VERSION>
+pnpm version:set <VERSION>
 # e.g.
-deno task version:set 2.0.2
-deno task version:set 3.0.0-rc.1
+pnpm version:set 2.0.2
+pnpm version:set 3.0.0-rc.1
 ```
 
-This updates the `version` field in every `packages/<PACKAGE_NAME>/deno.json`
+This updates the `version` field in every `packages/<PACKAGE_NAME>/package.json`
 and rewrites the `@nimbus-cqrs/*` dependencies in
 `examples/node-demo/package.json` to the new caret range.
 
 Commit, push and open a pull request to `main`.
 Squash and merge the pull request with the message `chore: release <VERSION>`.
 
-Create a new release on GitHub and the workflow will publish the new version
-to JSR and npm.
+Create a new release on GitHub and the `publish.yaml` workflow will build the
+packages and publish the new version to npm via
+[trusted publishing](https://docs.npmjs.com/trusted-publishers/). `pnpm -r publish` publishes the packages in dependency
+order and skips versions that already exist on the registry, so re-running the
+workflow after a partial failure is safe.
 
-### Manually publish to JSR
+### Manually publish to npm
 
-```
-cd packages/<PACKAGE_NAME>
-deno publish
+```sh
+pnpm build
+pnpm -r publish --access public --no-git-checks
 ```

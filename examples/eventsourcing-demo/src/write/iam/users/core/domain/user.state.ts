@@ -1,4 +1,4 @@
-import { Event } from '@nimbus-cqrs/core';
+import type { Event } from '@nimbus-cqrs/core';
 import { isUserInvitationAcceptedEvent } from '../events/userInvitationAccepted.event.ts';
 import { isUserInvitedEvent } from '../events/userInvited.event.ts';
 
