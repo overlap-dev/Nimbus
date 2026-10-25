@@ -1,0 +1,6 @@
+apiVersion: schema.esdm.io/core/v1
+kind: domain
+name: esdm-full-example
+description: >-
+  An opinionated example on how Nimbus uses the AI skills with
+  event sourced domain modeling (ESDM) to build a ticketing app.

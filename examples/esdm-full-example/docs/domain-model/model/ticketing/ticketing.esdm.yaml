@@ -1,0 +1,10 @@
+apiVersion: schema.esdm.io/core/v1
+kind: subdomain
+name: ticketing
+description: >-
+  General-purpose ticketing system to track and direct work.
+scope:
+  domain: esdm-full-example
+type: core
+boundedContexts:
+  - ticketing

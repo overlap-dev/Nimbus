@@ -1,0 +1,68 @@
+apiVersion: schema.esdm.io/core/v1
+kind: query
+name: list-tickets
+description: >-
+  The Tickets that are not archived, optionally narrowed to one Status,
+  newest first. One page per call.
+scope:
+  domain: esdm-full-example
+  boundedContext: ticketing
+readModel: tickets
+paradigm: document
+parameters:
+  type: object
+  properties:
+    status:
+      type: string
+      enum: [new, open, in-progress, done]
+      description: Omitted means every Status.
+    offset:
+      type: integer
+      minimum: 0
+      default: 0
+    limit:
+      type: integer
+      minimum: 1
+      maximum: 100
+      default: 20
+result:
+  type: object
+  required: [items, total]
+  properties:
+    items:
+      type: array
+      items:
+        type: object
+        required: [ticket-id, title, reporter, status, created-at, updated-at]
+        properties:
+          ticket-id:
+            type: string
+            format: uuid
+          title:
+            type: string
+          reporter:
+            type: string
+            format: uuid
+          assignee:
+            type: string
+            format: uuid
+          status:
+            type: string
+            enum: [new, open, in-progress, done]
+          created-at:
+            type: string
+            format: date-time
+          updated-at:
+            type: string
+            format: date-time
+    total:
+      type: integer
+      minimum: 0
+      description: The number of matching Tickets across every page.
+actors:
+  - user
+constraints:
+  - name: not-archived-only
+    rule: Archived Tickets are never part of the result.
+  - name: sort
+    rule: Sorted by created-at, newest first.

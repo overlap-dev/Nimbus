@@ -1,0 +1,27 @@
+apiVersion: schema.esdm.io/core/v1
+kind: command
+name: archive
+description: >-
+  The settled-archive watch archives a Ticket that has been done for
+  thirty days. Users do not issue this command. The archived event
+  records the actor as system (ADR-0005).
+scope:
+  domain: esdm-full-example
+  boundedContext: ticketing
+  aggregate: ticket
+data:
+  type: object
+  required: [ticket-id]
+  properties:
+    ticket-id:
+      type: string
+      format: uuid
+publishes:
+  - archived
+actors:
+  - settled-archive
+constraints:
+  - name: only-while-done
+    rule: Rejected while the Ticket is not in Status done.
+  - name: already-archived-is-a-no-op
+    rule: An archived Ticket is unchanged.

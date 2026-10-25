@@ -1,0 +1,10 @@
+apiVersion: schema.esdm.io/core/v1
+kind: external-system
+name: mailing
+description: Outbound email delivery.
+scope:
+  domain: esdm-full-example
+direction: outbound
+category: mail
+capabilities:
+  - Deliver text and HTML emails.

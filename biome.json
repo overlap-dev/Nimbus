@@ -9,13 +9,15 @@
     "includes": [
       "packages/**",
       "examples/eventsourcing-demo/**",
+      "examples/esdm-full-example/**",
       "scripts/**",
       "skills/**",
       "*.json",
       "!**/dist",
       "!**/node_modules",
       "!docs",
-      "!examples/node-demo"
+      "!examples/node-demo",
+      "!examples/*/docs/domain-model/schemas"
     ]
   },
   "formatter": {

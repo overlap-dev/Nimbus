@@ -1,0 +1,8 @@
+apiVersion: schema.esdm.io/core/v1
+kind: actor
+name: user
+description: Any signed-in User of the app.
+scope:
+  domain: esdm-full-example
+  boundedContext: ticketing
+type: human

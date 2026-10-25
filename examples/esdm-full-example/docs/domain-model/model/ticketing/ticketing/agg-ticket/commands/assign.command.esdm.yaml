@@ -1,0 +1,27 @@
+apiVersion: schema.esdm.io/core/v1
+kind: command
+name: assign
+description: >-
+  Sets or replaces the Assignee — the one User responsible for managing
+  the Ticket.
+scope:
+  domain: esdm-full-example
+  boundedContext: ticketing
+  aggregate: ticket
+data:
+  type: object
+  required: [ticket-id, assignee]
+  properties:
+    ticket-id:
+      type: string
+      format: uuid
+    assignee:
+      type: string
+      format: uuid
+publishes:
+  - assigned
+actors:
+  - user
+constraints:
+  - name: same-assignee-is-a-no-op
+    rule: Assigning the current Assignee again changes nothing.

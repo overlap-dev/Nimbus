@@ -25,7 +25,7 @@ Actively build and sharpen the project's domain model as you design: challenge t
 └── src/
 ```
 
-The `esdm` binary is expected on `PATH` ([install](https://www.esdm.io/)). Bootstrap once per project: run `esdm add-schema` inside `docs/domain-model/` to create `schemas/`; refresh with `esdm update-schema` after a binary update.
+The `esdm` binary is expected on `PATH` ([install](https://www.esdm.io/getting-started/installing-esdm/)). Bootstrap once per project: run `esdm add-schema` inside `docs/domain-model/` to create `schemas/`; refresh with `esdm update-schema` after a binary update.
 
 Create model files lazily — only when you have something to write. If no `docs/domain-model/model/domain.esdm.yaml` or corresponding sub-domains, bounded-contexts etc. exist, create them when the first domain specification is resolved. If no `docs/adr/0001-first-architecture-decision.md` exists, create it when the first ADR is needed.
 

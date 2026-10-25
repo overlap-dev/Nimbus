@@ -1,0 +1,61 @@
+apiVersion: schema.esdm.io/core/v1
+kind: aggregate
+name: ticket
+description: >-
+  A unit of trackable work, created on behalf of a Reporter. Owns the
+  Ticket lifecycle: its Status, the responsible Assignee (at most one;
+  may be unassigned except while in-progress), and whether it is
+  archived. Users are referenced by user-id.
+scope:
+  domain: esdm-full-example
+  boundedContext: ticketing
+identifiedBy:
+  source: state
+  field: ticket-id
+state:
+  type: object
+  required: [ticket-id, title, reporter, status, archived]
+  properties:
+    ticket-id:
+      type: string
+      format: uuid
+    title:
+      type: string
+      description: One line stating the work.
+    description:
+      type: string
+      description: Optional free-text detail on the work.
+    reporter:
+      type: string
+      format: uuid
+      description: user-id of the User on whose behalf the Ticket was created.
+    assignee:
+      type: string
+      format: uuid
+      description: >-
+        user-id of the one User currently responsible for managing this
+        Ticket. Absent while the Ticket is unassigned.
+    status:
+      type: string
+      description: The stage the Ticket occupies in its workflow (status value object).
+    archived:
+      type: boolean
+      description: >-
+        Whether the Ticket is archived. Orthogonal to Status. Every
+        Ticket starts false.
+invariants:
+  - name: starts-new
+    rule: Every Ticket starts in Status new; the creator cannot choose.
+  - name: starts-not-archived
+    rule: Every Ticket starts not archived.
+  - name: at-most-one-assignee
+    rule: A Ticket has at most one Assignee.
+  - name: in-progress-has-assignee
+    rule: >-
+      A Ticket in Status in-progress always has an Assignee: it cannot
+      move to in-progress while unassigned. All other Status transitions
+      are free.
+  - name: archive-orthogonal-to-status
+    rule: >-
+      Archiving does not change Status. Changing Status does not
+      unarchive. Archiving an archived Ticket changes nothing.

@@ -1,0 +1,56 @@
+apiVersion: schema.esdm.io/core/v1
+kind: query
+name: get-ticket
+description: One Ticket by its ticket-id, as the read model holds it.
+scope:
+  domain: esdm-full-example
+  boundedContext: ticketing
+readModel: tickets
+paradigm: document
+parameters:
+  type: object
+  required: [ticket-id]
+  properties:
+    ticket-id:
+      type: string
+      format: uuid
+result:
+  type: object
+  required:
+    - ticket-id
+    - title
+    - reporter
+    - status
+    - archived
+    - created-at
+    - updated-at
+  properties:
+    ticket-id:
+      type: string
+      format: uuid
+    title:
+      type: string
+    description:
+      type: string
+    reporter:
+      type: string
+      format: uuid
+    assignee:
+      type: string
+      format: uuid
+    status:
+      type: string
+      enum: [new, open, in-progress, done]
+    archived:
+      type: boolean
+    created-at:
+      type: string
+      format: date-time
+    updated-at:
+      type: string
+      format: date-time
+actors:
+  - user
+constraints:
+  - name: unknown-id
+    rule: An unknown ticket-id is a not-found result, not an empty Ticket.

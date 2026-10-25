@@ -1,0 +1,30 @@
+apiVersion: schema.esdm.io/core/v1
+kind: command
+name: change-status
+description: >-
+  Moves the Ticket to another Status. Issued by a User, or by the
+  start-work-on-assignment policy when a Ticket is assigned.
+scope:
+  domain: esdm-full-example
+  boundedContext: ticketing
+  aggregate: ticket
+data:
+  type: object
+  required: [ticket-id, status]
+  properties:
+    ticket-id:
+      type: string
+      format: uuid
+    status:
+      type: string
+      enum: [new, open, in-progress, done]
+      description: The status value object.
+publishes:
+  - status-changed
+actors:
+  - user
+constraints:
+  - name: in-progress-requires-assignee
+    rule: Moving to in-progress is rejected while the Ticket has no Assignee.
+  - name: same-status-is-a-no-op
+    rule: Moving to the current Status changes nothing.

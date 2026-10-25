@@ -1,0 +1,32 @@
+apiVersion: schema.esdm.io/core/v1
+kind: bounded-context
+name: ticketing
+description: >-
+  Work tracking. Owns the Ticket lifecycle — Status, the responsible
+  Assignee, and whether the Ticket is archived.
+scope:
+  domain: esdm-full-example
+language: en
+ubiquitousLanguage:
+  - term: Ticket
+    definition: >-
+      A unit of trackable work, stated by a title and an optional
+      description. Created by a Reporter, managed by at most one Assignee,
+      and in exactly one Status.
+    avoid:
+      - term: Issue
+        reason: >-
+          Overloaded with the general sense of a reported problem; the
+          tracked work item is a Ticket.
+  - term: Reporter
+    definition: The User on whose behalf a Ticket was created.
+  - term: Assignee
+    definition: The one User currently responsible for managing a Ticket.
+  - term: Status
+    definition: >-
+      The stage a Ticket occupies in its workflow — new, open,
+      in-progress, or done.
+  - term: Archived
+    definition: >-
+      A Ticket that is kept for reference but no longer shown in the
+      working list. Orthogonal to Status.

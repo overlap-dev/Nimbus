@@ -1,0 +1,26 @@
+apiVersion: schema.esdm.io/core/v1
+kind: policy
+name: start-work-on-assignment
+description: >-
+  Whenever a Ticket is assigned, work on it starts: the policy moves the
+  Ticket to in-progress. Stateless — it looks at the single assigned
+  event and nothing else.
+scope:
+  domain: esdm-full-example
+deliveryGuarantee: at-least-once
+idempotency:
+  owner: downstream
+  strategy: >-
+    change-status to the Status the Ticket already has changes nothing,
+    so a redelivered assigned event is harmless.
+handles:
+  - boundedContext: ticketing
+    aggregate: ticket
+    event: assigned
+emits:
+  - boundedContext: ticketing
+    aggregate: ticket
+    command: change-status
+constraints:
+  - name: always-in-progress
+    rule: The emitted command names Status in-progress.

@@ -1,0 +1,68 @@
+apiVersion: schema.esdm.io/core/v1
+kind: read-model
+name: tickets
+description: >-
+  The Tickets as they look right now — title, description, Reporter,
+  Assignee, Status, and whether they are archived. Serves the Ticket list
+  and the Ticket detail.
+scope:
+  domain: esdm-full-example
+  boundedContext: ticketing
+paradigm: document
+projections:
+  - boundedContext: ticketing
+    aggregate: ticket
+    event: created
+    rule: >-
+      Insert the Ticket with its title, description, and Reporter, no
+      Assignee, Status new, and archived false. Set created-at and
+      updated-at from the event time.
+  - boundedContext: ticketing
+    aggregate: ticket
+    event: assigned
+    rule: Set the Assignee; set updated-at from the event time.
+  - boundedContext: ticketing
+    aggregate: ticket
+    event: status-changed
+    rule: Set the Status; set updated-at from the event time.
+  - boundedContext: ticketing
+    aggregate: ticket
+    event: archived
+    rule: Set archived to true; set updated-at from the event time.
+schema:
+  type: array
+  items:
+    type: object
+    required:
+      - ticket-id
+      - title
+      - reporter
+      - status
+      - archived
+      - created-at
+      - updated-at
+    properties:
+      ticket-id:
+        type: string
+        format: uuid
+      title:
+        type: string
+      description:
+        type: string
+      reporter:
+        type: string
+        format: uuid
+      assignee:
+        type: string
+        format: uuid
+      status:
+        type: string
+        enum: [new, open, in-progress, done]
+      archived:
+        type: boolean
+      created-at:
+        type: string
+        format: date-time
+      updated-at:
+        type: string
+        format: date-time

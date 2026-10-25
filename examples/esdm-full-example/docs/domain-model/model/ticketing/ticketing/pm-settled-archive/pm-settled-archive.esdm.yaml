@@ -1,0 +1,72 @@
+apiVersion: schema.esdm.io/core/v1
+kind: process-manager
+name: settled-archive
+description: >-
+  Watches one Ticket and archives it once it has been in Status done for
+  thirty days. Leaving done cancels the wait; entering done again starts
+  a new thirty days. The watch retires when the Ticket is archived.
+scope:
+  domain: esdm-full-example
+deliveryGuarantee: at-least-once
+idempotency:
+  owner: downstream
+  strategy: >-
+    archive on a Ticket that is already archived changes nothing. A
+    redelivered status-changed event leaves an already running wait as
+    it is.
+correlatedBy:
+  source: event-field
+  field: ticket-id
+state:
+  type: object
+  required: [ticket-id, status, archived]
+  properties:
+    ticket-id:
+      type: string
+      format: uuid
+    status:
+      type: string
+      enum: [new, open, in-progress, done]
+    archived:
+      type: boolean
+invariants:
+  - name: timer-only-while-done
+    rule: The archive-due timer is armed only while the Status is done.
+startsWhen:
+  - boundedContext: ticketing
+    aggregate: ticket
+    event: status-changed
+endsWhen:
+  - name: ticket-archived
+    condition: state.archived is true
+timers:
+  - name: archive-due
+    description: Fires thirty days after the Ticket entered Status done.
+    after:
+      value: 30
+      unit: days
+reactions:
+  - when:
+      boundedContext: ticketing
+      aggregate: ticket
+      event: status-changed
+    rule: >-
+      Remember the Status. When it is done and no wait is running, arm
+      archive-due. When it is not done, cancel archive-due.
+    setTimers: [archive-due]
+    cancelTimers: [archive-due]
+  - when:
+      timer: archive-due
+    rule: >-
+      When the Ticket is still done and not archived, emit archive.
+      Otherwise emit nothing.
+    emits:
+      - boundedContext: ticketing
+        aggregate: ticket
+        command: archive
+  - when:
+      boundedContext: ticketing
+      aggregate: ticket
+      event: archived
+    rule: Mark the Ticket archived and cancel archive-due.
+    cancelTimers: [archive-due]
