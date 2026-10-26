@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - examples/eventsourcing-demo
+  - examples/esdm-full-example
   - docs
 
 # Shared dependency versions. Reference them with `"<name>": "catalog:"` in

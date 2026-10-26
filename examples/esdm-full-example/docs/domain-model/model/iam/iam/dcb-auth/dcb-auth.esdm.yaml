@@ -1,0 +1,27 @@
+apiVersion: schema.esdm.io/core/v1
+kind: dynamic-consistency-boundary
+name: auth
+description: >-
+  The Session boundary. One instance per Session: login generates the
+  session-id for a new instance, logout addresses an existing instance
+  by the session-id it carries. The decision state is the Session's own
+  logged-in and logged-out events; no container owns them.
+scope:
+  domain: esdm-full-example
+  boundedContext: iam
+identifiedBy:
+  - name: session-id
+    source: generated
+    generator: uuid
+consults:
+  - boundedContext: iam
+    event: logged-in
+    criteria: The logged-in event carrying the same session-id.
+  - boundedContext: iam
+    event: logged-out
+    criteria: The logged-out event carrying the same session-id.
+invariants:
+  - name: one-login-per-session
+    rule: A session-id is logged in at most once.
+  - name: logout-needs-a-login
+    rule: A Session can only be logged out after it was logged in.

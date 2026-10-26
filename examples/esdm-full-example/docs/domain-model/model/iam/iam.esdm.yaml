@@ -1,0 +1,11 @@
+apiVersion: schema.esdm.io/core/v1
+kind: subdomain
+name: iam
+description: >-
+  Identity and access management. Who a User is and whether they are
+  signed in.
+scope:
+  domain: esdm-full-example
+type: generic
+boundedContexts:
+  - iam

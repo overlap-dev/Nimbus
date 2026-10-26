@@ -1,0 +1,22 @@
+apiVersion: schema.esdm.io/core/v1
+kind: command
+name: logout
+description: Ends the Session the acting User is signed in with.
+scope:
+  domain: esdm-full-example
+  boundedContext: iam
+  dynamicConsistencyBoundary: auth
+data:
+  type: object
+  required: [session-id]
+  properties:
+    session-id:
+      type: string
+      format: uuid
+publishes:
+  - logged-out
+actors:
+  - user
+constraints:
+  - name: ended-session-is-a-no-op
+    rule: Logging out a Session that already ended changes nothing.
