@@ -71,8 +71,11 @@ pnpm test
 - `pnpm lint` runs [Biome](https://biomejs.dev/) in CI mode (formatting and
   linting, read-only). Use `pnpm fmt` to apply formatting and safe fixes.
 - `pnpm test` runs the test suites with the built-in Node.js test runner
-  (`node --test`). The `@nimbus-cqrs/eventsourcingdb` suite starts an
-  EventSourcingDB container via Testcontainers and therefore needs Docker.
+  (`node --test`). The `@nimbus-cqrs/eventsourcingdb` suite starts
+  EventSourcingDB containers via Testcontainers and therefore needs Docker.
+  It runs once against `thenativeweb/eventsourcingdb:1.2.0` (v1 HTTP API)
+  and once against `thenativeweb/eventsourcingdb:preview` (upcoming 1.3
+  with the v2 HTTP API); both images are pulled on the first run.
 
 ### Documentation
 

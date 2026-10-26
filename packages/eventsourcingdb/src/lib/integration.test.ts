@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import { type TestContext, test } from 'node:test';
 import { createEvent, type Event } from '@nimbus-cqrs/core';
 import {
     Container,
@@ -43,17 +43,23 @@ const withTimeout = <T>(
 // Shared container lifecycle
 // ---------------------------------------------------------------------------
 
-const container = new Container();
+/**
+ * The EventSourcingDB Docker image tags the suite runs against. `1.2.0`
+ * only offers the v1 HTTP API, `preview` is the upcoming 1.3 release with
+ * the v2 HTTP API. The SDK detects the API at runtime, so the same
+ * assertions have to hold for both.
+ */
+const imageTags = ['1.2.0', 'preview'];
 
 /**
  * Start the container once before all tests and stop it after.
  * We use a wrapper test with subtests so the container is shared
  * across all assertions but properly cleaned up.
- *
- * The eventsourcingdb npm Client keeps TCP connections and timers alive
- * internally, so the package's `test` script runs with `--test-force-exit`.
  */
-test('integration: eventsourcingdb', async (t) => {
+const runIntegrationSuite = async (
+    t: TestContext,
+    container: Container,
+): Promise<void> => {
     await container.start();
 
     try {
@@ -626,5 +632,22 @@ test('integration: eventsourcingdb', async (t) => {
         if (container.isRunning()) {
             await container.stop();
         }
+    }
+};
+
+/**
+ * The eventsourcingdb npm Client keeps TCP connections and timers alive
+ * internally, so the package's `test` script runs with `--test-force-exit`.
+ */
+test('integration: eventsourcingdb', async (t) => {
+    // Run sequentially: the client singleton is re-initialized per
+    // container, so the previous one has to be stopped first.
+    for (const imageTag of imageTags) {
+        await t.test(`EventSourcingDB ${imageTag}`, async (t) => {
+            await runIntegrationSuite(
+                t,
+                new Container().withImageTag(imageTag),
+            );
+        });
     }
 });
