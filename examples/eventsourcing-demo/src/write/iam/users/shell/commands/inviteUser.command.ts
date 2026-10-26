@@ -58,9 +58,16 @@ export const inviteUserCommandHandler = async (command: InviteUserCommand) => {
     const events = inviteUser(state, command, isEmailPristine);
 
     // We persist the events the core logic produced.
-    await writeEvents(events, [isSubjectPristine(events[0].subject)]);
+    // writeEvents returns the written events including the
+    // server-assigned ids. The id of the last written event is
+    // the revision of the user, which a client needs for commands
+    // that use the isSubjectOnEventId precondition.
+    const writtenEvents = await writeEvents(events, [
+        isSubjectPristine(events[0].subject),
+    ]);
 
     return {
         userId: state.id,
+        revision: writtenEvents[writtenEvents.length - 1].id,
     };
 };
