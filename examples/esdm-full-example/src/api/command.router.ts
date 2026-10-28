@@ -11,6 +11,7 @@ export const initCommandRouter = (): void => {
         createRouterLoggingOptions(COMMAND_ROUTER_NAME),
     );
 
+    // Register commands from the different domains.
     registerIamCommands();
     registerTicketingCommands();
 };

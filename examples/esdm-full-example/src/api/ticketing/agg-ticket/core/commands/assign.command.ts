@@ -25,10 +25,10 @@ export const assignTicketCommandSchema = commandSchema.extend({
 });
 export type AssignTicketCommand = z.infer<typeof assignTicketCommandSchema>;
 
-/**
- * Sets or replaces the Assignee. Assigning the current Assignee again
- * changes nothing (`same-assignee-is-a-no-op`).
- */
+// Same pure shape as createTicket: state and command in, events out.
+//
+// The ticket has to exist. Assigning the current assignee again changes
+// nothing, so we return no events and the shell does not write.
 export const assignTicket = (
     state: TicketState,
     command: AssignTicketCommand,

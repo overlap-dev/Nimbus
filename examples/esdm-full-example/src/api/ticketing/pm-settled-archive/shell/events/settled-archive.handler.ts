@@ -23,6 +23,18 @@ import {
 } from '../../core/domain/settled-archive.state.ts';
 import { settledArchiveRepository } from '../stores/settled-archive.repository.ts';
 
+// A process manager follows one process over time and acts when it is due.
+//
+// settled-archive watches each ticket. Two reactions share that watch:
+//
+// - Events. status-changed and archived update the instance. The fold is
+//   applySettledArchive() in the core. This handler loads, applies, saves.
+// - Time. Every 15 minutes, tickets whose wait has elapsed are archived
+//   by routing the archive command. There is no HTTP route for it.
+//   The command router still enforces the archive rules.
+//
+// The timer only runs once this consumer has caught up with the log, so
+// a ticket that just left done is not archived from a stale instance.
 export const TICKETING_SETTLED_ARCHIVE_CONSUMER_NAME =
     'ticketing.settled-archive';
 

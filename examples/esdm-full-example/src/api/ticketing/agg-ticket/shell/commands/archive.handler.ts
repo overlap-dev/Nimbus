@@ -4,10 +4,8 @@ import {
 } from '../../core/commands/archive.command.ts';
 import { appendTicketEvents, replayTicket } from '../replay.ts';
 
-/**
- * Replays the Ticket and appends archived. An archived Ticket writes
- * nothing.
- */
+// Same shell shape as assign. An already archived ticket makes the core
+// return no events, and appendTicketEvents() then writes nothing.
 export const archiveTicketHandler = async (
     command: ArchiveTicketCommand,
 ): Promise<{ ticketId: string }> => {

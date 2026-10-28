@@ -17,10 +17,15 @@ const requireTicket = (
     return document;
 };
 
-/**
- * Folds one Ticket event into the document of that Ticket. Pure; the shell
- * loads the previous document and stores the result.
- */
+// Pure reducer for the tickets read model.
+//
+// One ticket event in, the next document for that ticket out.
+// No database access. The shell loads the previous document and stores
+// whatever this function returns.
+//
+// created starts the document. Every later event updates the document
+// that created already produced. A later event with no document means
+// the stream for that ticket is missing its beginning.
 export const applyTicketsProjection = (
     document: TicketsDocument | null,
     event: TicketEvent,

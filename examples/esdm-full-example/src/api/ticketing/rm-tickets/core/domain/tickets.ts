@@ -1,9 +1,14 @@
 import { z } from 'zod';
 import { ticketStatusSchema } from '../../../agg-ticket/core/domain/status.value-object.ts';
 
-/**
- * One Ticket as the read model holds it.
- */
+// The document the tickets read model stores in MongoDB.
+//
+// One document per ticket, with the fields the queries need.
+// It is derived from the event log. The log stays the source of truth,
+// so this collection can be dropped and rebuilt by replaying.
+//
+// There is no revision on the document. The projection's position in the
+// log is the consumer checkpoint, not a field of the ticket.
 export const ticketsDocumentSchema = z.object({
     _id: z.uuid(),
     ticketId: z.uuid(),

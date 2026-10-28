@@ -5,6 +5,14 @@ import {
 } from '../../../agg-ticket/core/domain/status.value-object.ts';
 import type { TicketsDocument } from './tickets.ts';
 
+// The view is what a query returns. The document is what we store.
+//
+// Mapping sits in the query handler, so storage details stay inside the
+// read model. Callers never see the MongoDB document.
+//
+// list-tickets never returns archived tickets. matchesTicketsListFilters
+// is that rule in pure form. The repository applies the same rule as a
+// MongoDB filter in findPage().
 export const ticketListItemViewSchema = z.object({
     ticketId: z.uuid(),
     title: z.string(),

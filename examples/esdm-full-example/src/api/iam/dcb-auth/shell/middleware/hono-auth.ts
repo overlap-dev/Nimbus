@@ -5,10 +5,16 @@ import { DEMO_USERS } from '../demo-users.ts';
 
 export const HONO_AUTH_CONTEXT_KEY = 'authcontext';
 
-/**
- * The one AuthContext every request runs with. IAM is mocked in this
- * example: there is no session cookie and no Session lookup.
- */
+// Authentication is mocked in this example.
+//
+// There is no session cookie and no session lookup. Every request runs
+// as the same demo user. routeCommand() and routeQuery() copy this
+// context onto the message as the authcontext extension attribute.
+// Commands and queries then read that attribute. They do not talk to
+// the HTTP layer.
+//
+// A real middleware would read the session, load it, and reject an
+// expired or unknown one. The commands would stay as they are.
 export const DEMO_AUTH_CONTEXT: AuthContext = {
     sessionId: '00000000-0000-4000-8000-000000000001',
     userId: DEMO_USERS[0].userId,

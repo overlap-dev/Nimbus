@@ -14,10 +14,17 @@ import {
     type CreateTicketCommand,
 } from '../core/commands/create.command.ts';
 
-/**
- * `archive` has no route: its only actor is the settled-archive process
- * manager, which routes the command directly.
- */
+// This is where the HTTP API meets the ticket commands.
+//
+// The route does not contain business logic. routeCommand() builds the
+// typed command, the router validates it against the registered schema,
+// and the shell handler runs.
+//
+// The auth context comes from the authentication middleware and is passed
+// as an extension attribute on the command.
+//
+// archive has no HTTP route. Only the settled-archive process manager routes
+// that command, and it does so directly on the command router.
 export const ticketCommands = new Hono();
 
 ticketCommands.post('/create', authentication(), (c) => {

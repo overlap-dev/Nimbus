@@ -6,6 +6,11 @@ import {
 import type { GetTicketQuery } from '../../core/queries/get-ticket.query.ts';
 import { ticketingTicketsRepository } from '../stores/tickets.repository.ts';
 
+// Read one document from the projection and map it to the detail view.
+// A missing document is a not-found error.
+//
+// The view mapping is what the caller receives. The stored document
+// stays inside the repository.
 export const getTicketHandler = async (
     query: GetTicketQuery,
 ): Promise<TicketDetailView> => {

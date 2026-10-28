@@ -17,6 +17,16 @@ import { getAuthContext } from '../../iam/dcb-auth/shell/middleware/hono-auth.ts
 import { getQueryRouter } from '../../query.router.ts';
 import { CLOUDEVENTS_SOURCE } from '../namespace.ts';
 
+// TODO: We need to think about integrating this into the frameworks hono package
+
+// The bridge from HTTP to the Nimbus routers.
+//
+// A route handler should not build messages by hand. routeCommand() and
+// routeQuery() read the request, attach the auth context, and hand a
+// typed message to the router. The router validates it and calls the
+// registered handler. The same commands stay reachable from a policy
+// or a process manager, which call the router directly and skip HTTP.
+
 type AuthenticatedCommand = Command & {
     authcontext: AuthContext | null;
 };

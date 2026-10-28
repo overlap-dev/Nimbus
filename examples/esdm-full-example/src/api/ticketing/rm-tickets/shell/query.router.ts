@@ -10,6 +10,10 @@ import {
 import { getTicketHandler } from './queries/get-ticket.handler.ts';
 import { listTicketsHandler } from './queries/list-tickets.handler.ts';
 
+// Register every query of the tickets read model.
+//
+// The type selects the handler. The schema validates the input
+// before the handler runs.
 export const registerTicketsQueries = (): void => {
     const router = getQueryRouter();
 

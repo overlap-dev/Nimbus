@@ -11,8 +11,23 @@ import { ticketingStartWorkOnAssignmentConsumer } from './ticketing/agg-ticket/s
 import { ticketingSettledArchiveConsumer } from './ticketing/pm-settled-archive/shell/events/settled-archive.handler.ts';
 import { ticketingTicketsConsumer } from './ticketing/rm-tickets/shell/projections/tickets.projection.ts';
 
-// Consumers run in declaration order per event. The tickets read model comes
-// first because notify-assignee reads the Ticket title from it.
+// TODO: We need to think about the projections pattern to integrate it into the framework.
+
+// EventSourcingDB is also the event bus.
+//
+// One observer watches the tickets subject, recursively, so it receives
+// "/ticketing/tickets/123" as well as the prefix. On startup it replays
+// from the group's lower bound, then stays live for new events.
+//
+// Several consumers share that observer. They run in declaration order
+// for each event. The tickets read model is first because notify-assignee
+// reads the ticket title from the projection of the same event.
+//
+// The lower bound and each consumer's position live in the
+// observer_checkpoints collection, not on the read-model documents.
+// createObserverGroup() loads those checkpoints and resumes from the
+// earliest one. Consumers that are already further ahead skip the
+// replayed events in memory.
 const OBSERVER_GROUPS = [
     {
         subject: ticketsSubject(),

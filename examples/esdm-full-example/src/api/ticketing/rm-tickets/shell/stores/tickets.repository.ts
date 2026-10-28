@@ -13,6 +13,14 @@ import {
 } from '../../core/domain/tickets.view.ts';
 import { TICKETING_RM_TICKETS_COLLECTION } from './tickets.collection.ts';
 
+// Access to the tickets collection.
+//
+// _mapDocumentToEntity and _mapEntityToDocument translate between BSON
+// and the Zod document. Dates are Date values in MongoDB and ISO strings
+// everywhere else.
+//
+// saveProjection upserts by ticketId. Applying the same event again
+// replaces the document instead of inserting a second one.
 class TicketingTicketsRepository extends MongoDBRepository<TicketsDocument> {
     constructor() {
         super(

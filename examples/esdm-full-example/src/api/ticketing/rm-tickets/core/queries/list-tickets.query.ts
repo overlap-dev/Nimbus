@@ -4,6 +4,13 @@ import { authContextSchema } from '../../../../iam/dcb-auth/core/domain/auth-con
 import { CLOUDEVENTS_NAMESPACE } from '../../../../shared/namespace.ts';
 import { ticketStatusSchema } from '../../../agg-ticket/core/domain/status.value-object.ts';
 
+// list-tickets reads a page of the same projection as get-ticket.
+//
+// status, offset and limit narrow that page. Archived tickets are left
+// out by the handler and the repository, not by this schema.
+//
+// One projection feeds both queries. A new question about tickets is
+// another query on this collection, not another copy of the events.
 export const LIST_TICKETS_QUERY_TYPE = `${CLOUDEVENTS_NAMESPACE}.ticketing.tickets.list-tickets`;
 
 export const listTicketsInputSchema = z.object({

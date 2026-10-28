@@ -13,6 +13,12 @@ import {
 } from './ticket.exceptions.ts';
 import type { Ticket, TicketState } from './ticket.state.ts';
 
+// In the assertions file we can define helper functions
+// to validate the state to enforce business rules and invariants
+// in the domain.
+// These assertions are typically called in the core logic of the commands
+// or within event handlers, policies and process managers.
+
 export const requireNoTicket = (state: TicketState): void => {
     if (state !== null) {
         throw ticketAlreadyExistsException();

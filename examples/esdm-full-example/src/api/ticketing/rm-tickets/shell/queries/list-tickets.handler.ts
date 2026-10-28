@@ -6,6 +6,7 @@ import {
 import type { ListTicketsQuery } from '../../core/queries/list-tickets.query.ts';
 import { ticketingTicketsRepository } from '../stores/tickets.repository.ts';
 
+// A filtered, paged read of the same projection, mapped to list items.
 export const listTicketsHandler = async (
     query: ListTicketsQuery,
 ): Promise<ListTicketsResult> => {

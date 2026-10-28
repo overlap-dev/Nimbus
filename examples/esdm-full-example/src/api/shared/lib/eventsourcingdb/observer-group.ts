@@ -4,6 +4,24 @@ import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import { z } from 'zod';
 import { toError } from '../toError.ts';
 
+// TODO: integrate into the framework?
+
+// Several consumers on one EventSourcingDB observer.
+//
+// A read-model projection, a policy, an event handler and a process manager
+// can all watch the same subject. They share the replay. Each keeps its own
+// checkpoint, so one of them can be rebuilt or halted without moving the
+// others.
+//
+// The group's lower bound is the earliest checkpoint. Consumers already
+// past that point skip the replayed events. Consumers run in the order they
+// are declared, so one that reads another's read model is declared after it.
+//
+// A consumer that throws keeps its position while its siblings advance.
+// The observer retries in place. After retries are exhausted that consumer
+// is halted and its checkpoint stays on the last event it finished. A
+// restart resumes at the event it could not apply.
+
 /**
  * One stateful consumer of the event stream: a read-model projection, a
  * policy, an event handler or a process manager.

@@ -13,18 +13,21 @@ import {
 } from '../../core/events/assigned.event.ts';
 import { notifiedAssignmentsRepository } from '../stores/notified-assignments.repository.ts';
 
-/**
- * Event handler `notify-assignee`: emails the new Assignee that a Ticket
- * was assigned to them. Owns its idempotency — it remembers the ids of the
- * assigned events it has emailed for and skips a redelivered one.
- *
- * The Ticket title comes from the tickets read model, which is declared
- * before this consumer in the observer group and therefore already holds
- * this event. The Assignee's address comes from the mocked IAM Users.
- */
+// An event handler reacts to an event with a side effect that is not
+// another command. Here the side effect is an email to the new assignee.
+//
+// It does not change the ticket. The title comes from the tickets read
+// model. That consumer is declared first in the observer group, so this
+// event is already in the projection when we read it. The address comes
+// from the mocked IAM users.
+//
+// The handler owns its idempotency. It remembers the event ids it has
+// already mailed, and a redelivery does not send the mail again.
 export const handleNotifyAssignee = async (
     eventSourcingDBEvent: EventSourcingDBEvent,
 ): Promise<void> => {
+    const env = getEnv({ variables: ['APP_ORIGIN'] });
+
     const event = ticketAssignedEventSchema.parse(
         eventSourcingDBEventToNimbusEvent(eventSourcingDBEvent),
     );
@@ -52,7 +55,6 @@ export const handleNotifyAssignee = async (
         return;
     }
 
-    const env = getEnv({ variables: ['APP_ORIGIN'] });
     const ticketUrl = new URL(`/tickets/${ticket.ticketId}`, env.APP_ORIGIN);
 
     const html = await renderMailHtmlFromTemplate('ticket-assigned', {

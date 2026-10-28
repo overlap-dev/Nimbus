@@ -1,5 +1,9 @@
 import { InvalidInputException, NotFoundException } from '@nimbus-cqrs/core';
 
+// Usually you want to define explicit exception with clear error codes
+// This is a central place to define all exceptions related to the
+// ticket aggregate.
+
 export const TICKET_ERROR_CODES = {
     TICKET_ALREADY_EXISTS: 'TICKET_ALREADY_EXISTS',
     TICKET_NOT_FOUND: 'TICKET_NOT_FOUND',

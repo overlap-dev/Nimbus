@@ -29,11 +29,11 @@ export const changeStatusCommandSchema = commandSchema.extend({
 });
 export type ChangeStatusCommand = z.infer<typeof changeStatusCommandSchema>;
 
-/**
- * Moves the Ticket to another Status. Moving to in-progress needs an
- * Assignee (`in-progress-requires-assignee`); moving to the current Status
- * changes nothing (`same-status-is-a-no-op`).
- */
+// Moves the ticket to another status.
+//
+// The ticket has to exist. The current status again changes nothing.
+// in-progress requires an assignee. That rule is
+// requireInProgressHasAssignee().
 export const changeStatus = (
     state: TicketState,
     command: ChangeStatusCommand,

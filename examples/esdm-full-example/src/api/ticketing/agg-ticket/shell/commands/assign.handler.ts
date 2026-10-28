@@ -4,9 +4,11 @@ import {
 } from '../../core/commands/assign.command.ts';
 import { appendTicketEvents, replayTicket } from '../replay.ts';
 
-/**
- * Replays the Ticket and appends assigned.
- */
+// Same shell shape as create, for a ticket that already exists.
+//
+// replayTicket() rebuilds the state. assignTicket() decides the events.
+// appendTicketEvents() writes them only if the ticket is still at the
+// revision the replay saw. See replay.ts.
 export const assignTicketHandler = async (
     command: AssignTicketCommand,
 ): Promise<{ ticketId: string }> => {

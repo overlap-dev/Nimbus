@@ -7,6 +7,18 @@ import {
 import { TICKET_ARCHIVED_EVENT_TYPE } from '../../../agg-ticket/core/events/archived.event.ts';
 import { TICKET_STATUS_CHANGED_EVENT_TYPE } from '../../../agg-ticket/core/events/status-changed.event.ts';
 
+// State of one settled-archive watch, one per ticket.
+//
+// applySettledArchive() is the pure reducer, the same idea as
+// applyEventToState() on the ticket. The shell loads the previous
+// instance, applies one signal, and stores the result.
+//
+// status-changed to done arms a timer. Leaving done cancels it.
+// A repeated status-changed leaves a running timer where it is.
+// archived ends the watch and cancels the timer.
+//
+// The shell's timer later asks isArchiveDue() and, when it is, routes
+// the archive command. This file does not route anything.
 export const SETTLED_ARCHIVE_STAY_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
 

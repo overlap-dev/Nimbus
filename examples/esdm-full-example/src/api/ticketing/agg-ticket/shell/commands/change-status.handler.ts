@@ -4,9 +4,8 @@ import {
 } from '../../core/commands/change-status.command.ts';
 import { appendTicketEvents, replayTicket } from '../replay.ts';
 
-/**
- * Replays the Ticket and appends status-changed.
- */
+// Same shell shape as assign: replay, run the core, append on the
+// revision the replay saw. See replay.ts.
 export const changeStatusHandler = async (
     command: ChangeStatusCommand,
 ): Promise<{ ticketId: string }> => {

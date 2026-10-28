@@ -15,6 +15,15 @@ import {
     type ListTicketsQuery,
 } from '../core/queries/list-tickets.query.ts';
 
+// HTTP entry for the tickets queries.
+//
+// Each route builds a typed query through routeQuery(). The query router
+// validates it against the schema and calls the shell handler.
+// The auth context comes from the authentication middleware and is passed
+// as an extension attribute, the same way commands carry it.
+//
+// list-tickets uses mapData because offset and limit arrive as strings.
+// The query schema coerces them to numbers.
 export const ticketsQueries = new Hono();
 
 const mapListTicketsData = (c: Context): Record<string, unknown> => {

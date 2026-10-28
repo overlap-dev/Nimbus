@@ -20,6 +20,11 @@ import { assignTicketHandler } from './commands/assign.handler.ts';
 import { changeStatusHandler } from './commands/change-status.handler.ts';
 import { createTicketHandler } from './commands/create.handler.ts';
 
+// Register every command of the ticket aggregate.
+//
+// The type selects the handler. The schema validates the input
+// before the handler runs. archive is registered here even though
+// it has no HTTP route. The process manager routes it by type.
 export const registerTicketCommands = (): void => {
     const router = getCommandRouter();
 

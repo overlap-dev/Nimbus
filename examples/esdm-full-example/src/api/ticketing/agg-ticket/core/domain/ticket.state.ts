@@ -20,9 +20,15 @@ import {
     ticketStatusSchema,
 } from './status.value-object.ts';
 
-/**
- * The Ticket aggregate state, folded from its events.
- */
+// This is the definition of the state for the ticket aggregate.
+// Basically this is simply an object with the properties
+// necessary to represent a ticket.
+//
+// With the applyEventToState() function we can
+// build a state object based on replayed events.
+// It is a simple reducer function that applies an event
+// to the current state.
+
 export const ticketSchema = z.object({
     ticketId: z.uuid(),
     title: z.string(),
@@ -34,7 +40,6 @@ export const ticketSchema = z.object({
 });
 export type Ticket = z.infer<typeof ticketSchema>;
 
-/** `null` until the Ticket is created. */
 export type TicketState = Ticket | null;
 
 export const ticketEventSchema = z.union([
@@ -46,8 +51,8 @@ export const ticketEventSchema = z.union([
 export type TicketEvent = z.infer<typeof ticketEventSchema>;
 
 /**
- * Folds one event into the Ticket state. Pure; the shell replays the
- * stream through it.
+ * Folds one event into the Ticket state.
+ * Pure: The shell replays the stream through it.
  */
 export const applyEventToState = (
     state: TicketState,

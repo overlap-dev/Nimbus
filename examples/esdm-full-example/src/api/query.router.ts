@@ -10,6 +10,7 @@ export const initQueryRouter = (): void => {
         createRouterLoggingOptions(QUERY_ROUTER_NAME),
     );
 
+    // Register queries from the different domains.
     registerTicketingQueries();
 };
 

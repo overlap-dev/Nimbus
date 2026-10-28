@@ -17,6 +17,18 @@ import {
     ticketAssignedEventSchema,
 } from '../../core/events/assigned.event.ts';
 
+// A policy reacts to an event by issuing another command.
+//
+// start-work-on-assignment listens for assigned and routes change-status
+// to in-progress, on behalf of the user who assigned the ticket.
+//
+// startWorkOnAssignment() is the pure decision: event in, command out.
+// The shell parses the event and routes that command through the same
+// command router HTTP uses, so the command's rules still apply.
+//
+// The policy keeps no state of its own. A redelivered assigned event is
+// harmless: change-status to the current status emits nothing.
+
 const POLICY_SESSION_ID = '00000000-0000-4000-8000-000000000002';
 const POLICY_SESSION_EXPIRES_AT = '9999-12-31T23:59:59.000Z';
 

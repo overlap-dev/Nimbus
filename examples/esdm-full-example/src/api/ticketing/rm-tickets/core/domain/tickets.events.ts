@@ -9,7 +9,11 @@ import { TICKET_STATUS_CHANGED_EVENT_TYPE } from '../../../agg-ticket/core/event
 
 export { type TicketEvent, ticketEventSchema };
 
-/** The events the tickets read model projects. */
+// The events this read model folds.
+//
+// The observer delivers every event on the tickets subject. handles()
+// on the consumer uses isTicketsEvent, so anything else on that subject
+// is skipped and does not change a document.
 export const TICKETS_EVENT_TYPES = new Set<string>([
     TICKET_CREATED_EVENT_TYPE,
     TICKET_ASSIGNED_EVENT_TYPE,
