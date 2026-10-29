@@ -36,14 +36,23 @@ const getTransporter = (): { transporter: Transporter; from: string } => {
         );
     }
 
+    // TODO: remove when getEnv supports optional variables
+    const smtpAuth =
+        env.SMTP_USER &&
+        env.SMTP_USER !== '_NONE_' &&
+        env.SMTP_PASSWORD &&
+        env.SMTP_PASSWORD !== '_NONE_'
+            ? {
+                  user: env.SMTP_USER,
+                  pass: env.SMTP_PASSWORD,
+              }
+            : undefined;
+
     transporter = nodemailer.createTransport({
         host: env.SMTP_HOST,
         port,
         secure: port === 465,
-        auth: {
-            user: env.SMTP_USER,
-            pass: env.SMTP_PASSWORD,
-        },
+        auth: smtpAuth,
     });
     fromAddress = env.SMTP_FROM;
 
