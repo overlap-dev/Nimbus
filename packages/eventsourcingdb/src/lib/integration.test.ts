@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import { type TestContext, test } from 'node:test';
 import { createEvent, type Event } from '@nimbus-cqrs/core';
-import { Container, type Event as EventSourcingDBEvent } from 'eventsourcingdb';
+import {
+    Container,
+    DbApiError,
+    ErrorCode,
+    type Event as EventSourcingDBEvent,
+    isSubjectPristine,
+} from 'eventsourcingdb';
 import { setupEventSourcingDBClient } from './client.ts';
 import { eventSourcingDBEventToNimbusEvent } from './eventMapping.ts';
 import { initEventObserver, observeWithRetry } from './eventObserver.ts';
@@ -37,17 +43,23 @@ const withTimeout = <T>(
 // Shared container lifecycle
 // ---------------------------------------------------------------------------
 
-const container = new Container();
+/**
+ * The EventSourcingDB Docker image tags the suite runs against. `1.2.0`
+ * only offers the v1 HTTP API, `preview` is the upcoming 1.3 release with
+ * the v2 HTTP API. The SDK detects the API at runtime, so the same
+ * assertions have to hold for both.
+ */
+const imageTags = ['1.2.0', 'preview'];
 
 /**
  * Start the container once before all tests and stop it after.
  * We use a wrapper test with subtests so the container is shared
  * across all assertions but properly cleaned up.
- *
- * The eventsourcingdb npm Client keeps TCP connections and timers alive
- * internally, so the package's `test` script runs with `--test-force-exit`.
  */
-test('integration: eventsourcingdb', async (t) => {
+const runIntegrationSuite = async (
+    t: TestContext,
+    container: Container,
+): Promise<void> => {
     await container.start();
 
     try {
@@ -169,6 +181,120 @@ test('integration: eventsourcingdb', async (t) => {
                 }
 
                 assert.deepEqual(readBack.length, 3);
+            },
+        );
+
+        await t.test(
+            'writeEvents returns the written events with server-assigned fields',
+            async () => {
+                const events = [
+                    createEvent({
+                        source: 'https://nimbus.test',
+                        type: 'at.test.nimbus.written',
+                        subject: '/written/1',
+                        data: { index: 0 },
+                    }),
+                    createEvent({
+                        source: 'https://nimbus.test',
+                        type: 'at.test.nimbus.written',
+                        subject: '/written/1',
+                        data: { index: 1 },
+                    }),
+                ];
+
+                const writtenEvents = await writeEvents(events);
+
+                assert.deepEqual(writtenEvents.length, 2);
+
+                for (const [index, writtenEvent] of writtenEvents.entries()) {
+                    assert.deepEqual(typeof writtenEvent.id, 'string');
+                    assert.ok(writtenEvent.id.length > 0);
+                    assert.ok(writtenEvent.time instanceof Date);
+                    assert.deepEqual(writtenEvent.type, events[index].type);
+                    assert.deepEqual(
+                        writtenEvent.subject,
+                        events[index].subject,
+                    );
+                }
+
+                assert.notDeepEqual(writtenEvents[0].id, writtenEvents[1].id);
+            },
+        );
+
+        await t.test(
+            'writeEvents throws a DbApiError with preconditionViolated when a precondition does not hold',
+            async () => {
+                const subject = '/precondition/1';
+
+                await writeEvents([
+                    createEvent({
+                        source: 'https://nimbus.test',
+                        type: 'at.test.nimbus.precondition',
+                        subject,
+                        data: { index: 0 },
+                    }),
+                ]);
+
+                await assert.rejects(
+                    writeEvents(
+                        [
+                            createEvent({
+                                source: 'https://nimbus.test',
+                                type: 'at.test.nimbus.precondition',
+                                subject,
+                                data: { index: 1 },
+                            }),
+                        ],
+                        [isSubjectPristine(subject)],
+                    ),
+                    (error: unknown) => {
+                        assert.ok(error instanceof DbApiError);
+                        assert.deepEqual(
+                            error.code,
+                            ErrorCode.preconditionViolated,
+                        );
+                        return true;
+                    },
+                );
+            },
+        );
+
+        await t.test(
+            'writeEvents rejects with the abort reason and persists nothing when the signal is already aborted',
+            async () => {
+                const subject = '/aborted/1';
+                const abortReason = new Error('write cancelled by test');
+                const controller = new AbortController();
+                controller.abort(abortReason);
+
+                await assert.rejects(
+                    writeEvents(
+                        [
+                            createEvent({
+                                source: 'https://nimbus.test',
+                                type: 'at.test.nimbus.aborted',
+                                subject,
+                                data: { index: 0 },
+                            }),
+                        ],
+                        undefined,
+                        controller.signal,
+                    ),
+                    (error: unknown) => {
+                        assert.deepEqual(error, abortReason);
+                        return true;
+                    },
+                );
+
+                const readBack: EventSourcingDBEvent[] = [];
+
+                for await (const e of readEvents(subject, {
+                    recursive: false,
+                })) {
+                    readBack.push(e);
+                }
+
+                assert.deepEqual(readBack.length, 0);
             },
         );
 
@@ -506,5 +632,22 @@ test('integration: eventsourcingdb', async (t) => {
         if (container.isRunning()) {
             await container.stop();
         }
+    }
+};
+
+/**
+ * The eventsourcingdb npm Client keeps TCP connections and timers alive
+ * internally, so the package's `test` script runs with `--test-force-exit`.
+ */
+test('integration: eventsourcingdb', async (t) => {
+    // Run sequentially: the client singleton is re-initialized per
+    // container, so the previous one has to be stopped first.
+    for (const imageTag of imageTags) {
+        await t.test(`EventSourcingDB ${imageTag}`, async (t) => {
+            await runIntegrationSuite(
+                t,
+                new Container().withImageTag(imageTag),
+            );
+        });
     }
 });

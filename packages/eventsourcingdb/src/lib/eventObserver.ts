@@ -82,7 +82,9 @@ export type EventObserver = {
     eventHandler: (event: EventSourcingDBEvent) => Promise<void> | void;
     /**
      * Options for retry behavior when the observe stream / connection fails.
-     * Uses exponential backoff with jitter between reconnects.
+     * This includes a stream that the server closes (e.g. during a restart)
+     * and a stalled connection. Uses exponential backoff with jitter
+     * between reconnects.
      * Defaults to { maxRetries: 3, initialRetryDelayMs: 3000 }.
      */
     connectionRetryOptions?: RetryOptions;
@@ -403,13 +405,14 @@ const handleHandlerExhausted = async (
  *
  * Handler failures are retried without reconnecting. After handler
  * retries are exhausted the event is skipped (lower bound advanced)
- * so observation can continue. When the connection drops, exponential
- * backoff with jitter is applied up to the configured maximum number
- * of connection retries.
+ * so observation can continue. When the connection drops, the stream
+ * stalls, or the server closes the stream (e.g. during a restart),
+ * exponential backoff with jitter is applied up to the configured
+ * maximum number of connection retries.
  *
  * @param eventObserver - The event observer configuration.
- * @returns A promise that resolves when the observe stream ends or
- *   connection retries are exhausted.
+ * @returns A promise that resolves when connection retries are
+ *   exhausted.
  */
 export const observeWithRetry = async (
     eventObserver: EventObserver,
@@ -488,7 +491,10 @@ export const observeWithRetry = async (
                 lastProcessedEventId = event.id;
             }
 
-            // If the loop completes normally (stream ended), we're done
+            // Observing never ends on its own: the SDK throws when the
+            // server closes the stream, so this is only reached if the
+            // generator finishes without an error (e.g. an aborted
+            // stream). Treat it as the end of observation.
             return;
         } catch (error) {
             connectionRetryCount++;
@@ -511,9 +517,10 @@ export const observeWithRetry = async (
 /**
  * Initializes an event observer by starting the observation loop in
  * the background (non-blocking). The observer will keep running and
- * reconnecting according to its connection retry options until the
- * stream ends or connection retries are exhausted. Handler failures
- * are retried separately and do not stop the observer.
+ * reconnecting according to its connection retry options until
+ * connection retries are exhausted. A stream closed by the server
+ * counts as a connection failure and triggers a reconnect. Handler
+ * failures are retried separately and do not stop the observer.
  *
  * @param eventObserver - The event observer configuration.
  */

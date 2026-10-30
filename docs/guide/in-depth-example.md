@@ -375,9 +375,14 @@ export const inviteUserCommandHandler = async (command: InviteUserCommand) => {
 
     const events = inviteUser(state, command);
 
-    await writeEvents(events, [isSubjectPristine(events[0].subject)]);
+    const writtenEvents = await writeEvents(events, [
+        isSubjectPristine(events[0].subject),
+    ]);
 
-    return { userId: state.id };
+    return {
+        userId: state.id,
+        revision: writtenEvents[writtenEvents.length - 1].id,
+    };
 };
 ```
 
@@ -385,7 +390,7 @@ Three lines of meaningful work:
 
 1. **Build initial state.** Inviting a user starts a brand-new lifecycle, so we mint a fresh `ulid()` (a sortable, URL-safe id) and start with an empty `UserState`. There is nothing to load from the event log yet.
 2. **Call the core.** `inviteUser(state, command)` returns the events that should be appended. The handler does not know what those events look like or why they were chosen - that is the core's job.
-3. **Persist the events.** `writeEvents` appends the events to EventSourcingDB. The second argument is an array of preconditions; we will look at it in a second.
+3. **Persist the events.** `writeEvents` appends the events to EventSourcingDB and returns them with the ids the server assigned. The second argument is an array of preconditions; we will look at it in a second. The id of the last written event is the user's **revision**, which we hand back to the caller - it will matter when we accept the invitation.
 
 ### Step 5 - The Pure Core Does the Thinking
 
@@ -570,12 +575,29 @@ Up in the HTTP layer, our `app.onError(handleError)` middleware catches these ex
 Once the rules pass, the core returns a `UserInvitationAccepted` event and the handler appends it - this time with a different precondition:
 
 ```typescript
-await writeEvents(events, [
-    isSubjectOnEventId(events[0].subject, command.data.expectedRevision),
-]);
+try {
+    await writeEvents(events, [
+        isSubjectOnEventId(events[0].subject, command.data.expectedRevision),
+    ]);
+} catch (error) {
+    const isStateConflict =
+        error instanceof DbApiError &&
+        error.code === ErrorCode.preconditionViolated;
+
+    if (isStateConflict) {
+        throw new Exception(
+            "CONFLICT",
+            "The expected revision does not match the current revision anymore",
+            { errorCode: "REVISION_CONFLICT", userId: state.id },
+            409
+        );
+    }
+
+    throw error;
+}
 ```
 
-`expectedRevision` is the id of the last event the _client_ saw for this user when it built its accept request. EventSourcingDB will only allow the write if the subject is still on that exact event. If somebody else managed to append a different event in the meantime, the write fails.
+`expectedRevision` is the id of the last event the _client_ saw for this user when it built its accept request. EventSourcingDB will only allow the write if the subject is still on that exact event. If somebody else managed to append a different event in the meantime, the write fails with a `DbApiError` whose `code` is `ErrorCode.preconditionViolated` (both imported from `eventsourcingdb`). The handler translates that into a Nimbus `Exception` with status `409`, which `handleError` turns into a proper HTTP conflict response.
 
 ::: warning Why this precondition matters
 Imagine two browser tabs both trying to accept the same invitation at the same instant. Without `isSubjectOnEventId`, both writes would succeed, and the user would have two `UserInvitationAccepted` events in their history. With the precondition, the second write fails and the client can decide what to do (probably: refresh and tell the user it is already accepted).

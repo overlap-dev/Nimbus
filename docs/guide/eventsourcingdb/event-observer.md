@@ -124,8 +124,13 @@ Both paths use **exponential backoff with jitter** (via the shared [`withRetry`]
 **Connection retries** (`connectionRetryOptions`, or deprecated `retryOptions`):
 
 - Used when the observe stream fails or disconnects
+- Observing never ends on its own. A stream that the server closes (for example during a restart or a rollback) or that stalls (see [stall timeout](/guide/eventsourcingdb/client-setup#stall-timeout)) counts as a connection failure and triggers a reconnect
 - After the initial attempt plus `maxRetries` reconnect attempts fail, a critical error is logged and the observer stops (`maxRetries + 1` failed attempts total)
 - The connection retry counter resets when events start flowing again
+
+::: tip Sizing connection retries
+Since every server-side stream close triggers a reconnect, size `connectionRetryOptions` for the longest outage you want an observer to survive, for example a rolling restart or a backup window of your EventSourcingDB deployment. With the defaults (`maxRetries: 3`, `initialRetryDelayMs: 3000`) an observer gives up after roughly 20 seconds of consecutive failures.
+:::
 
 **Handler retries** (`handlerRetryOptions`):
 

@@ -4,7 +4,7 @@ import {
     readEvents,
     writeEvents,
 } from '@nimbus-cqrs/eventsourcingdb';
-import { isSubjectOnEventId } from 'eventsourcingdb';
+import { DbApiError, ErrorCode, isSubjectOnEventId } from 'eventsourcingdb';
 import {
     type AcceptUserInvitationCommand,
     acceptUserInvitation,
@@ -51,17 +51,28 @@ export const acceptUserInvitationCommandHandler = async (
     // by another command in the meantime.
     // In this case we throw a proper exception and the
     // client need to handle it.
+    //
+    // writeEvents returns the written events including the
+    // server-assigned ids. The id of the last written event is
+    // the new revision of the user which we hand back to the client.
+
+    let revision: string;
 
     try {
-        await writeEvents(events, [
+        const writtenEvents = await writeEvents(events, [
             isSubjectOnEventId(
                 events[0].subject,
                 command.data.expectedRevision,
             ),
         ]);
+
+        revision = writtenEvents[writtenEvents.length - 1].id;
     } catch (error) {
+        // EventSourcingDB reports a violated precondition as a
+        // DbApiError with the preconditionViolated error code.
         const isStateConflict =
-            error && (error as any).message.includes(`code '409'`);
+            error instanceof DbApiError &&
+            error.code === ErrorCode.preconditionViolated;
 
         getLogger().error({
             category: 'AcceptUserInvitationCommandHandler',
@@ -87,5 +98,6 @@ export const acceptUserInvitationCommandHandler = async (
 
     return {
         userId: state.id,
+        revision,
     };
 };

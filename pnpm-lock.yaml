@@ -25,8 +25,8 @@ catalogs:
       specifier: ^26.6.5
       version: 26.6.5
     eventsourcingdb:
-      specifier: ^1.9.1
-      version: 1.10.0
+      specifier: ^2.2.3
+      version: 2.2.3
     hono:
       specifier: ^4.13.7
       version: 4.13.13
@@ -156,7 +156,7 @@ importers:
         version: 0.300.0(@opentelemetry/api@1.10.0)
       eventsourcingdb:
         specifier: 'catalog:'
-        version: 1.10.0
+        version: 2.2.3
       hono:
         specifier: 'catalog:'
         version: 4.13.13
@@ -219,7 +219,7 @@ importers:
         version: 26.6.5
       eventsourcingdb:
         specifier: 'catalog:'
-        version: 1.10.0
+        version: 2.2.3
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -1754,8 +1754,8 @@ packages:
     resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==, tarball: https://registry.npmjs.org/events/-/events-3.3.0.tgz}
     engines: {node: '>=0.8.x'}
 
-  eventsourcingdb@1.10.0:
-    resolution: {integrity: sha512-W3I732zXj17VNMYWUUXdo5I75BoPOyykuKoFwJwy5jHrU5e8KItrX25pYuTXKw9iGgYr2AwkNkr1LTog5uYZUA==, tarball: https://registry.npmjs.org/eventsourcingdb/-/eventsourcingdb-1.10.0.tgz}
+  eventsourcingdb@2.2.3:
+    resolution: {integrity: sha512-v4Q1n8DBhoLuCPKieNCSDa4cXJq7mT5lbRxLQzp6bjkLYqLMRu6/RrM86VAJtc0DBmdYWep1oIActxx2ZUlPDQ==, tarball: https://registry.npmjs.org/eventsourcingdb/-/eventsourcingdb-2.2.3.tgz}
 
   extend-shallow@2.0.1:
     resolution: {integrity: sha512-zCnTtlxNoAiDc3gqY2aYAWFx7XWWiasuF2K8Me5WbN8otHKTUKBwjPtNpRs/rbUZm7KxWAaNj7P1a/p52GbVug==, tarball: https://registry.npmjs.org/extend-shallow/-/extend-shallow-2.0.1.tgz}
@@ -2420,8 +2420,8 @@ packages:
   teex@1.0.1:
     resolution: {integrity: sha512-eYE6iEI62Ni1H8oIa7KlDU6uQBtqr4Eajni3wX7rpfXD8ysFx8z0+dri+KWEPWpBsxXfxu58x/0jvTVT1ekOSg==, tarball: https://registry.npmjs.org/teex/-/teex-1.0.1.tgz}
 
-  testcontainers@12.2.0:
-    resolution: {integrity: sha512-Pd0c2eU0DdIuK+Pb3c+vmBUdKjDLgxZmPecQGESFAKyn5LTqSaSw8l7htfMlLwabb/QsUILe6XkxMJw8Ly/ThA==, tarball: https://registry.npmjs.org/testcontainers/-/testcontainers-12.2.0.tgz}
+  testcontainers@12.2.1:
+    resolution: {integrity: sha512-JfbCyOvLdzatwgqUI3AvYCwRW0P5mCkKQVBPO8U5qSH1efC2kHvnfWmi9VHloy1rAFG2MEqWZObRH4bq0gU1kQ==, tarball: https://registry.npmjs.org/testcontainers/-/testcontainers-12.2.1.tgz}
     engines: {node: '>= 22.22'}
 
   text-decoder@1.2.7:
@@ -4150,9 +4150,9 @@ snapshots:
 
   events@3.3.0: {}
 
-  eventsourcingdb@1.10.0:
+  eventsourcingdb@2.2.3:
     dependencies:
-      testcontainers: 12.2.0
+      testcontainers: 12.2.1
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
@@ -5008,7 +5008,7 @@ snapshots:
       - bare-abort-controller
       - react-native-b4a
 
-  testcontainers@12.2.0:
+  testcontainers@12.2.1:
     dependencies:
       '@balena/dockerignore': 1.0.2
       '@types/dockerode': 4.0.2

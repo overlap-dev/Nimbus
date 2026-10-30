@@ -13,7 +13,7 @@ catalog:
   '@opentelemetry/sdk-metrics': ^3.0.0
   '@opentelemetry/sdk-node': ^0.300.0
   '@types/node': ^26.6.5
-  eventsourcingdb: ^1.9.1
+  eventsourcingdb: ^2.2.3
   hono: ^4.13.7
   mongodb: 7.1.1
   picocolors: ^1.1.1
@@ -27,6 +27,7 @@ catalog:
 minimumReleaseAge: 2880
 minimumReleaseAgeExclude:
   - '@nimbus-cqrs/*'
+  - 'eventsourcingdb'
 
 # Lifecycle scripts are blocked unless listed here. esbuild (vitepress) needs
 # its postinstall; the others are optional native addons pulled in via

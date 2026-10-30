@@ -30,7 +30,16 @@ bun add @nimbus-cqrs/eventsourcingdb
 deno add npm:@nimbus-cqrs/eventsourcingdb
 ```
 
-`eventsourcingdb` is a peer dependency — install it alongside this package.
+`eventsourcingdb` (version 2 or later) is a peer dependency — install it alongside this package. The SDK talks to both the v2 API of EventSourcingDB 1.3+ and the v1 API of older versions and picks the right one at runtime.
+
+## Upgrading from `eventsourcingdb` 1.x
+
+If you upgrade an existing application from the 1.x SDK, see the [SDK migration guide](https://github.com/thenativeweb/eventsourcingdb-client-javascript#upgrading-from-version-1). The points that matter for Nimbus users:
+- **Server errors** are `DbApiError` instances with a `code`. Replace checks like `error.message.includes("409")` with `error instanceof DbApiError && error.code === ErrorCode.preconditionViolated`.
+- **Failed writes** whose outcome is unknown (stalled connection, abort after sending) throw an `OutcomeUnknownError` whose `cause` is the original error.
+- **Observers** no longer end quietly when the server closes the stream. Nimbus treats this as a connection failure and reconnects according to `connectionRetryOptions`.
+- **Proxies** in front of EventSourcingDB 1.3+ must allow the HTTP method `QUERY`, which the SDK uses for all reads.
+- **`writeEvents`** now returns the written events instead of `void`.
 
 # Examples
 
@@ -88,6 +97,8 @@ import {
 await setupEventSourcingDBClient({
     url: new URL(process.env.ESDB_URL ?? ''),
     apiToken: process.env.ESDB_API_TOKEN ?? '',
+    // Optional: fail a request once nothing arrives for 10 s (default 30 s).
+    stallTimeout: 10_000,
 });
 
 // Anywhere else:
@@ -95,6 +106,8 @@ const client = getEventSourcingDBClient();
 ```
 
 The `eventObservers` array is optional; passing observers here is just a convenience that calls `initEventObserver` for each entry once the client is ready.
+
+`stallTimeout` is optional as well. A request that receives nothing from the server for that long throws a `ConnectionStalledError`. Every event, row or heartbeat that arrives resets the timer, so healthy long-running streams are never cut off.
 
 ## writeEvents
 
@@ -114,18 +127,40 @@ await writeEvents([
 ]);
 ```
 
-The second argument accepts EventSourcingDB [preconditions](https://docs.eventsourcingdb.io/getting-started/writing-events/#using-preconditions) — useful for optimistic concurrency, e.g. only appending an event when no event of a given type already exists for a subject:
+`writeEvents` returns the written EventSourcingDB events including the server-assigned fields (`id`, `time`, `hash`, ...). The `id` of the last written event is the new revision of the subject. This is useful for subsequent writes to the same subject or to hand it back to the client.
+
+The second argument accepts EventSourcingDB [preconditions](https://docs.eventsourcingdb.io/getting-started/writing-events/#using-preconditions) which are useful for optimistic concurrency, e.g. only appending an event when the subject has no events yet:
 
 ```typescript
-await writeEvents(
+import { isSubjectPristine } from 'eventsourcingdb';
+
+const writtenEvents = await writeEvents(
     [todoAddedEvent],
-    [
-        {
-            type: 'isSubjectPristine',
-            payload: { subject: '/todos/todo-1' },
-        },
-    ],
+    [isSubjectPristine('/todos/todo-1')],
 );
+
+const revision = writtenEvents[writtenEvents.length - 1].id;
+```
+
+A violated precondition surfaces as a `DbApiError` with the code `ErrorCode.preconditionViolated`. A write whose outcome is unknown (e.g. the connection stalled after the request was sent) throws an `OutcomeUnknownError`. Better replay the subject's stream before writing again. An optional `AbortSignal` can be passed as the third argument.
+
+```typescript
+import { DbApiError, ErrorCode, isSubjectOnEventId } from 'eventsourcingdb';
+
+try {
+    await writeEvents(
+        [todoRenamedEvent],
+        [isSubjectOnEventId('/todos/todo-1', expectedRevision)],
+    );
+} catch (error) {
+    if (
+        error instanceof DbApiError &&
+        error.code === ErrorCode.preconditionViolated
+    ) {
+        // Somebody else modified the todo in the meantime.
+    }
+    throw error;
+}
 ```
 
 ## readEvents
@@ -149,7 +184,7 @@ Pass an `AbortSignal` as the third argument if you need to cancel a long-running
 ## Event observers
 
 An `EventObserver` is a long-running consumer attached to a subject. `initEventObserver` (or the `eventObservers` array on `setupEventSourcingDBClient`) starts it in the background and keeps it alive. Connection and handler failures are retried separately with exponential backoff plus jitter (defaults: 3 retries, 3000 ms initial delay for each):
-- **Connection failures** reconnect the observe stream (`connectionRetryOptions`; deprecated alias: `retryOptions`).
+- **Connection failures** reconnect the observe stream (`connectionRetryOptions`; deprecated alias: `retryOptions`). Observing never ends on its own. A stream closed by the server (e.g. during a restart) or a stalled connection counts as a connection failure, so size the retries for the longest outage an observer should survive.
 - **Handler failures** are retried in-place without reconnecting (`handlerRetryOptions`). After handler retries are exhausted the event is skipped (optional `onHandlerError`) and observation continues.
 
 On every handled or skipped event the observer advances its lower bound so a reconnection resumes from exactly where it left off — no replays, no gaps.

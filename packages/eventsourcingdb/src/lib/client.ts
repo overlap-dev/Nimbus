@@ -17,6 +17,14 @@ export type SetupEventSourcingDBClientInput = {
      */
     apiToken: string;
     /**
+     * The stall timeout in milliseconds. A request fails with a
+     * `ConnectionStalledError` once nothing arrives from the server for
+     * this long. Every item received (events, rows, heartbeats) resets the
+     * timer, so long-running streams are never cut off while they are
+     * healthy. Defaults to 30000ms (the SDK default).
+     */
+    stallTimeout?: number;
+    /**
      * An optional array of event observers to observe events.
      */
     eventObservers?: EventObserver[];
@@ -35,6 +43,7 @@ export type SetupEventSourcingDBClientInput = {
  * @param {SetupEventSourcingDBClientInput} options - The configuration options
  * @param {URL} options.url - The URL of the EventSourcingDB server
  * @param {string} options.apiToken - The API token for authentication
+ * @param {number} [options.stallTimeout] - Optional stall timeout in milliseconds (defaults to 30000)
  * @param {EventObserver[]} [options.eventObservers] - Optional array of event observers
  *
  * @throws {GenericException} If the connection to EventSourcingDB fails
@@ -80,9 +89,14 @@ export type SetupEventSourcingDBClientInput = {
 export const setupEventSourcingDBClient = async ({
     url,
     apiToken,
+    stallTimeout,
     eventObservers,
 }: SetupEventSourcingDBClientInput): Promise<void> => {
-    eventSourcingDBClient = new Client(url, apiToken);
+    eventSourcingDBClient = new Client(
+        url,
+        apiToken,
+        stallTimeout !== undefined ? { stallTimeout } : undefined,
+    );
 
     try {
         await eventSourcingDBClient.ping();

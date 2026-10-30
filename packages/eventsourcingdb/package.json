@@ -54,7 +54,7 @@
     "ulid": "catalog:"
   },
   "peerDependencies": {
-    "eventsourcingdb": "^1.9.1"
+    "eventsourcingdb": "^2.0.0"
   },
   "devDependencies": {
     "@opentelemetry/sdk-metrics": "catalog:",
