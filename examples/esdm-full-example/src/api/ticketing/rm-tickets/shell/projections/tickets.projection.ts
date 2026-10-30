@@ -2,10 +2,8 @@ import type { Event } from '@nimbus-cqrs/core';
 import { eventSourcingDBEventToNimbusEvent } from '@nimbus-cqrs/eventsourcingdb';
 import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import type { ObserverConsumer } from '../../../../shared/lib/eventsourcingdb/observer-group.ts';
-import {
-    isTicketsEvent,
-    ticketEventSchema,
-} from '../../core/domain/tickets.events.ts';
+import { ticketEventSchema } from '../../../agg-ticket/core/domain/ticket.state.ts';
+import { isTicketsEvent } from '../../core/domain/tickets.events.ts';
 import { applyTicketsProjection } from '../../core/domain/tickets.projection.ts';
 import { ticketingTicketsRepository } from '../stores/tickets.repository.ts';
 

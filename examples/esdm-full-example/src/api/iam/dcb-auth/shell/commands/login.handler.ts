@@ -9,9 +9,7 @@ import { findDemoUserByEmail } from '../demo-users.ts';
  * under the DCB's append condition and persists the Session so the
  * authentication middleware can look it up.
  */
-export const loginHandler = async (
-    command: LoginCommand,
-): Promise<SessionState> => {
+export const loginHandler = (command: LoginCommand): SessionState => {
     const user = findDemoUserByEmail(command.data.email);
 
     return login(user?.userId ?? null, newUuidV4(), new Date());

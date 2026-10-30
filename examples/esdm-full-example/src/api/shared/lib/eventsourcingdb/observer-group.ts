@@ -204,16 +204,14 @@ const createBurstTimer = (observer: string) => {
             inFlight = true;
             const now = Date.now();
 
-            if (burst === null) {
-                burst = {
-                    startedAt: now,
-                    finishedAt: now,
-                    events: 0,
-                    eventsApplied: 0,
-                    firstEventId: eventId,
-                    lastEventId: eventId,
-                };
-            }
+            burst ??= {
+                startedAt: now,
+                finishedAt: now,
+                events: 0,
+                eventsApplied: 0,
+                firstEventId: eventId,
+                lastEventId: eventId,
+            };
 
             burst.events += 1;
             burst.lastEventId = eventId;
@@ -371,7 +369,10 @@ export const createObserverGroup = async ({
                     applied = true;
 
                     try {
-                        await state.consumer.apply(eventSourcingDBEvent);
+                        // Declaration order: a later consumer reads the earlier projection.
+                        const consumption =
+                            state.consumer.apply(eventSourcingDBEvent);
+                        await consumption; // NOSONAR
                     } catch (error) {
                         const failure = toError(error);
                         failures.set(state.consumer.name, failure);

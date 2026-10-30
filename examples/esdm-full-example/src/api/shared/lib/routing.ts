@@ -41,7 +41,7 @@ type RouteInput<TMessage, TResult> = {
     mapData?: (
         c: Context,
     ) => Record<string, unknown> | Promise<Record<string, unknown>>;
-    transformResponse?: (result: TResult) => unknown | Promise<unknown>;
+    transformResponse?: (result: TResult) => unknown;
 };
 
 export const parseJsonBody = async (

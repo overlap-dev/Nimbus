@@ -5,6 +5,6 @@ import type { LogoutCommand } from '../../core/commands/logout.command.ts';
  * no-op. A real handler appends logged-out for the Session unless it
  * already ended (`ended-session-is-a-no-op`).
  */
-export const logoutHandler = async (_command: LogoutCommand): Promise<void> => {
+export const logoutHandler = (_command: LogoutCommand): void => {
     return;
 };

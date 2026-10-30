@@ -90,7 +90,8 @@ export const dispatchDueArchives = async (now: string): Promise<void> => {
         }
 
         try {
-            await routeArchive(instance);
+            // One Ticket at a time, so one failure is logged and the rest still run.
+            await routeArchive(instance); // NOSONAR
         } catch (error) {
             getLogger().warn({
                 message:
@@ -104,25 +105,40 @@ export const dispatchDueArchives = async (now: string): Promise<void> => {
 
 const latestTicketEventId = async (): Promise<string | null> => {
     const controller = new AbortController();
+    // Antichronological, so the first event is the newest. Read only that one.
+    const iterator = readEvents(
+        ticketsSubject(),
+        {
+            recursive: true,
+            order: 'antichronological',
+        },
+        controller.signal,
+    )[Symbol.asyncIterator]();
+
     let latest: string | null = null;
+    let failure: unknown;
 
     try {
-        for await (const event of readEvents(
-            ticketsSubject(),
-            {
-                recursive: true,
-                order: 'antichronological',
-            },
-            controller.signal,
-        )) {
-            latest = event.id;
+        const first = await iterator.next();
+
+        if (!first.done) {
+            latest = first.value.id;
             controller.abort();
-            break;
         }
     } catch (error) {
+        failure = error;
+    }
+
+    try {
+        await iterator.return();
+    } catch (error) {
         if (!controller.signal.aborted) {
-            throw error;
+            failure = error;
         }
+    }
+
+    if (failure !== undefined && !controller.signal.aborted) {
+        throw failure;
     }
 
     return latest;
