@@ -1,0 +1,23 @@
+apiVersion: schema.esdm.io/core/v1
+kind: event
+name: assigned
+description: A Ticket got an Assignee — set anew or replacing the previous one.
+scope:
+  domain: esdm-full-example
+  boundedContext: ticketing
+  aggregate: ticket
+data:
+  type: object
+  required: [ticket-id, assignee, actor]
+  properties:
+    actor:
+      type: string
+      description: >-
+        user-id of the User whose command produced this event, or
+        "system" when the domain emitted it itself (ADR-0005).
+    ticket-id:
+      type: string
+      format: uuid
+    assignee:
+      type: string
+      format: uuid

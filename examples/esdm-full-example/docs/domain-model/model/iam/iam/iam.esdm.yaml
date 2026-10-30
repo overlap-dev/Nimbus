@@ -1,0 +1,27 @@
+apiVersion: schema.esdm.io/core/v1
+kind: bounded-context
+name: iam
+description: >-
+  Sign-in. Owns the Session — the proof that a User is signed in — from
+  login to logout. Other contexts only see the user-id a Session names.
+scope:
+  domain: esdm-full-example
+language: en
+ubiquitousLanguage:
+  - term: User
+    definition: A person with an account, identified by a user-id.
+  - term: Credentials
+    definition: The email and password a User signs in with.
+  - term: Session
+    definition: >-
+      The proof that a User is signed in. Starts with a login, ends with
+      a logout or when it expires. Names exactly one User.
+    avoid:
+      - term: Token
+        reason: >-
+          Names a transport detail; the domain concept is the Session the
+          token stands for.
+  - term: Login
+    definition: Presenting Credentials to start a Session.
+  - term: Logout
+    definition: Ending a Session on purpose.

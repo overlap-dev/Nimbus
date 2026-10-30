@@ -1,0 +1,16 @@
+apiVersion: schema.esdm.io/core/v1
+kind: value-object
+name: status
+description: >-
+  The stage a Ticket occupies in its workflow. new — created but not yet
+  looked at; open — acknowledged and waiting to be worked; in-progress —
+  being worked, always with an Assignee; done — the work was finished.
+  Every Ticket starts as new; any Status may move to any other. Being
+  unassigned is not a Status — it is the absence of an Assignee. Being
+  archived is not a Status either — it is a separate fact on the Ticket.
+scope:
+  domain: esdm-full-example
+  boundedContext: ticketing
+schema:
+  type: string
+  enum: [new, open, in-progress, done]

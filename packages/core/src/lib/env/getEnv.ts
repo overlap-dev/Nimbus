@@ -2,6 +2,8 @@ import process from 'node:process';
 import { GenericException } from '../exception/genericException.ts';
 import { getLogger } from '../log/logger.ts';
 
+// TODO: support optional variables, extend the type by optionalVariables: string[] ...
+
 type GetEnvInput = {
     variables: string[];
 };

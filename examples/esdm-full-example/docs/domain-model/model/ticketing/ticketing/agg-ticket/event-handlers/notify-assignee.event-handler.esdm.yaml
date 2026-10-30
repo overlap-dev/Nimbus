@@ -1,0 +1,23 @@
+apiVersion: schema.esdm.io/core/v1
+kind: event-handler
+name: notify-assignee
+description: >-
+  Tells the new Assignee by email that a Ticket was assigned to them.
+scope:
+  domain: esdm-full-example
+deliveryGuarantee: at-least-once
+idempotency:
+  owner: self
+  strategy: >-
+    Remembers the ids of the assigned events it has already handled and
+    skips a redelivered one, so no Assignee is emailed twice.
+handles:
+  - boundedContext: ticketing
+    aggregate: ticket
+    event: assigned
+sideEffects:
+  - type: external-call
+    externalSystem: mailing
+    rule: >-
+      Send the Assignee an email naming the Ticket's title and linking to
+      the Ticket.

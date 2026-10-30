@@ -1,0 +1,26 @@
+apiVersion: schema.esdm.io/core/v1
+kind: event
+name: logged-in
+description: A User presented matching Credentials and a Session started.
+scope:
+  domain: esdm-full-example
+  boundedContext: iam
+data:
+  type: object
+  required: [session-id, user-id, expires-at, actor]
+  properties:
+    actor:
+      type: string
+      description: >-
+        user-id of the User whose command produced this event, or
+        "system" when the domain emitted it itself (ADR-0005).
+    session-id:
+      type: string
+      format: uuid
+    user-id:
+      type: string
+      format: uuid
+    expires-at:
+      type: string
+      format: date-time
+      description: When the Session ends on its own.

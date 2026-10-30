@@ -1,0 +1,29 @@
+apiVersion: schema.esdm.io/core/v1
+kind: event
+name: created
+description: >-
+  A Ticket was opened on behalf of its Reporter. It starts unassigned, in
+  Status new, and not archived.
+scope:
+  domain: esdm-full-example
+  boundedContext: ticketing
+  aggregate: ticket
+data:
+  type: object
+  required: [ticket-id, title, reporter, actor]
+  properties:
+    actor:
+      type: string
+      description: >-
+        user-id of the User whose command produced this event, or
+        "system" when the domain emitted it itself (ADR-0005).
+    ticket-id:
+      type: string
+      format: uuid
+    title:
+      type: string
+    description:
+      type: string
+    reporter:
+      type: string
+      format: uuid

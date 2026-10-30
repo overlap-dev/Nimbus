@@ -1,0 +1,12 @@
+apiVersion: schema.esdm.io/core/v1
+kind: actor
+name: settled-archive
+description: >-
+  The automated watch that archives a Ticket once it has been done for
+  thirty days. The archived event records the actor as system (ADR-0005).
+scope:
+  domain: esdm-full-example
+  boundedContext: ticketing
+type: system
+responsibilities:
+  - Archives a Ticket whose thirty days in Status done have elapsed.
