@@ -137,7 +137,7 @@ export class MongoDBRepository<
             const res = await findOne({
                 collection,
                 filter,
-                mapDocument: this._mapDocumentToEntity,
+                mapDocument: (document) => this._mapDocumentToEntity(document),
                 outputType: this._entityType,
             });
 
@@ -183,7 +183,7 @@ export class MongoDBRepository<
             skip,
             sort,
             project,
-            mapDocument: this._mapDocumentToEntity,
+            mapDocument: (document) => this._mapDocumentToEntity(document),
             outputType: this._entityType,
             options,
         });
@@ -241,7 +241,7 @@ export class MongoDBRepository<
 
         await insertMany({
             collection,
-            documents: items.map(this._mapEntityToDocument),
+            documents: items.map((item) => this._mapEntityToDocument(item)),
             options,
         });
 

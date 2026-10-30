@@ -19,6 +19,9 @@ export const ARCHIVE_TICKET_COMMAND_TYPE = `${CLOUDEVENTS_NAMESPACE}.ticketing.t
 
 export const archiveTicketInputSchema = z.object({
     ticketId: z.uuid(),
+    // Stream head the settled-archive timer was checked against. The
+    // handler writes only while the ticket is still on this event.
+    observedEventId: z.string().min(1),
 });
 
 // Issued by the settled-archive process manager only.

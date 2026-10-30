@@ -54,6 +54,7 @@ export const createRouterLoggingOptions = (routerName: string) => {
             const correlationId = input.correlationid;
             routingCorrelationId.enterWith(correlationId);
 
+            // !DISCLAIMER: Make sure to not log sensitive data in production.
             getLogger().debug({
                 category: routerName,
                 message: 'Received input',

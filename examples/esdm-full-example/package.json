@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "node --watch --env-file=.env src/main.ts",
     "start": "node --env-file=.env src/main.ts",
+    "mongodb:deploy-collections": "node --env-file=.env src/cli/deploy-mongodb-collections.ts",
     "check": "tsc --noEmit",
     "test": "node --test \"src/**/*.test.ts\""
   },

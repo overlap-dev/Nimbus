@@ -21,8 +21,13 @@ import { notifiedAssignmentsRepository } from '../stores/notified-assignments.re
 // event is already in the projection when we read it. The address comes
 // from the mocked IAM users.
 //
-// The handler owns its idempotency. It remembers the event ids it has
-// already mailed, and a redelivery does not send the mail again.
+// Delivery is at-least-once. A committed notified-assignments row skips
+// a redelivery. A crash after SMTP accepts the message and before that
+// write sends the same mail again.
+//
+// A missing ticket is a failure, not a skip. The tickets projection is
+// declared first, but if it halted, checkpointing this handler would
+// drop the mail for good. The observer retries, then halts this consumer.
 export const handleNotifyAssignee = async (
     eventSourcingDBEvent: EventSourcingDBEvent,
 ): Promise<void> => {
@@ -36,15 +41,22 @@ export const handleNotifyAssignee = async (
         return;
     }
 
-    const assignee = findDemoUserById(event.data.assignee);
     const ticket = await ticketingTicketsRepository.getByTicketId(
         event.data.ticketId,
     );
 
-    if (assignee === null || ticket === null) {
+    if (ticket === null) {
+        throw new Error(
+            `Ticket ${event.data.ticketId} is missing from the projection`,
+        );
+    }
+
+    const assignee = findDemoUserById(event.data.assignee);
+
+    if (assignee === null) {
         getLogger().warn({
             category: 'Ticketing',
-            message: 'notify-assignee skipped: unknown Assignee or Ticket',
+            message: 'notify-assignee skipped: unknown Assignee',
             data: {
                 ticketId: event.data.ticketId,
                 assignee: event.data.assignee,

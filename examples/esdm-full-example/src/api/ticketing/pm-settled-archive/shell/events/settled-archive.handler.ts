@@ -15,10 +15,13 @@ import {
 } from '../../../agg-ticket/core/commands/archive.command.ts';
 import { ticketEventSchema } from '../../../agg-ticket/core/domain/ticket.state.ts';
 import { ticketsSubject } from '../../../agg-ticket/core/domain/ticket.subjects.ts';
+import { replayTicket } from '../../../agg-ticket/shell/replay.ts';
 import {
     applySettledArchive,
+    archiveDueFrom,
     isArchiveDue,
     SETTLED_ARCHIVE_EVENT_TYPES,
+    type SettledArchiveState,
     signalFromTicketEvent,
 } from '../../core/domain/settled-archive.state.ts';
 import { settledArchiveRepository } from '../stores/settled-archive.repository.ts';
@@ -33,8 +36,12 @@ import { settledArchiveRepository } from '../stores/settled-archive.repository.t
 //   by routing the archive command. There is no HTTP route for it.
 //   The command router still enforces the archive rules.
 //
-// The timer only runs once this consumer has caught up with the log, so
-// a ticket that just left done is not archived from a stale instance.
+// The timer only runs once this consumer has caught up with the log.
+// Archiving also replays the ticket: the wait has to be the one armed
+// by the latest transition into done, and the command carries that
+// stream head. The append precondition rejects the write if a newer
+// event landed after the decision. A ticket that leaves done and
+// re-enters it is not archived on the old timer.
 export const TICKETING_SETTLED_ARCHIVE_CONSUMER_NAME =
     'ticketing.settled-archive';
 
@@ -44,11 +51,30 @@ const DUE_SCAN_INTERVAL_MS = 15 * 60 * 1000;
  * The timer reaction: emits archive for the Ticket. The command carries no
  * authcontext because the settled-archive watch is a system actor.
  */
-const routeArchive = async (ticketId: string): Promise<void> => {
+const routeArchive = async (instance: SettledArchiveState): Promise<void> => {
+    const { lastEventId, enteredDoneAt } = await replayTicket(
+        instance.ticketId,
+    );
+
+    // The stored timer can be behind the log: the ticket may have left
+    // done and entered it again after the catch-up check. Only the wait
+    // armed by the current transition into done may archive.
+    if (
+        instance.archiveDueAt === undefined ||
+        lastEventId === null ||
+        enteredDoneAt === null ||
+        archiveDueFrom(enteredDoneAt) !== instance.archiveDueAt
+    ) {
+        return;
+    }
+
     const command = createCommand({
         type: ARCHIVE_TICKET_COMMAND_TYPE,
         source: CLOUDEVENTS_SOURCE,
-        data: { ticketId },
+        data: {
+            ticketId: instance.ticketId,
+            observedEventId: lastEventId,
+        },
         authcontext: null,
     }) as ArchiveTicketCommand;
 
@@ -64,7 +90,7 @@ export const dispatchDueArchives = async (now: string): Promise<void> => {
         }
 
         try {
-            await routeArchive(instance.ticketId);
+            await routeArchive(instance);
         } catch (error) {
             getLogger().warn({
                 message:

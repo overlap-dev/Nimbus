@@ -5,6 +5,10 @@ import { z } from 'zod';
 import { toError } from '../toError.ts';
 
 // TODO: integrate into the framework?
+// When projections move into the framework, decide whether consumers
+// can depend on each other. A failed consumer currently lets later ones
+// advance, so a notification can be checkpointed even though the
+// projection it reads never applied that event.
 
 // Several consumers on one EventSourcingDB observer.
 //

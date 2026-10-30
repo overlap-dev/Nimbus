@@ -4,8 +4,11 @@ import { ticketStatusSchema } from '../../../agg-ticket/core/domain/status.value
 // The document the tickets read model stores in MongoDB.
 //
 // One document per ticket, with the fields the queries need.
-// It is derived from the event log. The log stays the source of truth,
-// so this collection can be dropped and rebuilt by replaying.
+// It is derived from the event log. The log stays the source of truth.
+// Dropping this collection does not rebuild it: the consumer checkpoint
+// still sits at the end of the stream, so a restart skips the old
+// events. Stop the process, drop the collection, delete that consumer's
+// checkpoint, then start again so the projection replays from the start.
 //
 // There is no revision on the document. The projection's position in the
 // log is the consumer checkpoint, not a field of the ticket.

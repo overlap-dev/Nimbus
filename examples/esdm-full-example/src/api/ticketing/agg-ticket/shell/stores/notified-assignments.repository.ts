@@ -11,7 +11,11 @@ const notifiedAssignmentSchema = z.object({
 type NotifiedAssignment = z.infer<typeof notifiedAssignmentSchema>;
 
 /**
- * Idempotency store of the notify-assignee event handler.
+ * Best-effort record of mails notify-assignee has sent.
+ *
+ * A committed row skips a later delivery of the same event. A crash
+ * after the mail is accepted and before this write does not, so
+ * delivery stays at-least-once.
  */
 class NotifiedAssignmentsRepository extends MongoDBRepository<NotifiedAssignment> {
     constructor() {
@@ -23,12 +27,11 @@ class NotifiedAssignmentsRepository extends MongoDBRepository<NotifiedAssignment
     }
 
     async wasNotified(eventId: string): Promise<boolean> {
-        const [document] = await this.find({
+        const count = await this.countDocuments({
             filter: { eventId },
-            limit: 1,
         });
 
-        return document !== undefined;
+        return count > 0;
     }
 
     async markNotified(eventId: string): Promise<void> {

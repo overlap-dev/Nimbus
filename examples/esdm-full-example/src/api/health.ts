@@ -10,6 +10,10 @@ export type ApiHealth = {
     eventSourcingDB: HealthStatus;
 };
 
+// TODO: When projections move into the framework, report halted
+// consumers here. A consumer that exhausted its retries stays degraded
+// while MongoDB and EventSourcingDB are still reachable, so this check
+// currently stays healthy.
 export const checkApiHealth = async () => {
     const mongodbHealth =
         await getMongoConnectionManager('default').healthCheck();

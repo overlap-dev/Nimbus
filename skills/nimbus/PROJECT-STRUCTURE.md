@@ -203,7 +203,7 @@ Same cascade for **commands**, **queries**, and **HTTP**: unit registers → con
 // <backend-root>/<bounded-context>/agg-<name>/shell/command.router.ts
 export const register<ConsistencyUnit>Commands = () => {
   const router = getRouter("commandRouter");
-  router.register(ANY_COMMAND_TYPE, anyCommandHandler(command), anyCommandSchema);
+  router.register(ANY_COMMAND_TYPE, anyCommandHandler, anyCommandSchema);
 };
 
 // <backend-root>/<bounded-context>/command.router.ts
