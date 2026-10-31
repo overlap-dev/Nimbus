@@ -91,6 +91,70 @@ test('routeCommand copies extensions onto the command', async () => {
     assert.deepEqual(captured.routed()?.authcontext, { userId: 'user-1' });
 });
 
+test('routeCommand keeps adapter fields when extensions repeat them', async () => {
+    const captured = captureRouter();
+    const app = new Hono();
+    const extensions = {
+        authcontext: { userId: 'user-1' },
+        type: 'at.overlap.nimbus.other',
+        source: 'https://evil.example',
+        data: { title: 'from extensions' },
+        correlationid: 'from-extensions',
+    };
+
+    app.use(correlationId());
+    app.post('/create', (c) => {
+        return routeCommand<Command & { authcontext: { userId: string } }>({
+            c,
+            router: captured.router,
+            type: COMMAND_TYPE,
+            source: SOURCE,
+            extensions,
+        });
+    });
+
+    const response = await app.request('/create', {
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json',
+            'x-correlation-id': 'cid-1',
+        },
+        body: JSON.stringify({ title: 'Broken printer' }),
+    });
+
+    assert.equal(response.status, 200);
+
+    const command = captured.routed();
+    assert.equal(command?.type, COMMAND_TYPE);
+    assert.equal(command?.source, SOURCE);
+    assert.equal(command?.correlationid, 'cid-1');
+    assert.deepEqual(command?.data, { title: 'Broken printer' });
+    assert.deepEqual(command?.authcontext, { userId: 'user-1' });
+});
+
+test('routeCommand forwards a JSON string body', async () => {
+    const captured = captureRouter();
+    const app = new Hono();
+
+    app.post('/create', (c) => {
+        return routeCommand({
+            c,
+            router: captured.router,
+            type: COMMAND_TYPE,
+            source: SOURCE,
+        });
+    });
+
+    const response = await app.request('/create', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify('plain-payload'),
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(captured.routed()?.data, 'plain-payload');
+});
+
 test('routeCommand uses mapInputData instead of the JSON body', async () => {
     const captured = captureRouter();
     const app = new Hono();
@@ -113,6 +177,51 @@ test('routeCommand uses mapInputData instead of the JSON body', async () => {
 
     assert.equal(response.status, 200);
     assert.deepEqual(captured.routed()?.data, { title: 'From the route' });
+});
+
+test('routeCommand forwards a file upload as filename and binary data', async () => {
+    const captured = captureRouter();
+    const app = new Hono();
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
+
+    app.post('/upload', (c) => {
+        return routeCommand({
+            c,
+            router: captured.router,
+            type: COMMAND_TYPE,
+            source: SOURCE,
+            mapInputData: async (context) => {
+                const body = await context.req.parseBody();
+                const file = body.file;
+
+                if (!(file instanceof File)) {
+                    throw new Error('Expected a file upload');
+                }
+
+                return {
+                    filename: file.name,
+                    content: new Uint8Array(await file.arrayBuffer()),
+                };
+            },
+        });
+    });
+
+    const form = new FormData();
+    form.append('file', new File([png], 'ticket.png', { type: 'image/png' }));
+
+    const response = await app.request('/upload', {
+        method: 'POST',
+        body: form,
+    });
+
+    assert.equal(response.status, 200);
+
+    const data = captured.routed()?.data as {
+        filename: string;
+        content: Uint8Array;
+    };
+    assert.equal(data.filename, 'ticket.png');
+    assert.deepEqual(data.content, png);
 });
 
 test('routeCommand transformResponse replaces the JSON body', async () => {
@@ -326,6 +435,63 @@ test('routeQuery forwards the query string', async () => {
     const data = query.data as Record<string, string>;
     assert.equal(data.status, 'open');
     assert.equal(data.offset, '0');
+});
+
+test('routeQuery keeps adapter fields when extensions repeat them', async () => {
+    const captured = captureRouter();
+    const app = new Hono();
+    const extensions = {
+        authcontext: { userId: 'user-1' },
+        type: 'at.overlap.nimbus.other',
+        source: 'https://evil.example',
+        data: { status: 'from extensions' },
+        correlationid: 'from-extensions',
+    };
+
+    app.use(correlationId());
+    app.get('/list-tickets', (c) => {
+        return routeQuery<Query & { authcontext: { userId: string } }>({
+            c,
+            router: captured.router,
+            type: QUERY_TYPE,
+            source: SOURCE,
+            extensions,
+        });
+    });
+
+    const response = await app.request('/list-tickets?status=open', {
+        headers: { 'x-correlation-id': 'cid-2' },
+    });
+
+    assert.equal(response.status, 200);
+
+    const query = captured.routed();
+    assert.ok(query);
+    assert.equal(query.type, QUERY_TYPE);
+    assert.equal(query.source, SOURCE);
+    assert.equal(query.correlationid, 'cid-2');
+    assert.equal((query.data as Record<string, string>).status, 'open');
+    assert.deepEqual(query.authcontext, { userId: 'user-1' });
+});
+
+test('routeQuery mapInputData can return an array payload', async () => {
+    const captured = captureRouter();
+    const app = new Hono();
+
+    app.get('/list-tickets', (c) => {
+        return routeQuery({
+            c,
+            router: captured.router,
+            type: QUERY_TYPE,
+            source: SOURCE,
+            mapInputData: (context) => context.req.queries('id'),
+        });
+    });
+
+    const response = await app.request('/list-tickets?id=a&id=b');
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(captured.routed()?.data, ['a', 'b']);
 });
 
 test('routeQuery uses mapInputData instead of the query string', async () => {

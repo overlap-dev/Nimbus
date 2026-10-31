@@ -30,11 +30,15 @@ export type MessageRouteTarget = {
  * Reads message `data` from the Hono context.
  *
  * Commands default to the JSON body. Queries default to the query string.
- * Provide this when the request needs a different shape.
+ * Provide this when the request needs a different shape. The payload may be
+ * any value the message schema accepts, including a string, number, boolean,
+ * array, or object.
+ *
+ * @template TData - The message `data` value. Defaults to `unknown`.
  */
-export type RouteDataMapper = (
+export type RouteDataMapper<TData = unknown> = (
     c: Context,
-) => Record<string, unknown> | Promise<Record<string, unknown>>;
+) => TData | Promise<TData>;
 
 /**
  * HTTP response built from a command or query handler result.
@@ -166,7 +170,7 @@ export type RouteQueryInput<TQuery extends Query, TResult = unknown> = {
     ) => TransformResponseOutput | Promise<TransformResponseOutput>;
 };
 
-const parseJsonBody = async (c: Context): Promise<Record<string, unknown>> => {
+const parseJsonBody = async (c: Context): Promise<unknown> => {
     try {
         return await c.req.json();
     } catch {
@@ -292,11 +296,11 @@ export const routeCommand = async <
     const data = mapInputData ? await mapInputData(c) : await parseJsonBody(c);
 
     const command = createCommand({
+        ...extensions,
         type,
         source,
         correlationid: getCorrelationId(c),
         data,
-        ...extensions,
     } as unknown as CreateCommandInput<TCommand>);
 
     const result = (await router.route(command)) as TResult;
@@ -353,11 +357,11 @@ export const routeQuery = async <TQuery extends Query, TResult = unknown>({
     const data = mapInputData ? await mapInputData(c) : c.req.query();
 
     const query = createQuery({
+        ...extensions,
         type,
         source,
         correlationid: getCorrelationId(c),
         data,
-        ...extensions,
     } as unknown as CreateQueryInput<TQuery>);
 
     const result = (await router.route(query)) as TResult;
