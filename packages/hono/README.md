@@ -5,7 +5,7 @@
 
 # Nimbus Hono
 
-Adapters and middleware that bridge [Hono](https://hono.dev/) and the Nimbus framework. The package gives your Hono app a correlation ID per request, structured request/response logging with OpenTelemetry tracing, and a single error handler that turns Nimbus exceptions into clean HTTP responses.
+Adapters and middleware that bridge [Hono](https://hono.dev/) and the Nimbus framework. The package gives your Hono app a correlation ID per request, structured request/response logging with OpenTelemetry tracing, a single error handler that turns Nimbus exceptions into clean HTTP responses, and route adapters that turn an HTTP request into a Nimbus command or query.
 
 Refer to the [Nimbus main repository](https://github.com/overlap-dev/Nimbus) or the [Nimbus documentation](https://nimbus.overlap.at) for more information about the Nimbus framework.
 
@@ -141,6 +141,53 @@ A request to `/todos/42` then responds with HTTP `404` and body:
 ```
 
 This means your domain code can stay framework-agnostic — throw Nimbus exceptions where they belong (in command/query handlers) and the HTTP layer converts them consistently for you.
+
+## routeCommand and routeQuery
+
+`routeCommand` and `routeQuery` turn a Hono handler into a Nimbus message. They read the request, set `correlationid` from `getCorrelationId`, hand the message to a router you pass in, and return the handler result as JSON. The status defaults to `200`.
+
+Commands read the JSON body. Queries read the query string. Pass `mapInputData` when that default shape is not what the message schema expects. Pass `transformResponse` when the body, status, or headers should change. JSON content types are serialized as JSON. Any other `Content-Type` sends `data` unchanged, such as plain text or image bytes. A request body that is not JSON throws `InvalidInputException`.
+
+`source` and the router belong to the application. So do CloudEvents extension attributes. Pass those through `extensions`, for example an auth context your middleware stored on the Hono context. Nimbus does not interpret them.
+
+Schema validation stays on the Nimbus routers.
+
+```typescript
+import { Hono } from 'hono';
+import { correlationId, handleError, routeCommand } from '@nimbus-cqrs/hono';
+
+const app = new Hono();
+
+app.use(correlationId());
+app.onError(handleError);
+
+app.post('/invite-user', (c) => {
+    return routeCommand<InviteUserCommand, { userId: string }>({
+        c,
+        router: getRouter('MyCommandRouter'),
+        source: 'https://nimbus.overlap.at',
+        type: INVITE_USER_COMMAND_TYPE,
+    });
+});
+```
+
+A query that needs coercion, plus an application auth context:
+
+```typescript
+app.get('/list-tickets', (c) => {
+    return routeQuery<ListTicketsQuery, ListTicketsResult>({
+        c,
+        router: getRouter('MyQueryRouter'),
+        source: 'https://nimbus.overlap.at',
+        type: LIST_TICKETS_QUERY_TYPE,
+        mapInputData: (context) => ({
+            status: context.req.query('status'),
+            offset: Number(context.req.query('offset')),
+        }),
+        extensions: { authcontext: getAuthContext(c) },
+    });
+});
+```
 
 # License
 
