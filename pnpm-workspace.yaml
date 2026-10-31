@@ -42,6 +42,8 @@ allowBuilds:
 overrides:
   vite: 6.4.4
   brace-expansion: ^5.0.9
+  glob: ^14.0.2
+  minimatch: ^11.0.1
   dompurify: ^3.4.17
   katex: ^0.18.2
   linkify-it: ^5.0.2
