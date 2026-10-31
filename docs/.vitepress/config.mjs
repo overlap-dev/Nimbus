@@ -205,6 +205,10 @@ export default withMermaid(defineConfig({
                             text: "onError Handler",
                             link: "/guide/hono/on-error",
                         },
+                        {
+                            text: "Route Adapter",
+                            link: "/guide/hono/routing",
+                        },
                     ],
                 },
 

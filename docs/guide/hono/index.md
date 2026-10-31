@@ -1,5 +1,5 @@
 ---
-description: Hub for @nimbus-cqrs/hono — middleware and handlers bridging Nimbus observability and errors to Hono HTTP apps.
+description: Hub for @nimbus-cqrs/hono — middleware and handlers bridging Nimbus observability, errors, and message routing to Hono HTTP apps.
 prev:
     text: "getEnv"
     link: "/guide/core/get-env"

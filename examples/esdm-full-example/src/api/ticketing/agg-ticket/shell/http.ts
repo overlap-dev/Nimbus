@@ -1,6 +1,11 @@
+import { routeCommand } from '@nimbus-cqrs/hono';
 import { Hono } from 'hono';
-import { authentication } from '../../../iam/dcb-auth/shell/middleware/hono-auth.ts';
-import { routeCommand } from '../../../shared/lib/routing.ts';
+import { getCommandRouter } from '../../../command.router.ts';
+import {
+    authentication,
+    getAuthContext,
+} from '../../../iam/dcb-auth/shell/middleware/hono-auth.ts';
+import { CLOUDEVENTS_SOURCE } from '../../../shared/namespace.ts';
 import {
     ASSIGN_TICKET_COMMAND_TYPE,
     type AssignTicketCommand,
@@ -30,20 +35,29 @@ export const ticketCommands = new Hono();
 ticketCommands.post('/create', authentication(), (c) => {
     return routeCommand<CreateTicketCommand, { ticketId: string }>({
         c,
+        router: getCommandRouter(),
+        source: CLOUDEVENTS_SOURCE,
         type: CREATE_TICKET_COMMAND_TYPE,
+        extensions: { authcontext: getAuthContext(c) },
     });
 });
 
 ticketCommands.post('/assign', authentication(), (c) => {
     return routeCommand<AssignTicketCommand, { ticketId: string }>({
         c,
+        router: getCommandRouter(),
+        source: CLOUDEVENTS_SOURCE,
         type: ASSIGN_TICKET_COMMAND_TYPE,
+        extensions: { authcontext: getAuthContext(c) },
     });
 });
 
 ticketCommands.post('/change-status', authentication(), (c) => {
     return routeCommand<ChangeStatusCommand, { ticketId: string }>({
         c,
+        router: getCommandRouter(),
+        source: CLOUDEVENTS_SOURCE,
         type: CHANGE_STATUS_COMMAND_TYPE,
+        extensions: { authcontext: getAuthContext(c) },
     });
 });
