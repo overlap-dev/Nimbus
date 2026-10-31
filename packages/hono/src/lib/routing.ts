@@ -23,7 +23,7 @@ export type MessageRouteTarget = {
      * @param message - The CloudEvents message to route.
      * @returns The handler result.
      */
-    route: (message: unknown) => Promise<unknown> | unknown;
+    route: (message: unknown) => unknown;
 };
 
 /**
