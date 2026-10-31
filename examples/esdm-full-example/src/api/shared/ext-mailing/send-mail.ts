@@ -20,13 +20,8 @@ const getTransporter = (): { transporter: Transporter; from: string } => {
     }
 
     const env = getEnv({
-        variables: [
-            'SMTP_HOST',
-            'SMTP_PORT',
-            'SMTP_USER',
-            'SMTP_PASSWORD',
-            'SMTP_FROM',
-        ],
+        variables: ['SMTP_HOST', 'SMTP_PORT', 'SMTP_FROM'],
+        optionalVariables: ['SMTP_USER', 'SMTP_PASSWORD'],
     });
 
     const port = Number(env.SMTP_PORT);
@@ -36,12 +31,8 @@ const getTransporter = (): { transporter: Transporter; from: string } => {
         );
     }
 
-    // TODO: remove when getEnv supports optional variables
     const smtpAuth =
-        env.SMTP_USER &&
-        env.SMTP_USER !== '_NONE_' &&
-        env.SMTP_PASSWORD &&
-        env.SMTP_PASSWORD !== '_NONE_'
+        env.SMTP_USER && env.SMTP_PASSWORD
             ? {
                   user: env.SMTP_USER,
                   pass: env.SMTP_PASSWORD,

@@ -1,5 +1,5 @@
 ---
-description: getEnv loads and validates required environment variables, failing fast with clear errors when any are missing.
+description: getEnv loads environment variables, failing fast when a required one is missing and returning undefined for optional ones.
 
 next:
     text: "Hono"
@@ -8,7 +8,7 @@ next:
 
 # getEnv
 
-The `getEnv` function retrieves environment variables with validation. It throws an exception if any requested variables are missing, ensuring your application fails fast with clear error messages.
+The `getEnv` function retrieves environment variables with validation. It throws an exception if any required variable is missing or empty, so your application fails fast with a clear error. Optional variables are returned as `undefined` instead.
 
 ::: tip An in Depth Example
 This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
@@ -31,20 +31,56 @@ console.log(env.PORT);
 ## Function Signature
 
 ```typescript
-getEnv({ variables: string[] }): Record<string, string>
+type GetEnvResult<
+    Required extends readonly string[],
+    Optional extends readonly string[],
+> = {
+    [Key in Required[number]]: string;
+} & {
+    [Key in Exclude<Optional[number], Required[number]>]: string | undefined;
+};
+
+getEnv({
+    variables?: Required,
+    optionalVariables?: Optional,
+}): GetEnvResult<Required, Optional>
 ```
 
-| Parameter   | Type       | Description                         |
-| ----------- | ---------- | ----------------------------------- |
-| `variables` | `string[]` | Array of environment variable names |
+| Parameter             | Type       | Required | Description                                      |
+| --------------------- | ---------- | -------- | ------------------------------------------------ |
+| `variables`           | `string[]` | No       | Environment variable names that must be set      |
+| `optionalVariables`   | `string[]` | No       | Environment variable names that may be omitted   |
 
-| Returns                  | Description                                   |
-| ------------------------ | --------------------------------------------- |
-| `Record<string, string>` | Object with variable names as keys and values |
+Required names are typed as `string`. Optional names are typed as `string | undefined`. A name listed in both arrays is required. Only the names you pass exist on the result, so a typo is a type error.
+
+Write the names as array literals. A `string[]` variable widens both lists, and TypeScript can no longer tell required names from optional ones.
+
+`getEnv({})` returns `{}`.
+
+## Optional Variables
+
+```typescript
+import { getEnv } from "@nimbus-cqrs/core";
+
+const env = getEnv({
+    variables: ["SMTP_HOST", "SMTP_PORT", "SMTP_FROM"],
+    optionalVariables: ["SMTP_USER", "SMTP_PASSWORD"],
+});
+
+env.SMTP_HOST; // string
+env.SMTP_USER; // string | undefined
+
+const auth =
+    env.SMTP_USER !== undefined && env.SMTP_PASSWORD !== undefined
+        ? { user: env.SMTP_USER, pass: env.SMTP_PASSWORD }
+        : undefined;
+```
+
+A missing or empty optional variable is `undefined`. It is not logged and does not throw.
 
 ## Error Handling
 
-If any requested variables are undefined, `getEnv` throws a `GenericException` with details about all missing variables:
+If any required variable is missing or empty, `getEnv` throws a `GenericException` with details about all missing required variables:
 
 ```typescript
 import { getEnv } from "@nimbus-cqrs/core";
