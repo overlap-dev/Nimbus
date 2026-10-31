@@ -34,11 +34,15 @@ console.log(env.PORT);
 type GetEnvResult<
     Required extends readonly string[],
     Optional extends readonly string[],
-> = {
-    [Key in Required[number]]: string;
-} & {
-    [Key in Exclude<Optional[number], Required[number]>]: string | undefined;
-};
+> = string extends Required[number]
+    ? Record<string, string | undefined>
+    : {
+          [Key in Required[number]]: string;
+      } & {
+          [Key in Exclude<Optional[number], Required[number]>]:
+              | string
+              | undefined;
+      };
 
 getEnv({
     variables?: Required,
@@ -51,9 +55,9 @@ getEnv({
 | `variables`           | `string[]` | No       | Environment variable names that must be set      |
 | `optionalVariables`   | `string[]` | No       | Environment variable names that may be omitted   |
 
-Required names are typed as `string`. Optional names are typed as `string | undefined`. A name listed in both arrays is required. Only the names you pass exist on the result, so a typo is a type error.
+Required names written as an array literal are typed as `string`. Optional names are typed as `string | undefined`. A name listed in both arrays is required. Only the names you pass exist on the result, so a typo is a type error.
 
-Write the names as array literals. A `string[]` variable widens both lists, and TypeScript can no longer tell required names from optional ones.
+Pass the names as array literals. If `variables` is a wide `string[]`, TypeScript can no longer tell those names apart, and every value is `string | undefined`.
 
 `getEnv({})` returns `{}`.
 

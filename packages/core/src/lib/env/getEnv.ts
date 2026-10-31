@@ -5,18 +5,23 @@ import { getLogger } from '../log/logger.ts';
 /**
  * Environment variables read by {@link getEnv}.
  *
- * Names passed in `variables` are `string`.
+ * Names passed in `variables` are `string` when that list is an array literal.
  * Names passed only in `optionalVariables` are `string | undefined`.
  * A name listed in both arrays is required.
+ * When `variables` is a wide `string[]`, every value is `string | undefined`.
  */
 export type GetEnvResult<
     Required extends readonly string[],
     Optional extends readonly string[],
-> = {
-    [Key in Required[number]]: string;
-} & {
-    [Key in Exclude<Optional[number], Required[number]>]: string | undefined;
-};
+> = string extends Required[number]
+    ? Record<string, string | undefined>
+    : {
+          [Key in Required[number]]: string;
+      } & {
+          [Key in Exclude<Optional[number], Required[number]>]:
+              | string
+              | undefined;
+      };
 
 /**
  * Read environment variables from `process.env`.
@@ -26,8 +31,8 @@ export type GetEnvResult<
  * Optional names are returned as `undefined` when they are missing or empty.
  *
  * Pass the names as array literals. TypeScript then types required values as
- * `string` and optional values as `string | undefined`. A `string[]` variable
- * widens both lists, so that split is lost.
+ * `string` and optional values as `string | undefined`. If `variables` is a
+ * wide `string[]`, every value is `string | undefined`.
  *
  * @param input - The environment variable names to read.
  * @param input.variables - Required environment variable names.
@@ -61,15 +66,32 @@ export const getEnv = <
     const envVars: Record<string, string | undefined> = {};
     const missingEnvVars: string[] = [];
 
-    for (const variable of requiredNames) {
-        const value = process.env[variable];
+    const readEnv = (name: string): string | undefined => {
+        if (!Object.hasOwn(process.env, name)) {
+            return undefined;
+        }
 
-        if (!value) {
+        return process.env[name] || undefined;
+    };
+
+    const setEnvVar = (name: string, value: string | undefined) => {
+        Object.defineProperty(envVars, name, {
+            configurable: true,
+            enumerable: true,
+            value,
+            writable: true,
+        });
+    };
+
+    for (const variable of requiredNames) {
+        const value = readEnv(variable);
+
+        if (value === undefined) {
             missingEnvVars.push(variable);
             continue;
         }
 
-        envVars[variable] = value;
+        setEnvVar(variable, value);
     }
 
     for (const variable of optionalNames) {
@@ -77,8 +99,7 @@ export const getEnv = <
             continue;
         }
 
-        const value = process.env[variable];
-        envVars[variable] = value ? value : undefined;
+        setEnvVar(variable, readEnv(variable));
     }
 
     if (missingEnvVars.length > 0) {

@@ -224,6 +224,92 @@ test('getEnv types required names as string and optional names as string | undef
     }
 });
 
+test('getEnv types every value as string | undefined when the required list is widened', () => {
+    const requiredName = 'NIMBUS_GETENV_TEST_WIDE_HOST';
+    const optionalName = 'NIMBUS_GETENV_TEST_WIDE_TOKEN';
+    const names: string[] = [requiredName];
+
+    setEnv(requiredName, 'host-value');
+    setEnv(optionalName, undefined);
+
+    try {
+        const env = getEnv({
+            variables: names,
+            optionalVariables: ['NIMBUS_GETENV_TEST_WIDE_TOKEN'],
+        });
+
+        const host: string | undefined = env.NIMBUS_GETENV_TEST_WIDE_HOST;
+        const token: string | undefined = env.NIMBUS_GETENV_TEST_WIDE_TOKEN;
+
+        assert.equal(host, 'host-value');
+        assert.equal(token, undefined);
+
+        // @ts-expect-error widened required lists do not type optional names as string
+        const _token: string = env.NIMBUS_GETENV_TEST_WIDE_TOKEN;
+
+        // @ts-expect-error widened required names are string | undefined
+        const _host: string = env.NIMBUS_GETENV_TEST_WIDE_HOST;
+    } finally {
+        setEnv(requiredName, undefined);
+        setEnv(optionalName, undefined);
+    }
+});
+
+test('getEnv treats unset prototype names as missing optional variables', () => {
+    setEnv('toString', undefined);
+    setEnv('constructor', undefined);
+
+    try {
+        const env = getEnv({
+            optionalVariables: ['toString', 'constructor'],
+        });
+
+        assert.equal(env.toString, undefined);
+        assert.equal(env.constructor, undefined);
+    } finally {
+        setEnv('toString', undefined);
+        setEnv('constructor', undefined);
+    }
+});
+
+test('getEnv treats an unset prototype name as a missing required variable', () => {
+    setEnv('toString', undefined);
+
+    try {
+        assert.throws(
+            () => getEnv({ variables: ['toString'] }),
+            (error: unknown) => {
+                assert.ok(error instanceof GenericException);
+                assert.match(error.message, /Undefined environment variables/);
+                assert.deepEqual(error.details, {
+                    undefinedVariables: ['toString'],
+                });
+                return true;
+            },
+        );
+    } finally {
+        setEnv('toString', undefined);
+    }
+});
+
+test('getEnv returns a configured __proto__ variable as its own value', () => {
+    setEnv('__proto__', 'configured-proto');
+
+    try {
+        const env = getEnv({
+            optionalVariables: ['__proto__'],
+        });
+
+        assert.equal(Object.hasOwn(env, '__proto__'), true);
+        assert.equal(
+            Object.getOwnPropertyDescriptor(env, '__proto__')?.value,
+            'configured-proto',
+        );
+    } finally {
+        setEnv('__proto__', undefined);
+    }
+});
+
 test('getEnv treats empty string as missing', () => {
     const empty = `${PREFIX}EMPTY`;
 
