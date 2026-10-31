@@ -5,8 +5,8 @@ prev:
     link: "/guide/hono/logger"
 
 next:
-    text: "Nimbus EventSourcingDB"
-    link: "/guide/eventsourcingdb"
+    text: "Route Adapter"
+    link: "/guide/hono/routing"
 ---
 
 # onError Handler

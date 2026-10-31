@@ -8,8 +8,8 @@ export const HONO_AUTH_CONTEXT_KEY = 'authcontext';
 // Authentication is mocked in this example.
 //
 // There is no session cookie and no session lookup. Every request runs
-// as the same demo user. routeCommand() and routeQuery() copy this
-// context onto the message as the authcontext extension attribute.
+// as the same demo user. HTTP routes copy this context onto the
+// message as the authcontext extension attribute.
 // Commands and queries then read that attribute. They do not talk to
 // the HTTP layer.
 //
