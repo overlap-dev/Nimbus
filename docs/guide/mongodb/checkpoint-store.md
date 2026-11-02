@@ -41,7 +41,11 @@ The constructor takes a collection factory, the same shape the [Repository](/gui
 
 ## Collection
 
-`MONGO_CHECKPOINTS_COLLECTION` is a `MongoCollectionDefinition` for the `checkpoints` collection with a unique index on `consumer`. Deploy it together with your other collections using [deployMongoCollection](/guide/mongodb/deploy-collection).
+`MONGO_CHECKPOINTS_COLLECTION` is a `MongoCollectionDefinition` for the `nimbus_checkpoints` collection with a unique index on `consumer`. Deploy it together with your other collections using [deployMongoCollection](/guide/mongodb/deploy-collection).
+
+::: warning Consumer names are application-wide
+The index is on the consumer name alone, not on observer and consumer. Two observers sharing a store therefore must not declare consumers with the same name, or they overwrite each other's checkpoint. Prefix consumer names with their domain or observer (for example `ticketing.tickets`) to keep them unique.
+:::
 
 One document is stored per consumer:
 

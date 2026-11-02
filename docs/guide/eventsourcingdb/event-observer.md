@@ -106,7 +106,7 @@ export const notifyAssignee: EventConsumer = {
 
 | Property    | Type                                                      | Description                                                                                       |
 | ----------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `name`      | `string`                                                  | The checkpoint key. Has to stay stable: renaming a consumer replays the subject from the beginning |
+| `name`      | `string`                                                  | The checkpoint key. Unique across the whole application, not just within one observer. Renaming a consumer replays the subject from the beginning |
 | `handles`   | `(event: Event) => boolean`                               | Whether the consumer handles this event. Unhandled events still advance the checkpoint            |
 | `handle`    | `(event: Event, raw: EventSourcingDBEvent) => Promise<void>` | Handles one event. Receives the mapped Nimbus event and the original EventSourcingDB event      |
 | `dependsOn` | `string[]`                                                | Names of consumers on the same observer this one reads from. They have to be declared before it   |

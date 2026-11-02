@@ -15,11 +15,13 @@ import type { MongoCollectionDefinition } from './deployCollection.ts';
 /**
  * The collection {@link MongoCheckpointStore} persists checkpoints in.
  *
- * One document per consumer, keyed by its stable name. Deploy it with
+ * One document per consumer, keyed by its stable name. The unique index is
+ * on the consumer name alone, so consumer names have to be unique across
+ * the whole application, not just within one observer. Deploy it with
  * {@link deployMongoCollection} like any other collection.
  */
 export const MONGO_CHECKPOINTS_COLLECTION: MongoCollectionDefinition = {
-    name: 'checkpoints',
+    name: 'nimbus_checkpoints',
     indexes: [{ key: { consumer: 1 }, unique: true }],
 };
 

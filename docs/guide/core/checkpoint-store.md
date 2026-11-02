@@ -39,7 +39,7 @@ type Checkpoint = {
 
 | Property    | Description                                                                                                  |
 | ----------- | ------------------------------------------------------------------------------------------------------------ |
-| `consumer`  | The stable, unique name of the consumer. Renaming it replays the stream                                      |
+| `consumer`  | The stable name of the consumer, unique across the whole application. Renaming it replays the stream        |
 | `observer`  | The name of the observer the consumer belongs to                                                             |
 | `position`  | The last position the consumer finished. Absent until the first one, in which case it starts at the beginning |
 | `updatedAt` | When the checkpoint was last written, as ISO 8601                                                            |
@@ -100,6 +100,7 @@ Keeps checkpoints in process memory. Every restart starts from an empty store, s
 
 A store for another database only has to implement the three methods above. Keep these properties:
 
+- Key records by `consumer` alone. Consumer names are unique across the application, and `reset` only receives the consumer name.
 - `load` must not fail for unknown consumers. Leave them out of the result.
 - `save` is called with several consumers at once. Write them together.
 - A save **without** `failure` removes a stored failure marker.

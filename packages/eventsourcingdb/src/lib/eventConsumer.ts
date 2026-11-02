@@ -29,8 +29,10 @@ import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
  */
 export type EventConsumer = {
     /**
-     * The checkpoint key. It has to stay stable: renaming a consumer makes
-     * it replay the subject from the beginning.
+     * The checkpoint key. It has to be unique across the whole application,
+     * not just within one observer, because checkpoint stores key on the
+     * consumer name alone. It also has to stay stable: renaming a consumer
+     * makes it replay the subject from the beginning.
      */
     readonly name: string;
     /**

@@ -44,7 +44,7 @@ const fakeCollection = (documents: Document[] = []) => {
 };
 
 test('the checkpoints collection has a unique index on consumer', () => {
-    assert.equal(MONGO_CHECKPOINTS_COLLECTION.name, 'checkpoints');
+    assert.equal(MONGO_CHECKPOINTS_COLLECTION.name, 'nimbus_checkpoints');
     assert.deepEqual(MONGO_CHECKPOINTS_COLLECTION.indexes, [
         { key: { consumer: 1 }, unique: true },
     ]);
