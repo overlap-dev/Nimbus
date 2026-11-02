@@ -59,6 +59,7 @@ test('lower bound is inclusive 0 when any consumer has no checkpoint', async () 
         observer: OBSERVER,
         consumers: [consumer('a'), consumer('b')],
         checkpointStore: store,
+        head: null,
     });
 
     assert.deepEqual(runner.lowerBound, { id: '0', type: 'inclusive' });
@@ -75,6 +76,7 @@ test('lower bound is the lowest checkpoint, exclusive', async () => {
         observer: OBSERVER,
         consumers: [consumer('a'), consumer('b')],
         checkpointStore: store,
+        head: null,
     });
 
     assert.deepEqual(runner.lowerBound, { id: '7', type: 'exclusive' });
@@ -103,6 +105,7 @@ test('consumers already past an event skip it but advance on new ones', async ()
             }),
         ],
         checkpointStore: store,
+        head: null,
     });
 
     await runner.handle(rawEvent('9'));
@@ -131,6 +134,7 @@ test('handle receives the mapped Nimbus event and the raw event', async () => {
             }),
         ],
         checkpointStore: store,
+        head: null,
     });
 
     const raw = rawEvent('1');
@@ -164,6 +168,7 @@ test('events a consumer does not handle still advance its checkpoint', async () 
             }),
         ],
         checkpointStore: store,
+        head: null,
     });
 
     await runner.handle(rawEvent('5'));
@@ -189,6 +194,7 @@ test('a failing consumer holds its position while siblings advance', async () =>
             consumer('ok-after'),
         ],
         checkpointStore: store,
+        head: null,
     });
 
     const error = await runner.handle(rawEvent('2')).then(
@@ -249,6 +255,7 @@ test('on retry only the failed consumer runs again', async () => {
             }),
         ],
         checkpointStore: store,
+        head: null,
     });
 
     await assert.rejects(runner.handle(rawEvent('3')));
@@ -280,6 +287,7 @@ test('onExhausted halts the failed consumers and persists the failure', async ()
             }),
         ],
         checkpointStore: store,
+        head: null,
     });
 
     const event = rawEvent('2');
@@ -323,6 +331,7 @@ test('onExhausted halts every consumer when the failure happened outside a consu
         observer: OBSERVER,
         consumers: [consumer('a'), consumer('b')],
         checkpointStore: store,
+        head: null,
     });
 
     await runner.onExhausted(new Error('flush failed'), rawEvent('1'));
@@ -350,6 +359,7 @@ test('a successful event clears a failure loaded from the checkpoint store', asy
         observer: OBSERVER,
         consumers: [consumer('a')],
         checkpointStore: store,
+        head: null,
     });
 
     assert.equal(runner.status()[0]?.failure?.position, '2');
@@ -382,6 +392,7 @@ test('a dependent holds its position when its dependency fails on the event', as
             consumer('unrelated'),
         ],
         checkpointStore: store,
+        head: null,
     });
 
     const error = await runner.handle(rawEvent('4')).catch((reason) => {
@@ -415,6 +426,7 @@ test('a dependent is halted together with its dependency', async () => {
             consumer('mailer', { dependsOn: ['projection'] }),
         ],
         checkpointStore: store,
+        head: null,
     });
 
     const event = rawEvent('4');
@@ -447,6 +459,7 @@ test('a dependency that is not declared before the dependent is rejected', async
                 consumer('projection'),
             ],
             checkpointStore: new InMemoryCheckpointStore(),
+            head: null,
         }),
         /depends on "projection", which is not declared before it/,
     );
@@ -458,7 +471,112 @@ test('duplicate consumer names are rejected', async () => {
             observer: OBSERVER,
             consumers: [consumer('a'), consumer('a')],
             checkpointStore: new InMemoryCheckpointStore(),
+            head: null,
         }),
         /declares consumer "a" more than once/,
+    );
+});
+
+test('a head consumer starts at the head and ignores its stored checkpoint', async () => {
+    const store = new InMemoryCheckpointStore();
+    await store.save([{ consumer: 'live', observer: OBSERVER, position: '3' }]);
+    const handled: string[] = [];
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('live', {
+                startFrom: 'head',
+                handle: (event) => {
+                    handled.push(event.id);
+                    return Promise.resolve();
+                },
+            }),
+        ],
+        checkpointStore: store,
+        head: '10',
+    });
+
+    assert.deepEqual(runner.lowerBound, { id: '10', type: 'exclusive' });
+    assert.deepEqual(runner.status()[0].position, '10');
+
+    // Replayed events up to the head are skipped, new ones are handled
+    // and the checkpoint follows them.
+    await runner.handle(rawEvent('4'));
+    await runner.handle(rawEvent('10'));
+    await runner.handle(rawEvent('11'));
+
+    assert.deepEqual(handled, ['11']);
+    assert.deepEqual(await positionsOf(store, ['live']), { live: '11' });
+});
+
+test('a head consumer on an empty subject starts from the beginning', async () => {
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [consumer('live', { startFrom: 'head' })],
+        checkpointStore: new InMemoryCheckpointStore(),
+        head: null,
+    });
+
+    assert.deepEqual(runner.lowerBound, { id: '0', type: 'inclusive' });
+    assert.deepEqual(runner.status()[0].position, null);
+});
+
+test('a head consumer skips the replay of a checkpoint consumer on the same observer', async () => {
+    const store = new InMemoryCheckpointStore();
+    await store.save([
+        { consumer: 'projection', observer: OBSERVER, position: '7' },
+    ]);
+    const handledByProjection: string[] = [];
+    const handledByLive: string[] = [];
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('projection', {
+                handle: (event) => {
+                    handledByProjection.push(event.id);
+                    return Promise.resolve();
+                },
+            }),
+            consumer('live', {
+                startFrom: 'head',
+                dependsOn: ['projection'],
+                handle: (event) => {
+                    handledByLive.push(event.id);
+                    return Promise.resolve();
+                },
+            }),
+        ],
+        checkpointStore: store,
+        head: '9',
+    });
+
+    assert.deepEqual(runner.lowerBound, { id: '7', type: 'exclusive' });
+
+    await runner.handle(rawEvent('8'));
+    await runner.handle(rawEvent('9'));
+    await runner.handle(rawEvent('10'));
+
+    assert.deepEqual(handledByProjection, ['8', '9', '10']);
+    assert.deepEqual(handledByLive, ['10']);
+    assert.deepEqual(await positionsOf(store, ['projection', 'live']), {
+        projection: '10',
+        live: '10',
+    });
+});
+
+test('a checkpoint consumer depending on a head consumer is rejected', async () => {
+    await assert.rejects(
+        createConsumerRunner({
+            observer: OBSERVER,
+            consumers: [
+                consumer('live', { startFrom: 'head' }),
+                consumer('projection', { dependsOn: ['live'] }),
+            ],
+            checkpointStore: new InMemoryCheckpointStore(),
+            head: null,
+        }),
+        /depends on "live", which starts from the head/,
     );
 });

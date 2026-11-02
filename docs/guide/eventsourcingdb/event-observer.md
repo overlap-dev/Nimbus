@@ -110,10 +110,11 @@ export const notifyAssignee: EventConsumer = {
 | `handles`   | `(event: Event) => boolean`                               | Whether the consumer handles this event. Unhandled events still advance the checkpoint            |
 | `handle`    | `(event: Event, raw: EventSourcingDBEvent) => Promise<void>` | Handles one event. Receives the mapped Nimbus event and the original EventSourcingDB event      |
 | `dependsOn` | `string[]`                                                | Names of consumers on the same observer this one reads from. They have to be declared before it   |
+| `startFrom` | `"checkpoint"` \| `"head"`                                | `checkpoint` (default) resumes after the stored checkpoint, `head` starts at the newest event on every start, see [Live-only Consumers](#live-only-consumers) |
 
 ### How consumers share the stream
 
-- The observer resumes from the **lowest** checkpoint of its consumers. Consumers that are already further ahead skip the replayed events in memory.
+- The observer resumes from the **lowest** position of its consumers. Consumers that are already further ahead skip the replayed events in memory.
 - For every event the consumers run **sequentially in declaration order**. A consumer that reads another consumer's read model is declared after it and lists it in `dependsOn`.
 - Every consumer advances its checkpoint on every event, handled or not, so a restart resumes exactly where it stopped.
 - Checkpoints are written after the consumers have run, so delivery is **at-least-once**. Consumers with side effects (mails, commands) have to be idempotent.
@@ -127,6 +128,31 @@ Once the retries are exhausted the failing consumers are **halted**. They are sk
 Consumers that `dependsOn` a failing consumer hold their position as well, and are halted together with it. That way a notification is never checkpointed past an event the projection it reads has not applied.
 
 If the failure happens outside a consumer (while mapping the event or writing checkpoints) the whole observer is in an unknown state and every consumer is halted.
+
+### Live-only Consumers
+
+Some consumers only care about what happens now. For example, pushing updates to connected WebSocket or SSE clients, invalidating an in-memory cache, or feeding a live dashboard. Replaying history on restart would be wrong for them and the clients that would have received those updates are long gone. Declare them with `startFrom: "head"`.
+
+```typescript
+export const pushTicketUpdates: EventConsumer = {
+    name: "ticketing.push-updates",
+    startFrom: "head",
+    dependsOn: ["ticketing.tickets"],
+    handles: (event) => event.type.startsWith(TICKET_EVENT_TYPE_PREFIX),
+    handle: async (event) => {
+        broadcast({ ticketId: event.subject.split("/").at(-1) });
+    },
+};
+```
+
+A `head` consumer starts at the newest event of the subject on **every** start, regardless of what its checkpoint store says. Events written while the process was down are never delivered to it. It still runs on the same stream as the checkpointed consumers of its observer and skips the replay in memory while they catch up, so one observer per subject is enough.
+
+Its checkpoint is written like any other so operators can see where it is, but the position is ignored on the next start. Resetting it therefore has no effect. 
+
+`dependsOn` works only in one direction: A consumer that resumes from its checkpoint must not depend on a `head` consumer. The observer rejects that at start, since the dependency never built state for older events.
+A `head` consumer can still depend on a `checkpoint` consumer.
+
+The option covers "live only". To add a new checkpointed consumer to a long subject without backfilling it, reset its checkpoint to the current head once before the first deploy instead.
 
 ## Retry Options
 

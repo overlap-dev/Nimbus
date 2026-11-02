@@ -58,8 +58,25 @@ export type EventConsumer = {
      * an event, this consumer holds its position as well, so it never
      * checkpoints past data its dependency has not written yet. When a
      * dependency is halted, this consumer is halted too.
+     *
+     * A consumer that starts from its checkpoint must not depend on one
+     * that starts from the head, since the latter never built state for
+     * older events.
      */
     readonly dependsOn?: readonly string[];
+    /**
+     * Where the consumer starts on every start of the observer.
+     *
+     * - `checkpoint` (default): resumes after its stored checkpoint, or
+     *   from the beginning of the subject when it has none.
+     * - `head`: starts at the newest event of the subject, ignoring its
+     *   stored checkpoint. Events written while the process was down are
+     *   never delivered. Use this for live-only consumers such as pushing
+     *   to connected clients or invalidating in-memory caches. The
+     *   checkpoint is still persisted for visibility, but it has no effect
+     *   on where the consumer resumes, so resetting it does nothing.
+     */
+    readonly startFrom?: 'checkpoint' | 'head';
 };
 
 /**

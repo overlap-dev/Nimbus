@@ -86,6 +86,8 @@ Moves a consumer to `position`, or back to the beginning of the stream when `pos
 
 This is an **offline operation**. The observer running the consumer must not be active. It keeps its positions in memory and would overwrite the reset with its next save.
 
+Resetting a consumer declared with `startFrom: "head"` has no effect, since it ignores its stored position on every start (see [Live-only Consumers](/guide/eventsourcingdb/event-observer#live-only-consumers)).
+
 ## InMemoryCheckpointStore
 
 ```typescript

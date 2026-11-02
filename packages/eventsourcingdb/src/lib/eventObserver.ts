@@ -569,9 +569,10 @@ const createHandle = (
 /**
  * Starts an event observer.
  *
- * Loads the consumers' checkpoints, reads the newest event of the subject
- * to know when the catch-up is over, registers the observer under its
- * name and starts the observation loop in the background. The returned
+ * Reads the newest event of the subject to know when the catch-up is over
+ * and where consumers with `startFrom: 'head'` begin, loads the consumers'
+ * checkpoints, registers the observer under its name and starts the
+ * observation loop in the background. The returned
  * promise resolves once the loop has been started, not once the observer
  * has caught up, so a checkpoint store that cannot be reached fails the
  * application start instead of silently replaying everything.
@@ -590,13 +591,14 @@ const createHandle = (
 export const initEventObserver = async (
     observer: EventObserver,
 ): Promise<EventObserverHandle> => {
+    const headEventId = await readHeadEventId(observer);
+    const head = headEventId === null ? null : BigInt(headEventId);
     const runner = await createConsumerRunner({
         observer: observer.name,
         consumers: observer.consumers,
         checkpointStore: observer.checkpointStore,
+        head: headEventId,
     });
-    const headEventId = await readHeadEventId(observer);
-    const head = headEventId === null ? null : BigInt(headEventId);
 
     const alreadyLive =
         head === null ||

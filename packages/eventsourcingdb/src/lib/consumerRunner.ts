@@ -49,6 +49,7 @@ export type CreateConsumerRunnerOptions = {
     observer: string;
     consumers: readonly EventConsumer[];
     checkpointStore: CheckpointStore;
+    head: string | null;
 };
 
 type ConsumerState = {
@@ -222,15 +223,21 @@ const lowerBoundFor = (states: readonly ConsumerState[]): Bound => {
         : { id: lowest.toString(), type: 'exclusive' };
 };
 
+const startsFromHead = (consumer: EventConsumer): boolean => {
+    return consumer.startFrom === 'head';
+};
+
 /**
  * Every consumer name has to be unique and every dependency has to name a
- * consumer declared earlier on the same observer.
+ * consumer declared earlier on the same observer. A consumer that resumes
+ * from its checkpoint must not depend on one that starts from the head,
+ * because that dependency never built state for older events.
  */
 const validateConsumers = (
     observer: string,
     consumers: readonly EventConsumer[],
 ): void => {
-    const declared = new Set<string>();
+    const declared = new Map<string, EventConsumer>();
 
     for (const consumer of consumers) {
         if (declared.has(consumer.name)) {
@@ -241,15 +248,27 @@ const validateConsumers = (
         }
 
         for (const dependency of consumer.dependsOn ?? []) {
-            if (!declared.has(dependency)) {
+            const declaredDependency = declared.get(dependency);
+
+            if (declaredDependency === undefined) {
                 throw new GenericException(
                     `Consumer "${consumer.name}" of observer "${observer}" depends on "${dependency}", which is not declared before it`,
                     { observer, consumer: consumer.name, dependency },
                 );
             }
+
+            if (
+                !startsFromHead(consumer) &&
+                startsFromHead(declaredDependency)
+            ) {
+                throw new GenericException(
+                    `Consumer "${consumer.name}" of observer "${observer}" resumes from its checkpoint but depends on "${dependency}", which starts from the head and skips older events`,
+                    { observer, consumer: consumer.name, dependency },
+                );
+            }
         }
 
-        declared.add(consumer.name);
+        declared.set(consumer.name, consumer);
     }
 };
 
@@ -268,11 +287,16 @@ const validateConsumers = (
  * exhausted those consumers are halted. They are skipped for the rest of
  * the process lifetime and their checkpoint stays at the last event they
  * finished, so a restart resumes at the event they could not handle.
+ *
+ * Consumers with `startFrom: 'head'` ignore their stored position and
+ * start at the head of the subject on every start. Their checkpoint is
+ * still written like any other, so operators see where they are.
  */
 export const createConsumerRunner = async ({
     observer,
     consumers,
     checkpointStore,
+    head,
 }: CreateConsumerRunnerOptions): Promise<ConsumerRunner> => {
     validateConsumers(observer, consumers);
 
@@ -282,15 +306,22 @@ export const createConsumerRunner = async ({
 
     const checkpoints = await checkpointStore.load(names);
 
+    const positionFor = (consumer: EventConsumer): bigint | null => {
+        if (startsFromHead(consumer)) {
+            return head === null ? null : BigInt(head);
+        }
+
+        const position = checkpoints.get(consumer.name)?.position;
+
+        return position === undefined ? null : BigInt(position);
+    };
+
     const states: ConsumerState[] = consumers.map((consumer) => {
         const checkpoint = checkpoints.get(consumer.name);
 
         return {
             consumer,
-            position:
-                checkpoint?.position === undefined
-                    ? null
-                    : BigInt(checkpoint.position),
+            position: positionFor(consumer),
             pending: false,
             halted: false,
             ...(checkpoint?.failure !== undefined

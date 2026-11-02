@@ -472,6 +472,99 @@ const runIntegrationSuite = async (
         );
 
         await t.test(
+            'a head consumer only sees new events and ignores its stored checkpoint on restart',
+            async () => {
+                const subject = `/observer/${suite}/head`;
+                const type = 'at.test.nimbus.head';
+                const write = (index: number) => {
+                    return writeEvents([
+                        createEvent({
+                            source: 'https://nimbus.test',
+                            type,
+                            subject,
+                            data: { index },
+                        }),
+                    ]);
+                };
+
+                await write(0);
+                await write(1);
+
+                const checkpointStore = new InMemoryCheckpointStore();
+                const projectionName = `${suite}.head.projection`;
+                const liveName = `${suite}.head.live`;
+                const projected: number[] = [];
+                const live: number[] = [];
+
+                const liveConsumer = (sink: number[], dependsOn: string[]) => {
+                    return {
+                        name: liveName,
+                        startFrom: 'head' as const,
+                        dependsOn,
+                        handles: () => true,
+                        handle: (event: Event) => {
+                            sink.push((event.data as { index: number }).index);
+                            return Promise.resolve();
+                        },
+                    };
+                };
+
+                await initEventObserver({
+                    name: `${suite}-head`,
+                    subject,
+                    recursive: false,
+                    checkpointStore,
+                    consumers: [
+                        {
+                            name: projectionName,
+                            handles: () => true,
+                            handle: (event) => {
+                                projected.push(
+                                    (event.data as { index: number }).index,
+                                );
+                                return Promise.resolve();
+                            },
+                        },
+                        liveConsumer(live, [projectionName]),
+                    ],
+                });
+
+                await waitFor(
+                    () => projected.length === 2,
+                    5000,
+                    'Projection did not replay the stored events within 5 s',
+                );
+                assert.deepEqual(live, []);
+
+                // The live consumer's checkpoint is now at the head. A
+                // second observer on the same store starts the live
+                // consumer at the current head again instead of resuming
+                // after the stored position.
+                const restartedLive: number[] = [];
+
+                await initEventObserver({
+                    name: `${suite}-head-restarted`,
+                    subject,
+                    recursive: false,
+                    checkpointStore,
+                    consumers: [liveConsumer(restartedLive, [])],
+                });
+
+                await write(2);
+
+                await waitFor(
+                    () => live.length === 1 && restartedLive.length === 1,
+                    5000,
+                    'Live consumers did not receive the new event within 5 s',
+                );
+
+                assert.deepEqual(projected, [0, 1, 2]);
+                assert.deepEqual(live, [2]);
+                assert.deepEqual(restartedLive, [2]);
+            },
+        );
+
+        await t.test(
             'initEventObserver retries consumer failures in-place',
             async () => {
                 const subject = `/observer/${suite}/handler-retry`;
