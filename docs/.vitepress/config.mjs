@@ -166,6 +166,10 @@ export default withMermaid(defineConfig({
                             link: "/guide/core/event-bus",
                         },
                         {
+                            text: "Checkpoint Store",
+                            link: "/guide/core/checkpoint-store",
+                        },
+                        {
                             text: "Exceptions",
                             link: "/guide/core/exceptions",
                         },
@@ -266,6 +270,10 @@ export default withMermaid(defineConfig({
                         {
                             text: "Deploy Collection",
                             link: "/guide/mongodb/deploy-collection",
+                        },
+                        {
+                            text: "Checkpoint Store",
+                            link: "/guide/mongodb/checkpoint-store",
                         },
                     ],
                 },

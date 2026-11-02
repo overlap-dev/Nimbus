@@ -1,0 +1,708 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import {
+    type CheckpointStore,
+    GenericException,
+    InMemoryCheckpointStore,
+} from '@nimbus-cqrs/core';
+import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
+import { createConsumerRunner } from './consumerRunner.ts';
+import type { EventConsumer } from './eventConsumer.ts';
+
+const OBSERVER = 'ticketing';
+
+const rawEvent = (id: string, type = 'at.test.ticket.created') => {
+    return {
+        id,
+        type,
+        source: 'https://nimbus.test',
+        subject: '/ticketing/tickets/1',
+        time: new Date('2026-10-07T08:39:24.262Z'),
+        data: {
+            payload: { ticketId: '1' },
+            nimbusMeta: { correlationid: 'corr-1' },
+        },
+    } as unknown as EventSourcingDBEvent;
+};
+
+const consumer = (
+    name: string,
+    overrides: Partial<EventConsumer> = {},
+): EventConsumer => {
+    return {
+        name,
+        handles: () => {
+            return true;
+        },
+        handle: () => {
+            return Promise.resolve();
+        },
+        ...overrides,
+    };
+};
+
+const positionsOf = async (store: CheckpointStore, names: string[]) => {
+    const checkpoints = await store.load(names);
+
+    return Object.fromEntries(
+        names.map((name) => {
+            return [name, checkpoints.get(name)?.position];
+        }),
+    );
+};
+
+test('lower bound is inclusive 0 when any consumer has no checkpoint', async () => {
+    const store = new InMemoryCheckpointStore();
+    await store.save([{ consumer: 'a', observer: OBSERVER, position: '10' }]);
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [consumer('a'), consumer('b')],
+        checkpointStore: store,
+        head: null,
+    });
+
+    assert.deepEqual(runner.lowerBound, { id: '0', type: 'inclusive' });
+});
+
+test('lower bound is the lowest checkpoint, exclusive', async () => {
+    const store = new InMemoryCheckpointStore();
+    await store.save([
+        { consumer: 'a', observer: OBSERVER, position: '10' },
+        { consumer: 'b', observer: OBSERVER, position: '7' },
+    ]);
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [consumer('a'), consumer('b')],
+        checkpointStore: store,
+        head: null,
+    });
+
+    assert.deepEqual(runner.lowerBound, { id: '7', type: 'exclusive' });
+});
+
+test('consumers already past an event skip it but advance on new ones', async () => {
+    const store = new InMemoryCheckpointStore();
+    await store.save([{ consumer: 'a', observer: OBSERVER, position: '10' }]);
+    const handledByA: string[] = [];
+    const handledByB: string[] = [];
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('a', {
+                handle: (event) => {
+                    handledByA.push(event.id);
+                    return Promise.resolve();
+                },
+            }),
+            consumer('b', {
+                handle: (event) => {
+                    handledByB.push(event.id);
+                    return Promise.resolve();
+                },
+            }),
+        ],
+        checkpointStore: store,
+        head: null,
+    });
+
+    await runner.handle(rawEvent('9'));
+    await runner.handle(rawEvent('11'));
+
+    assert.deepEqual(handledByA, ['11']);
+    assert.deepEqual(handledByB, ['9', '11']);
+    assert.deepEqual(await positionsOf(store, ['a', 'b']), {
+        a: '11',
+        b: '11',
+    });
+});
+
+test('handle receives the mapped Nimbus event and the raw event', async () => {
+    const store = new InMemoryCheckpointStore();
+    let received: unknown[] = [];
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('a', {
+                handle: (event, raw) => {
+                    received = [event, raw];
+                    return Promise.resolve();
+                },
+            }),
+        ],
+        checkpointStore: store,
+        head: null,
+    });
+
+    const raw = rawEvent('1');
+    await runner.handle(raw);
+
+    const [event] = received as [
+        { id: string; data: unknown; correlationid: string },
+        EventSourcingDBEvent,
+    ];
+    assert.equal(event.id, '1');
+    assert.equal(event.correlationid, 'corr-1');
+    assert.deepEqual(event.data, { ticketId: '1' });
+    assert.equal(received[1], raw);
+});
+
+test('events a consumer does not handle still advance its checkpoint', async () => {
+    const store = new InMemoryCheckpointStore();
+    let calls = 0;
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('a', {
+                handles: () => {
+                    return false;
+                },
+                handle: () => {
+                    calls++;
+                    return Promise.resolve();
+                },
+            }),
+        ],
+        checkpointStore: store,
+        head: null,
+    });
+
+    await runner.handle(rawEvent('5'));
+
+    assert.equal(calls, 0);
+    assert.deepEqual(await positionsOf(store, ['a']), { a: '5' });
+});
+
+test('a failing consumer holds its position while siblings advance', async () => {
+    const store = new InMemoryCheckpointStore();
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('ok-before'),
+            consumer('failing', {
+                handle: () => {
+                    return Promise.reject(
+                        new Error('input must be a 24 character hex string'),
+                    );
+                },
+            }),
+            consumer('ok-after'),
+        ],
+        checkpointStore: store,
+        head: null,
+    });
+
+    const error = await runner.handle(rawEvent('2')).then(
+        () => {
+            throw new Error('expected the handler to reject');
+        },
+        (reason: unknown) => reason,
+    );
+
+    assert.ok(error instanceof GenericException);
+    assert.match(
+        error.message,
+        /failing: Error: input must be a 24 character hex string/,
+    );
+    assert.equal(
+        error.cause instanceof Error ? error.cause.message : undefined,
+        'input must be a 24 character hex string',
+    );
+
+    const consumers = error.details?.consumers as
+        | Record<string, { name: string; message: string; stack?: string }>
+        | undefined;
+    const reported = consumers?.failing;
+
+    assert.ok(reported !== undefined);
+    assert.equal(reported.name, 'Error');
+    assert.equal(reported.message, 'input must be a 24 character hex string');
+    assert.equal(typeof reported.stack, 'string');
+
+    assert.deepEqual(
+        await positionsOf(store, ['ok-before', 'failing', 'ok-after']),
+        { 'ok-before': '2', failing: undefined, 'ok-after': '2' },
+    );
+});
+
+test('on retry only the failed consumer runs again', async () => {
+    const store = new InMemoryCheckpointStore();
+    const calls: string[] = [];
+    let attempts = 0;
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('a', {
+                handle: () => {
+                    calls.push('a');
+                    return Promise.resolve();
+                },
+            }),
+            consumer('b', {
+                handle: () => {
+                    calls.push('b');
+                    attempts++;
+                    return attempts === 1
+                        ? Promise.reject(new Error('transient'))
+                        : Promise.resolve();
+                },
+            }),
+        ],
+        checkpointStore: store,
+        head: null,
+    });
+
+    await assert.rejects(runner.handle(rawEvent('3')));
+    await runner.handle(rawEvent('3'));
+
+    assert.deepEqual(calls, ['a', 'b', 'b']);
+    assert.deepEqual(await positionsOf(store, ['a', 'b']), {
+        a: '3',
+        b: '3',
+    });
+});
+
+test('onExhausted halts the failed consumers and persists the failure', async () => {
+    const store = new InMemoryCheckpointStore();
+    await store.save([
+        { consumer: 'failing', observer: OBSERVER, position: '1' },
+    ]);
+    const handledByFailing: string[] = [];
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('ok'),
+            consumer('failing', {
+                handle: (event) => {
+                    handledByFailing.push(event.id);
+                    return Promise.reject(new Error('boom'));
+                },
+            }),
+        ],
+        checkpointStore: store,
+        head: null,
+    });
+
+    const event = rawEvent('2');
+    const error = await runner.handle(event).catch((reason: unknown) => {
+        return reason as Error;
+    });
+    await runner.onExhausted(error as Error, event);
+
+    const status = runner.status();
+    assert.deepEqual(
+        status.map((consumer) => {
+            return [consumer.name, consumer.halted, consumer.position];
+        }),
+        [
+            ['ok', false, '2'],
+            ['failing', true, '1'],
+        ],
+    );
+    assert.equal(status[1]?.failure?.position, '2');
+    assert.equal(status[1]?.failure?.error, 'Error: boom');
+
+    const stored = (await store.load(['failing'])).get('failing');
+    assert.equal(stored?.position, '1');
+    assert.equal(stored?.failure?.position, '2');
+    assert.equal(stored?.failure?.error, 'Error: boom');
+
+    // Halted consumers are skipped from now on, siblings continue.
+    await runner.handle(rawEvent('3'));
+
+    assert.deepEqual(handledByFailing, ['2']);
+    assert.deepEqual(await positionsOf(store, ['ok', 'failing']), {
+        ok: '3',
+        failing: '1',
+    });
+});
+
+test('a halted consumer whose failure could not be saved gets it persisted by the next flush', async () => {
+    const store = new InMemoryCheckpointStore();
+    let saveFails = false;
+    const flakyStore: CheckpointStore = {
+        load: (names) => store.load(names),
+        reset: (name, position) => store.reset(name, position),
+        save: (updates) => {
+            return saveFails
+                ? Promise.reject(new Error('store down'))
+                : store.save(updates);
+        },
+    };
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('ok'),
+            consumer('failing', {
+                handle: () => Promise.reject(new Error('boom')),
+            }),
+        ],
+        checkpointStore: flakyStore,
+        head: null,
+    });
+
+    const event = rawEvent('5');
+    const error = (await runner.handle(event).catch((reason: unknown) => {
+        return reason;
+    })) as Error;
+
+    saveFails = true;
+    await assert.rejects(runner.onExhausted(error, event), /store down/);
+    assert.equal(runner.status()[1]?.halted, true);
+    assert.equal((await store.load(['failing'])).get('failing'), undefined);
+
+    saveFails = false;
+    await runner.handle(rawEvent('6'));
+
+    const stored = (await store.load(['failing'])).get('failing');
+    assert.equal(stored?.position, undefined);
+    assert.equal(stored?.failure?.position, '5');
+    assert.equal(stored?.failure?.error, 'Error: boom');
+    assert.deepEqual(await positionsOf(store, ['ok']), { ok: '6' });
+});
+
+test('a mapping failure after an earlier halt still halts the remaining consumers', async () => {
+    const store = new InMemoryCheckpointStore();
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('failing', {
+                handle: () => Promise.reject(new Error('boom')),
+            }),
+            consumer('ok'),
+        ],
+        checkpointStore: store,
+        head: null,
+    });
+
+    const first = rawEvent('1');
+    const error = (await runner.handle(first).catch((reason: unknown) => {
+        return reason;
+    })) as Error;
+    await runner.onExhausted(error, first);
+
+    // An event the mapper rejects never reaches a consumer, so the
+    // failure is not attributable to one of them.
+    const unmappable = { ...rawEvent('2'), time: 'not a date' };
+    const mappingError = (await runner
+        .handle(unmappable as unknown as EventSourcingDBEvent)
+        .catch((reason: unknown) => {
+            return reason;
+        })) as Error;
+    await runner.onExhausted(
+        mappingError,
+        unmappable as unknown as EventSourcingDBEvent,
+    );
+
+    assert.deepEqual(
+        runner.status().map((consumer) => {
+            return [consumer.name, consumer.halted];
+        }),
+        [
+            ['failing', true],
+            ['ok', true],
+        ],
+    );
+    assert.equal((await store.load(['ok'])).get('ok')?.failure?.position, '2');
+});
+
+test('a throwing predicate is a failure of that consumer alone', async () => {
+    const store = new InMemoryCheckpointStore();
+    const handledByOk: string[] = [];
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('picky', {
+                handles: () => {
+                    throw new Error('cannot decide');
+                },
+            }),
+            consumer('ok', {
+                handle: (event) => {
+                    handledByOk.push(event.id);
+                    return Promise.resolve();
+                },
+            }),
+        ],
+        checkpointStore: store,
+        head: null,
+    });
+
+    await assert.rejects(
+        runner.handle(rawEvent('1')),
+        /picky: Error: cannot decide/,
+    );
+
+    assert.deepEqual(handledByOk, ['1']);
+    assert.deepEqual(await positionsOf(store, ['picky', 'ok']), {
+        picky: undefined,
+        ok: '1',
+    });
+});
+
+test('onExhausted halts every consumer when the failure happened outside a consumer', async () => {
+    const store = new InMemoryCheckpointStore();
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [consumer('a'), consumer('b')],
+        checkpointStore: store,
+        head: null,
+    });
+
+    await runner.onExhausted(new Error('flush failed'), rawEvent('1'));
+
+    assert.deepEqual(
+        runner.status().map((consumer) => {
+            return consumer.halted;
+        }),
+        [true, true],
+    );
+});
+
+test('a successful event clears a failure loaded from the checkpoint store', async () => {
+    const store = new InMemoryCheckpointStore();
+    await store.save([
+        {
+            consumer: 'a',
+            observer: OBSERVER,
+            position: '1',
+            failure: { position: '2', error: 'Error: boom' },
+        },
+    ]);
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [consumer('a')],
+        checkpointStore: store,
+        head: null,
+    });
+
+    assert.equal(runner.status()[0]?.failure?.position, '2');
+
+    await runner.handle(rawEvent('2'));
+
+    assert.equal(runner.status()[0]?.failure, undefined);
+    assert.equal((await store.load(['a'])).get('a')?.failure, undefined);
+});
+
+test('a dependent holds its position when its dependency fails on the event', async () => {
+    const store = new InMemoryCheckpointStore();
+    const dependentCalls: string[] = [];
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('projection', {
+                handle: () => {
+                    return Promise.reject(new Error('db down'));
+                },
+            }),
+            consumer('mailer', {
+                dependsOn: ['projection'],
+                handle: (event) => {
+                    dependentCalls.push(event.id);
+                    return Promise.resolve();
+                },
+            }),
+            consumer('unrelated'),
+        ],
+        checkpointStore: store,
+        head: null,
+    });
+
+    const error = await runner.handle(rawEvent('4')).catch((reason) => {
+        return reason as GenericException;
+    });
+
+    assert.ok(error instanceof GenericException);
+    assert.match(error.message, /projection: Error: db down/);
+    assert.match(
+        error.message,
+        /mailer: .*Dependency "projection" did not finish event 4/,
+    );
+    assert.deepEqual(dependentCalls, []);
+    assert.deepEqual(
+        await positionsOf(store, ['projection', 'mailer', 'unrelated']),
+        { projection: undefined, mailer: undefined, unrelated: '4' },
+    );
+});
+
+test('a dependent is halted together with its dependency', async () => {
+    const store = new InMemoryCheckpointStore();
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('projection', {
+                handle: () => {
+                    return Promise.reject(new Error('db down'));
+                },
+            }),
+            consumer('mailer', { dependsOn: ['projection'] }),
+        ],
+        checkpointStore: store,
+        head: null,
+    });
+
+    const event = rawEvent('4');
+    const error = await runner.handle(event).catch((reason) => {
+        return reason as Error;
+    });
+    await runner.onExhausted(error as Error, event);
+
+    assert.deepEqual(
+        runner.status().map((consumer) => {
+            return [consumer.name, consumer.halted];
+        }),
+        [
+            ['projection', true],
+            ['mailer', true],
+        ],
+    );
+    assert.match(
+        (await store.load(['mailer'])).get('mailer')?.failure?.error ?? '',
+        /Dependency "projection"/,
+    );
+});
+
+test('a dependency that is not declared before the dependent is rejected', async () => {
+    await assert.rejects(
+        createConsumerRunner({
+            observer: OBSERVER,
+            consumers: [
+                consumer('mailer', { dependsOn: ['projection'] }),
+                consumer('projection'),
+            ],
+            checkpointStore: new InMemoryCheckpointStore(),
+            head: null,
+        }),
+        /depends on "projection", which is not declared before it/,
+    );
+});
+
+test('duplicate consumer names are rejected', async () => {
+    await assert.rejects(
+        createConsumerRunner({
+            observer: OBSERVER,
+            consumers: [consumer('a'), consumer('a')],
+            checkpointStore: new InMemoryCheckpointStore(),
+            head: null,
+        }),
+        /declares consumer "a" more than once/,
+    );
+});
+
+test('a head consumer starts at the head and ignores its stored checkpoint', async () => {
+    const store = new InMemoryCheckpointStore();
+    await store.save([{ consumer: 'live', observer: OBSERVER, position: '3' }]);
+    const handled: string[] = [];
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('live', {
+                startFrom: 'head',
+                handle: (event) => {
+                    handled.push(event.id);
+                    return Promise.resolve();
+                },
+            }),
+        ],
+        checkpointStore: store,
+        head: '10',
+    });
+
+    assert.deepEqual(runner.lowerBound, { id: '10', type: 'exclusive' });
+    assert.deepEqual(runner.status()[0].position, '10');
+
+    // Replayed events up to the head are skipped, new ones are handled
+    // and the checkpoint follows them.
+    await runner.handle(rawEvent('4'));
+    await runner.handle(rawEvent('10'));
+    await runner.handle(rawEvent('11'));
+
+    assert.deepEqual(handled, ['11']);
+    assert.deepEqual(await positionsOf(store, ['live']), { live: '11' });
+});
+
+test('a head consumer on an empty subject starts from the beginning', async () => {
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [consumer('live', { startFrom: 'head' })],
+        checkpointStore: new InMemoryCheckpointStore(),
+        head: null,
+    });
+
+    assert.deepEqual(runner.lowerBound, { id: '0', type: 'inclusive' });
+    assert.deepEqual(runner.status()[0].position, null);
+});
+
+test('a head consumer skips the replay of a checkpoint consumer on the same observer', async () => {
+    const store = new InMemoryCheckpointStore();
+    await store.save([
+        { consumer: 'projection', observer: OBSERVER, position: '7' },
+    ]);
+    const handledByProjection: string[] = [];
+    const handledByLive: string[] = [];
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('projection', {
+                handle: (event) => {
+                    handledByProjection.push(event.id);
+                    return Promise.resolve();
+                },
+            }),
+            consumer('live', {
+                startFrom: 'head',
+                dependsOn: ['projection'],
+                handle: (event) => {
+                    handledByLive.push(event.id);
+                    return Promise.resolve();
+                },
+            }),
+        ],
+        checkpointStore: store,
+        head: '9',
+    });
+
+    assert.deepEqual(runner.lowerBound, { id: '7', type: 'exclusive' });
+
+    await runner.handle(rawEvent('8'));
+    await runner.handle(rawEvent('9'));
+    await runner.handle(rawEvent('10'));
+
+    assert.deepEqual(handledByProjection, ['8', '9', '10']);
+    assert.deepEqual(handledByLive, ['10']);
+    assert.deepEqual(await positionsOf(store, ['projection', 'live']), {
+        projection: '10',
+        live: '10',
+    });
+});
+
+test('a checkpoint consumer depending on a head consumer is rejected', async () => {
+    await assert.rejects(
+        createConsumerRunner({
+            observer: OBSERVER,
+            consumers: [
+                consumer('live', { startFrom: 'head' }),
+                consumer('projection', { dependsOn: ['live'] }),
+            ],
+            checkpointStore: new InMemoryCheckpointStore(),
+            head: null,
+        }),
+        /depends on "live", which starts from the head/,
+    );
+});

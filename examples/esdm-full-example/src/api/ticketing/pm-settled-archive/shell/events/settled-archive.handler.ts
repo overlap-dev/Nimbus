@@ -1,12 +1,9 @@
 import { createCommand, type Event, getLogger } from '@nimbus-cqrs/core';
 import {
-    eventSourcingDBEventToNimbusEvent,
-    readEvents,
+    type EventConsumer,
+    getEventObserver,
 } from '@nimbus-cqrs/eventsourcingdb';
-import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
 import { getCommandRouter } from '../../../../command.router.ts';
-import { observerCheckpointsRepository } from '../../../../shared/lib/eventsourcingdb/observer-checkpoints.repository.ts';
-import type { ObserverConsumer } from '../../../../shared/lib/eventsourcingdb/observer-group.ts';
 import { toError } from '../../../../shared/lib/toError.ts';
 import { CLOUDEVENTS_SOURCE } from '../../../../shared/namespace.ts';
 import {
@@ -14,8 +11,8 @@ import {
     type ArchiveTicketCommand,
 } from '../../../agg-ticket/core/commands/archive.command.ts';
 import { ticketEventSchema } from '../../../agg-ticket/core/domain/ticket.state.ts';
-import { ticketsSubject } from '../../../agg-ticket/core/domain/ticket.subjects.ts';
 import { replayTicket } from '../../../agg-ticket/shell/replay.ts';
+import { TICKETING_OBSERVER_NAME } from '../../../observer.ts';
 import {
     applySettledArchive,
     archiveDueFrom,
@@ -103,64 +100,21 @@ export const dispatchDueArchives = async (now: string): Promise<void> => {
     }
 };
 
-const latestTicketEventId = async (): Promise<string | null> => {
-    const controller = new AbortController();
-    // Antichronological, so the first event is the newest. Read only that one.
-    const iterator = readEvents(
-        ticketsSubject(),
-        {
-            recursive: true,
-            order: 'antichronological',
-        },
-        controller.signal,
-    )[Symbol.asyncIterator]();
-
-    let latest: string | null = null;
-    let failure: unknown;
-
-    try {
-        const first = await iterator.next();
-
-        if (!first.done) {
-            latest = first.value.id;
-            controller.abort();
-        }
-    } catch (error) {
-        failure = error;
-    }
-
-    try {
-        await iterator.return();
-    } catch (error) {
-        if (!controller.signal.aborted) {
-            failure = error;
-        }
-    }
-
-    if (failure !== undefined && !controller.signal.aborted) {
-        throw failure;
-    }
-
-    return latest;
-};
-
 /**
  * The timer only fires on state the watch has fully caught up with, so a
  * Ticket that left done just now is never archived by a stale instance.
+ * The observer reports when it has passed every event that was stored at
+ * startup. A halted consumer is behind no matter what the observer says.
  */
-const watchIsCaughtUp = async (): Promise<boolean> => {
-    const latest = await latestTicketEventId();
+const watchIsCaughtUp = (): boolean => {
+    const { phase, consumers } = getEventObserver(
+        TICKETING_OBSERVER_NAME,
+    ).status();
+    const watch = consumers.find((consumer) => {
+        return consumer.name === TICKETING_SETTLED_ARCHIVE_CONSUMER_NAME;
+    });
 
-    if (latest === null) {
-        return true;
-    }
-
-    const positions = await observerCheckpointsRepository.getPositions([
-        TICKETING_SETTLED_ARCHIVE_CONSUMER_NAME,
-    ]);
-    const checkpoint = positions.get(TICKETING_SETTLED_ARCHIVE_CONSUMER_NAME);
-
-    return checkpoint !== undefined && BigInt(checkpoint) >= BigInt(latest);
+    return phase === 'live' && watch !== undefined && !watch.halted;
 };
 
 /**
@@ -168,11 +122,9 @@ const watchIsCaughtUp = async (): Promise<boolean> => {
  * correlated by ticket-id.
  */
 export const handleSettledArchive = async (
-    eventSourcingDBEvent: EventSourcingDBEvent,
+    observedEvent: Event,
 ): Promise<void> => {
-    const event = ticketEventSchema.parse(
-        eventSourcingDBEventToNimbusEvent(eventSourcingDBEvent),
-    );
+    const event = ticketEventSchema.parse(observedEvent);
     const signal = signalFromTicketEvent(event);
 
     if (signal === null) {
@@ -188,7 +140,7 @@ export const handleSettledArchive = async (
 };
 
 const scanDueArchives = async (): Promise<void> => {
-    if (!(await watchIsCaughtUp())) {
+    if (!watchIsCaughtUp()) {
         getLogger().warn({
             message: 'Settled archive watch is not caught up!',
         });
@@ -216,10 +168,10 @@ export const startSettledArchiveWatch = (): void => {
     timer.unref();
 };
 
-export const ticketingSettledArchiveConsumer: ObserverConsumer = {
+export const ticketingSettledArchiveConsumer: EventConsumer = {
     name: TICKETING_SETTLED_ARCHIVE_CONSUMER_NAME,
     handles: (event: Event) => {
         return SETTLED_ARCHIVE_EVENT_TYPES.has(event.type);
     },
-    apply: handleSettledArchive,
+    handle: handleSettledArchive,
 };

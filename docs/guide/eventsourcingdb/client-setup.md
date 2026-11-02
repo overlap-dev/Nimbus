@@ -74,26 +74,36 @@ Against EventSourcingDB 1.3 and later, all read operations (`readEvents`, `obser
 
 ## Setup with Event Observers
 
-You can provide event observers that will automatically start observing events after the client is initialized:
+You can provide event observers that will automatically start observing events after the client is initialized. Each observer watches one subject and feeds every event to its consumers, which resume from their checkpoints:
 
 ```typescript
+import { InMemoryCheckpointStore } from "@nimbus-cqrs/core";
 import { setupEventSourcingDBClient } from "@nimbus-cqrs/eventsourcingdb";
-import type { Event } from "eventsourcingdb";
 
 await setupEventSourcingDBClient({
     url: new URL(process.env.ESDB_URL ?? ""),
     apiToken: process.env.ESDB_API_TOKEN ?? "",
     eventObservers: [
         {
+            name: "logging",
             subject: "/",
             recursive: true,
-            eventHandler: (event: Event) => {
-                console.log("Received event:", event);
-            },
+            checkpointStore: new InMemoryCheckpointStore(),
+            consumers: [
+                {
+                    name: "logging.console",
+                    handles: () => true,
+                    handle: async (event) => {
+                        console.log("Received event:", event);
+                    },
+                },
+            ],
         },
     ],
 });
 ```
+
+`setupEventSourcingDBClient` resolves once every observer has loaded its checkpoints and started observing. It does not wait for them to catch up.
 
 See the [Event Observer](/guide/eventsourcingdb/event-observer) documentation for details on configuring observers.
 

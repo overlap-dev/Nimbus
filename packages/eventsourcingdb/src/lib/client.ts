@@ -37,8 +37,10 @@ export type SetupEventSourcingDBClientInput = {
  * the server, and validates the provided API token. It should be called once at
  * application startup before using {@link getEventSourcingDBClient}.
  *
- * Optionally, you can provide event observers that will start observing events
- * in the background after the client is initialized.
+ * Optionally, you can provide event observers. They are started one after
+ * another once the client is initialized. Each one loads its consumers'
+ * checkpoints before the function resolves, so a checkpoint store that
+ * cannot be reached fails the setup.
  *
  * @param {SetupEventSourcingDBClientInput} options - The configuration options
  * @param {URL} options.url - The URL of the EventSourcingDB server
@@ -48,31 +50,31 @@ export type SetupEventSourcingDBClientInput = {
  *
  * @throws {GenericException} If the connection to EventSourcingDB fails
  * @throws {GenericException} If the API token is invalid
+ * @throws {GenericException} If an event observer cannot be started
  *
  * @example
  * ```ts
+ * import { InMemoryCheckpointStore } from '@nimbus-cqrs/core';
  * import { setupEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
- * import type { Event } from 'eventsourcingdb';
  *
  * await setupEventSourcingDBClient({
  *     url: new URL(process.env.ESDB_URL ?? ''),
  *     apiToken: process.env.ESDB_API_TOKEN ?? '',
  *     eventObservers: [
  *         {
+ *             name: 'users',
  *             subject: '/users',
  *             recursive: true,
- *             lowerBound: {
- *                 id: 'last-processed-event-id',
- *                 type: 'exclusive',
- *             },
- *             fromLatestEvent: {
- *                 subject: '/users',
- *                 type: 'io.nimbus.users.invited',
- *                 ifEventIsMissing: 'read-everything',
- *             },
- *             eventHandler: async (event: Event) => {
- *                 console.log('Received event:', event);
- *             },
+ *             checkpointStore: new InMemoryCheckpointStore(),
+ *             consumers: [
+ *                 {
+ *                     name: 'users.projection',
+ *                     handles: (event) => event.type.startsWith('io.nimbus.users.'),
+ *                     handle: async (event) => {
+ *                         console.log('Received event:', event);
+ *                     },
+ *                 },
+ *             ],
  *             connectionRetryOptions: {
  *                 maxRetries: 3,
  *                 initialRetryDelayMs: 3000,
@@ -128,8 +130,10 @@ export const setupEventSourcingDBClient = async ({
     });
 
     if (eventObservers?.length) {
+        // Sequential on purpose: observers register in declaration order
+        // and the first one that cannot start fails the setup.
         for (const eventObserver of eventObservers) {
-            initEventObserver(eventObserver);
+            await initEventObserver(eventObserver); // NOSONAR
         }
     }
 };

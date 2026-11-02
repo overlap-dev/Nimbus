@@ -1,5 +1,5 @@
 ---
-description: initEventObserver runs a resilient background loop for new events — ideal for projections with automatic reconnect.
+description: An event observer watches one subject and feeds every event to its consumers (projections, policies, process managers, etc.) each resuming from its own checkpoint.
 prev:
     text: "Read Events"
     link: "/guide/eventsourcingdb/read-events"
@@ -11,9 +11,11 @@ next:
 
 # Event Observer
 
-The `initEventObserver` function starts a background event observation loop that continuously listens for new events from EventSourcingDB. Observers automatically reconnect with exponential backoff on connection failure, and retry handler failures in-place without tearing down the stream — making them ideal for building read-side projections and reactive event handlers.
+An **event observer** is a background loop that watches one EventSourcingDB subject and hands every event to its **event consumers**. On startup it replays the events the consumers have not seen yet, then stays live for new ones. Observers reconnect with exponential backoff when the stream fails and retry consumer failures in place without tearing down the stream.
 
-For full details on observing events, including resuming after connection loss and observing from the last event of a given type, see the [Observing Events](https://docs.eventsourcingdb.io/getting-started/observing-events/) section in the EventSourcingDB documentation.
+A consumer is one named position in the stream. A read-model projection, a policy, an event handler and a process manager all have that shape and only what they do with the event differs. Each consumer owns a **checkpoint** in a [checkpoint store](/guide/core/checkpoint-store), so one of them can be rebuilt or halted without moving the others.
+
+For the underlying mechanics see the [Observing Events](https://docs.eventsourcingdb.io/getting-started/observing-events/) section in the EventSourcingDB documentation.
 
 ::: tip An in Depth Example
 This guide also has an in depth example of a working application built with Nimbus. Combining DDD, CQRS and Event Sourcing.
@@ -26,86 +28,137 @@ Check out the [In Depth Example](/guide/in-depth-example) page to learn how ever
 Event observers are typically configured as part of the [client setup](/guide/eventsourcingdb/client-setup):
 
 ```typescript
-import { setupEventSourcingDBClient } from "@nimbus-cqrs/eventsourcingdb";
-import type { Event } from "eventsourcingdb";
+import { InMemoryCheckpointStore } from "@nimbus-cqrs/core";
+import {
+    type EventConsumer,
+    setupEventSourcingDBClient,
+} from "@nimbus-cqrs/eventsourcingdb";
+
+const usersProjection: EventConsumer = {
+    name: "iam.users",
+    handles: (event) => event.type.startsWith("at.overlap.nimbus.user-"),
+    handle: async (event) => {
+        // load the document, fold the event in, save it
+    },
+};
 
 await setupEventSourcingDBClient({
     url: new URL(process.env.ESDB_URL ?? ""),
     apiToken: process.env.ESDB_API_TOKEN ?? "",
     eventObservers: [
         {
-            subject: "/",
+            name: "iam",
+            subject: "/users",
             recursive: true,
-            eventHandler: (event: Event) => {
-                console.log("Received event:", event);
-            },
+            checkpointStore: new InMemoryCheckpointStore(),
+            consumers: [usersProjection],
         },
     ],
 });
 ```
 
-You can also start an observer independently after the client has been initialized:
+You can also start an observer independently after the client has been initialized. `initEventObserver` resolves once the observer has loaded its checkpoints and started the loop, not once it has caught up:
 
 ```typescript
 import { initEventObserver } from "@nimbus-cqrs/eventsourcingdb";
-import type { Event } from "eventsourcingdb";
 
-initEventObserver({
+const observer = await initEventObserver({
+    name: "iam",
     subject: "/users",
     recursive: true,
-    eventHandler: async (event: Event) => {
-        console.log("Received event:", event);
-    },
+    checkpointStore,
+    consumers: [usersProjection],
 });
+
+observer.status().phase; // "catching-up" | "live" | "stopped"
 ```
+
+Use the `InMemoryCheckpointStore` for tests and for consumers that rebuild their state on every start anyway. For anything that has to survive a restart use a persistent store such as the [MongoCheckpointStore](/guide/mongodb/checkpoint-store).
 
 ## EventObserver Options
 
-| Option                   | Type                                   | Default      | Description                                                       |
-| ------------------------ | -------------------------------------- | ------------ | ----------------------------------------------------------------- |
-| `subject`                | `string`                               | _(required)_ | The subject to observe events for                                 |
-| `recursive`              | `boolean`                              | `false`      | Whether to observe events recursively for all sub-subjects        |
-| `lowerBound`             | `Bound`                                | `undefined`  | The starting position for observation                             |
-| `fromLatestEvent`        | `ObserveFromLatestEvent`               | `undefined`  | Start observation from a specific latest event                    |
-| `eventHandler`           | `(event: Event) => void`               | _(required)_ | Handler function called for each observed event                   |
-| `retryOptions`           | `RetryOptions`                         | see below    | **Deprecated.** Alias for `connectionRetryOptions`                |
-| `connectionRetryOptions` | `RetryOptions`                         | see below    | Retry options when the observe stream / connection fails          |
-| `handlerRetryOptions`    | `RetryOptions`                         | see below    | Retry options when `eventHandler` throws (in-place, no reconnect) |
-| `onHandlerError`         | `(error: Error, event: Event) => void` | `undefined`  | Called after handler retries are exhausted; event is then skipped |
+| Option                   | Type              | Default      | Description                                                        |
+| ------------------------ | ----------------- | ------------ | ------------------------------------------------------------------ |
+| `name`                   | `string`          | _(required)_ | Unique name; stored on every checkpoint and used for lookup        |
+| `subject`                | `string`          | _(required)_ | The subject to observe events for                                  |
+| `recursive`              | `boolean`         | `false`      | Whether to observe events recursively for all sub-subjects         |
+| `consumers`              | `EventConsumer[]` | _(required)_ | The consumers, run in declaration order for every event            |
+| `checkpointStore`        | `CheckpointStore` | _(required)_ | Where the consumers' checkpoints are persisted                     |
+| `connectionRetryOptions` | `RetryOptions`    | see below    | Retry options when the observe stream / connection fails           |
+| `handlerRetryOptions`    | `RetryOptions`    | see below    | Retry options when a consumer throws (in-place, no reconnect)      |
 
-### Bound
-
-The `lowerBound` option defines where observation starts:
+## Event Consumers
 
 ```typescript
-{
-    id: "last-processed-event-id",
-    type: "exclusive", // or "inclusive"
-}
+import type { Event } from "@nimbus-cqrs/core";
+import type { EventConsumer } from "@nimbus-cqrs/eventsourcingdb";
+import type { Event as EventSourcingDBEvent } from "eventsourcingdb";
+
+export const notifyAssignee: EventConsumer = {
+    name: "ticketing.ticket.notify-assignee",
+    dependsOn: ["ticketing.tickets"],
+    handles: (event: Event) => event.type === TICKET_ASSIGNED_EVENT_TYPE,
+    handle: async (event: Event, raw: EventSourcingDBEvent) => {
+        // ...
+    },
+};
 ```
 
-| Property | Type                           | Description                              |
-| -------- | ------------------------------ | ---------------------------------------- |
-| `id`     | `string`                       | The event ID to start from               |
-| `type`   | `"inclusive"` \| `"exclusive"` | Whether to include or exclude this event |
+| Property    | Type                                                      | Description                                                                                       |
+| ----------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `name`      | `string`                                                  | The checkpoint key. Unique across the whole application, not just within one observer. Renaming a consumer replays the subject from the beginning |
+| `handles`   | `(event: Event) => boolean`                               | Whether the consumer handles this event. Unhandled events still advance the checkpoint            |
+| `handle`    | `(event: Event, raw: EventSourcingDBEvent) => Promise<void>` | Handles one event. Receives the mapped Nimbus event and the original EventSourcingDB event      |
+| `dependsOn` | `string[]`                                                | Names of consumers on the same observer this one reads from. They have to be declared before it   |
+| `startFrom` | `"checkpoint"` \| `"head"`                                | `checkpoint` (default) resumes after the stored checkpoint, `head` starts at the newest event on every start, see [Live-only Consumers](#live-only-consumers) |
 
-### ObserveFromLatestEvent
+### How consumers share the stream
 
-The `fromLatestEvent` option starts observation from the latest event matching specific criteria:
+- The observer resumes from the **lowest** position of its consumers. Consumers that are already further ahead skip the replayed events in memory.
+- For every event the consumers run **sequentially in declaration order**. A consumer that reads another consumer's read model is declared after it and lists it in `dependsOn`.
+- Every consumer advances its checkpoint on every event, handled or not, so a restart resumes exactly where it stopped.
+- Checkpoints are written after the consumers have run, so delivery is **at-least-once**. Consumers with side effects (mails, commands) have to be idempotent.
+
+### Failures
+
+A consumer that throws **holds its position** while its siblings advance. The observer retries the event in place according to `handlerRetryOptions`. On the next retry the consumers that already finished the event skip it, so only the failing ones run again.
+
+Once the retries are exhausted the failing consumers are **halted**. They are skipped for the rest of the process lifetime, a critical log entry is written, and the checkpoint keeps the last event they finished together with a `failure` marker (`position`, `error`, `at`). A restart resumes at the event they could not handle. The observer itself moves on so the other consumers keep up.
+
+Consumers that `dependsOn` a failing consumer hold their position as well, and are halted together with it. That way a notification is never checkpointed past an event the projection it reads has not applied.
+
+If the failure happens outside a consumer (while mapping the event or writing checkpoints) the whole observer is in an unknown state and every consumer is halted.
+
+### Live-only Consumers
+
+Some consumers only care about what happens now. For example, pushing updates to connected WebSocket or SSE clients, invalidating an in-memory cache, or feeding a live dashboard. Replaying history on restart would be wrong for them and the clients that would have received those updates are long gone. Declare them with `startFrom: "head"`.
 
 ```typescript
-{
-    subject: "/users",
-    type: "at.overlap.nimbus.user-invited",
-    ifEventIsMissing: "read-everything", // or "wait-for-event"
-}
+export const pushTicketUpdates: EventConsumer = {
+    name: "ticketing.push-updates",
+    startFrom: "head",
+    dependsOn: ["ticketing.tickets"],
+    handles: (event) => event.type.startsWith(TICKET_EVENT_TYPE_PREFIX),
+    handle: async (event) => {
+        broadcast({ ticketId: event.subject.split("/").at(-1) });
+    },
+};
 ```
 
-| Property           | Type                                      | Description                              |
-| ------------------ | ----------------------------------------- | ---------------------------------------- |
-| `subject`          | `string`                                  | The subject to find the latest event for |
-| `type`             | `string`                                  | The event type to match                  |
-| `ifEventIsMissing` | `"read-everything"` \| `"wait-for-event"` | What to do if no matching event exists   |
+A `head` consumer starts at the newest event of the subject on **every** start, regardless of what its checkpoint store says. Events written while the process was down are never delivered to it. It still runs on the same stream as the checkpointed consumers of its observer and skips the replay in memory while they catch up, so one observer per subject is enough.
+
+Its checkpoint is written like any other so operators can see where it is, but the position is ignored on the next start. Resetting it therefore has no effect. 
+
+`dependsOn` works only in one direction: A consumer that resumes from its checkpoint must not depend on a `head` consumer. The observer rejects that at start, since the dependency never built state for older events.
+A `head` consumer can still depend on a `checkpoint` consumer.
+
+The option covers "live only". To add a new checkpointed consumer to a long subject without backfilling it, seed its checkpoint with the current head once before the first deploy instead. `reset` only moves existing checkpoints, so use `save`:
+
+```typescript
+await checkpointStore.save([
+    { consumer: "ticketing.audit", observer: "ticketing", position: headEventId },
+]);
+```
 
 ## Retry Options
 
@@ -121,11 +174,11 @@ Both paths use **exponential backoff with jitter** (via the shared [`withRetry`]
 - Base delay doubles with each attempt: `initialDelayMs * 2^attempt`
 - Random jitter of 0-30% is added to avoid thundering-herd effects
 
-**Connection retries** (`connectionRetryOptions`, or deprecated `retryOptions`):
+**Connection retries** (`connectionRetryOptions`):
 
 - Used when the observe stream fails or disconnects
 - Observing never ends on its own. A stream that the server closes (for example during a restart or a rollback) or that stalls (see [stall timeout](/guide/eventsourcingdb/client-setup#stall-timeout)) counts as a connection failure and triggers a reconnect
-- After the initial attempt plus `maxRetries` reconnect attempts fail, a critical error is logged and the observer stops (`maxRetries + 1` failed attempts total)
+- After the initial attempt plus `maxRetries` reconnect attempts fail, a critical error is logged and the observer stops (`maxRetries + 1` failed attempts total). Its phase becomes `stopped` and its health check reports `error`
 - The connection retry counter resets when events start flowing again
 
 ::: tip Sizing connection retries
@@ -134,20 +187,17 @@ Since every server-side stream close triggers a reconnect, size `connectionRetry
 
 **Handler retries** (`handlerRetryOptions`):
 
-- Used when `eventHandler` throws; retries happen in-place without reconnecting
-- After the initial attempt plus `maxRetries` retries fail for an event, `onHandlerError` is called (if provided) or a critical log is emitted (`maxRetries + 1` failed attempts total)
-- The event is then **skipped** (lower bound advanced) so subsequent events keep being processed
+- Used when a consumer throws. Retries happen in-place without reconnecting
+- After the initial attempt plus `maxRetries` retries fail for an event, the failing consumers are halted (`maxRetries + 1` failed attempts total)
+- The observer then continues with the next event for the remaining consumers
 
 ```typescript
-import { getLogger } from "@nimbus-cqrs/core";
-import { initEventObserver } from "@nimbus-cqrs/eventsourcingdb";
-
-initEventObserver({
+await initEventObserver({
+    name: "iam",
     subject: "/users",
     recursive: true,
-    eventHandler: async (event) => {
-        // ...
-    },
+    checkpointStore,
+    consumers: [usersProjection],
     connectionRetryOptions: {
         maxRetries: 5,
         initialRetryDelayMs: 1000,
@@ -156,89 +206,47 @@ initEventObserver({
         maxRetries: 3,
         initialRetryDelayMs: 500,
     },
-    onHandlerError: (error, event) => {
-        getLogger().error({
-            category: "EventObserver",
-            message: `Skipping event after handler retries: ${event.id}`,
-            error,
-        });
-    },
 });
 ```
 
-## Building Projections
+## Status and Health
 
-A common use case for event observers is building read-side projections. The observer processes events and updates an in-memory or persistent view:
-
-```typescript
-import { Event, getLogger } from "@nimbus-cqrs/core";
-import { eventSourcingDBEventToNimbusEvent } from "@nimbus-cqrs/eventsourcingdb";
-import { Event as EventSourcingDBEvent } from "eventsourcingdb";
-
-const USER_INVITED_EVENT_TYPE = "at.overlap.nimbus.user-invited";
-const USER_INVITATION_ACCEPTED_EVENT_TYPE =
-    "at.overlap.nimbus.user-invitation-accepted";
-
-const usersStore = new Map();
-
-export const projectViews = (eventSourcingDBEvent: EventSourcingDBEvent) => {
-    const event =
-        eventSourcingDBEventToNimbusEvent<Event>(eventSourcingDBEvent);
-
-    switch (event.type) {
-        case USER_INVITED_EVENT_TYPE: {
-            usersStore.set(event.data.id, {
-                id: event.data.id,
-                revision: event.id,
-                email: event.data.email,
-                firstName: event.data.firstName,
-                lastName: event.data.lastName,
-                invitedAt: event.data.invitedAt,
-                acceptedAt: null,
-            });
-            break;
-        }
-        case USER_INVITATION_ACCEPTED_EVENT_TYPE: {
-            const id = event.subject.split("/")[2];
-            const currentRow = usersStore.get(id);
-
-            usersStore.set(id, {
-                ...currentRow,
-                revision: event.id,
-                acceptedAt: event.data.acceptedAt,
-            });
-            break;
-        }
-        default: {
-            getLogger().warn({
-                category: "ProjectViews",
-                message: `Unknown event type ${event.type}`,
-            });
-            break;
-        }
-    }
-};
-```
-
-Then register this projection handler as an event observer:
+Every started observer is registered under its name. `getEventObserver(name)` returns the handle of one observer, `listEventObservers()` all of them in start order.
 
 ```typescript
-await setupEventSourcingDBClient({
-    url: new URL(process.env.ESDB_URL ?? ""),
-    apiToken: process.env.ESDB_API_TOKEN ?? "",
-    eventObservers: [
-        {
-            subject: "/",
-            recursive: true,
-            eventHandler: projectViews,
-        },
-    ],
-});
+import {
+    getEventObserver,
+    listEventObservers,
+} from "@nimbus-cqrs/eventsourcingdb";
+
+const status = getEventObserver("iam").status();
+// {
+//     name: "iam",
+//     subject: "/users",
+//     phase: "live",
+//     consumers: [
+//         { name: "iam.users", position: "1842", halted: false },
+//     ],
+// }
+
+const unhealthy = listEventObservers()
+    .map((observer) => observer.healthCheck())
+    .filter((health) => health.status !== "healthy");
 ```
 
-## Automatic Position Tracking
+| Phase         | Meaning                                                                         |
+| ------------- | ------------------------------------------------------------------------------- |
+| `catching-up` | Replaying events that were already stored when the observer started             |
+| `live`        | Every event stored at startup has been processed, new events arrive as written  |
+| `stopped`     | Connection retries are exhausted and the observer gave up                       |
 
-The observer automatically tracks its position in the event stream. After each event is handled successfully **or skipped** after exhausted handler retries, the `lowerBound` is updated so that reconnections resume from that position rather than replaying the entire stream.
+`healthCheck()` returns `{ status: "error", details }` when the observer stopped or any consumer is halted, and `{ status: "healthy" }` otherwise. An observer that is still catching up is healthy. Wire it into your readiness or health endpoint next to the database checks. A halted projection leaves MongoDB and EventSourcingDB perfectly reachable, so those checks alone would stay green.
+
+Each consumer status carries its `position` (the id of the last event it finished, `null` before the first), whether it is `halted`, and the most recent `failure` if any (including one loaded from the checkpoint store at startup), so a consumer that failed in the previous run is visible until it succeeds again.
+
+## Rebuilding a Consumer
+
+To replay a consumer from the beginning or move it to a specific event, reset its checkpoint with [`checkpointStore.reset(consumer, position?)`](/guide/core/checkpoint-store#reset) while the observer is **not running**. A running observer keeps its positions in memory and would overwrite the reset with its next checkpoint. On the next start the observer resumes from the new lowest checkpoint and consumers that are further ahead skip the replayed events.
 
 ## OpenTelemetry Tracing
 
@@ -256,8 +264,10 @@ Each observed event is processed within an OpenTelemetry consumer span named `ev
 
 | Metric                                                     | Type      | Labels                            | Description                                                          |
 | ---------------------------------------------------------- | --------- | --------------------------------- | -------------------------------------------------------------------- |
-| `eventsourcingdb_observer_events_handled_total`            | Counter   | `subject`, `event_type`, `status` | Events handled (`success`) or skipped after exhaustion               |
+| `eventsourcingdb_observer_events_handled_total`            | Counter   | `subject`, `event_type`, `status` | Events handled (`success`) or given up on after exhaustion (`skipped`) |
 | `eventsourcingdb_observer_handling_duration_seconds`       | Histogram | `subject`, `event_type`           | Handler duration in seconds (includes retries)                       |
 | `eventsourcingdb_observer_handler_retry_attempts_total`    | Counter   | `subject`, `event_type`           | In-place handler retry attempts                                      |
 | `eventsourcingdb_observer_connection_retry_attempts_total` | Counter   | `subject`                         | Stream failures that schedule a reconnect                            |
 | `eventsourcingdb_observer_connection_reconnects_total`     | Counter   | `subject`                         | Successful reconnects (counted when events flow again after retries) |
+
+Replays are summarized in one debug log line per contiguous burst of events (count, duration, events per second, first and last event id) instead of one line per event.

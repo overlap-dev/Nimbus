@@ -1,7 +1,5 @@
 import type { Event } from '@nimbus-cqrs/core';
-import { eventSourcingDBEventToNimbusEvent } from '@nimbus-cqrs/eventsourcingdb';
-import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
-import type { ObserverConsumer } from '../../../../shared/lib/eventsourcingdb/observer-group.ts';
+import type { EventConsumer } from '@nimbus-cqrs/eventsourcingdb';
 import { ticketEventSchema } from '../../../agg-ticket/core/domain/ticket.state.ts';
 import { isTicketsEvent } from '../../core/domain/tickets.events.ts';
 import { applyTicketsProjection } from '../../core/domain/tickets.projection.ts';
@@ -31,17 +29,14 @@ import { ticketingTicketsRepository } from '../stores/tickets.repository.ts';
 // get-ticket and list-tickets both read this projection.
 //
 // How far the projection has read is not stored on the ticket document.
-// The observer group keeps a checkpoint per consumer. See
-// createObserverGroup() in observer-group.ts.
+// The observer keeps a checkpoint per consumer. See
+// shared/lib/eventsourcingdb/checkpoint-store.ts.
 
 export const handleTicketsProjection = async (
-    eventSourcingDBEvent: EventSourcingDBEvent,
+    observedEvent: Event,
 ): Promise<void> => {
-    // The observer hands us a raw EventSourcingDB event.
-    // Convert it back to a Nimbus event and check the ticket schema.
-    const event = ticketEventSchema.parse(
-        eventSourcingDBEventToNimbusEvent(eventSourcingDBEvent),
-    );
+    // The observer hands us the Nimbus event. Check the ticket schema.
+    const event = ticketEventSchema.parse(observedEvent);
 
     // created has no document yet. Later events load the one we stored.
     const previous = await ticketingTicketsRepository.getByTicketId(
@@ -58,11 +53,11 @@ export const handleTicketsProjection = async (
 export const TICKETING_TICKETS_CONSUMER_NAME = 'ticketing.tickets';
 
 // handles() skips events this projection does not fold.
-// apply() is the shell function above.
-export const ticketingTicketsConsumer: ObserverConsumer = {
+// handle() is the shell function above.
+export const ticketingTicketsConsumer: EventConsumer = {
     name: TICKETING_TICKETS_CONSUMER_NAME,
     handles: (event: Event) => {
         return isTicketsEvent(event);
     },
-    apply: handleTicketsProjection,
+    handle: handleTicketsProjection,
 };

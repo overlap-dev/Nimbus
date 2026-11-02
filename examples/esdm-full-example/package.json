@@ -10,6 +10,7 @@
     "dev": "node --watch --env-file=.env src/main.ts",
     "start": "node --env-file=.env src/main.ts",
     "mongodb:deploy-collections": "node --env-file=.env src/cli/deploy-mongodb-collections.ts",
+    "checkpoint:reset": "node --env-file=.env src/cli/reset-checkpoint.ts",
     "check": "tsc --noEmit",
     "test": "node --test \"src/**/*.test.ts\""
   },

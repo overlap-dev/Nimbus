@@ -1,9 +1,7 @@
 import { createCommand, type Event } from '@nimbus-cqrs/core';
-import { eventSourcingDBEventToNimbusEvent } from '@nimbus-cqrs/eventsourcingdb';
-import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
+import type { EventConsumer } from '@nimbus-cqrs/eventsourcingdb';
 import { getCommandRouter } from '../../../../command.router.ts';
 import type { AuthContext } from '../../../../iam/dcb-auth/core/domain/auth-context.ts';
-import type { ObserverConsumer } from '../../../../shared/lib/eventsourcingdb/observer-group.ts';
 import { SYSTEM_ACTOR } from '../../../../shared/lib/messages.ts';
 import { CLOUDEVENTS_SOURCE } from '../../../../shared/namespace.ts';
 import {
@@ -68,11 +66,9 @@ export const startWorkOnAssignment = (
 };
 
 export const handleStartWorkOnAssignment = async (
-    eventSourcingDBEvent: EventSourcingDBEvent,
+    observedEvent: Event,
 ): Promise<void> => {
-    const event = ticketAssignedEventSchema.parse(
-        eventSourcingDBEventToNimbusEvent(eventSourcingDBEvent),
-    );
+    const event = ticketAssignedEventSchema.parse(observedEvent);
 
     await getCommandRouter().route(startWorkOnAssignment(event));
 };
@@ -82,10 +78,10 @@ export const handleStartWorkOnAssignment = async (
  * on it starts. Stateless; a redelivered assigned event is harmless because
  * change-status to the current Status changes nothing.
  */
-export const ticketingStartWorkOnAssignmentConsumer: ObserverConsumer = {
+export const ticketingStartWorkOnAssignmentConsumer: EventConsumer = {
     name: 'ticketing.ticket.start-work-on-assignment',
     handles: (event: Event) => {
         return event.type === TICKET_ASSIGNED_EVENT_TYPE;
     },
-    apply: handleStartWorkOnAssignment,
+    handle: handleStartWorkOnAssignment,
 };

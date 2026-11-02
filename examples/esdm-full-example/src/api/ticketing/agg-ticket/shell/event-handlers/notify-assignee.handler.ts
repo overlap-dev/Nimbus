@@ -1,11 +1,10 @@
 import { type Event, getEnv, getLogger } from '@nimbus-cqrs/core';
-import { eventSourcingDBEventToNimbusEvent } from '@nimbus-cqrs/eventsourcingdb';
-import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
+import type { EventConsumer } from '@nimbus-cqrs/eventsourcingdb';
 import { findDemoUserById } from '../../../../iam/dcb-auth/shell/demo-users.ts';
 import { renderMailHtmlFromTemplate } from '../../../../shared/ext-mailing/render-mail-html.ts';
 import { sendMail } from '../../../../shared/ext-mailing/send-mail.ts';
-import type { ObserverConsumer } from '../../../../shared/lib/eventsourcingdb/observer-group.ts';
 import { logCorrelationId } from '../../../../shared/lib/logging.ts';
+import { TICKETING_TICKETS_CONSUMER_NAME } from '../../../rm-tickets/shell/projections/tickets.projection.ts';
 import { ticketingTicketsRepository } from '../../../rm-tickets/shell/stores/tickets.repository.ts';
 import {
     TICKET_ASSIGNED_EVENT_TYPE,
@@ -17,25 +16,24 @@ import { notifiedAssignmentsRepository } from '../stores/notified-assignments.re
 // another command. Here the side effect is an email to the new assignee.
 //
 // It does not change the ticket. The title comes from the tickets read
-// model. That consumer is declared first in the observer group, so this
-// event is already in the projection when we read it. The address comes
-// from the mocked IAM users.
+// model. This consumer depends on that projection, so it only runs once
+// the projection has applied the same event, and it holds its checkpoint
+// whenever the projection fails. The address comes from the mocked IAM
+// users.
 //
 // Delivery is at-least-once. A committed notified-assignments row skips
 // a redelivery. A crash after SMTP accepts the message and before that
 // write sends the same mail again.
 //
-// A missing ticket is a failure, not a skip. The tickets projection is
-// declared first, but if it halted, checkpointing this handler would
-// drop the mail for good. The observer retries, then halts this consumer.
+// A missing ticket is still a failure, not a skip: checkpointing this
+// handler would drop the mail for good. The observer retries, then halts
+// this consumer.
 export const handleNotifyAssignee = async (
-    eventSourcingDBEvent: EventSourcingDBEvent,
+    observedEvent: Event,
 ): Promise<void> => {
     const env = getEnv({ variables: ['APP_ORIGIN'] });
 
-    const event = ticketAssignedEventSchema.parse(
-        eventSourcingDBEventToNimbusEvent(eventSourcingDBEvent),
-    );
+    const event = ticketAssignedEventSchema.parse(observedEvent);
 
     if (await notifiedAssignmentsRepository.wasNotified(event.id)) {
         return;
@@ -84,10 +82,11 @@ export const handleNotifyAssignee = async (
     await notifiedAssignmentsRepository.markNotified(event.id);
 };
 
-export const ticketingNotifyAssigneeConsumer: ObserverConsumer = {
+export const ticketingNotifyAssigneeConsumer: EventConsumer = {
     name: 'ticketing.ticket.notify-assignee',
+    dependsOn: [TICKETING_TICKETS_CONSUMER_NAME],
     handles: (event: Event) => {
         return event.type === TICKET_ASSIGNED_EVENT_TYPE;
     },
-    apply: handleNotifyAssignee,
+    handle: handleNotifyAssignee,
 };
