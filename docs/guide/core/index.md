@@ -24,12 +24,13 @@ The core package provides:
 -   **[Events](/guide/core/events)** - Domain events for reactive architectures
 -   **[Router](/guide/core/router)** - Message routing with validation and tracing
 -   **[Event Bus](/guide/core/event-bus)** - Publish/subscribe for in-process events
+-   **[Checkpoint Store](/guide/core/checkpoint-store)** - Contract and in-memory store for where event consumers resume
 -   **[withRetry](/guide/core/with-retry)** - Shared retry helper with exponential backoff
 -   **[Exceptions](/guide/core/exceptions)** - Structured error handling with HTTP status codes
 -   **[Logging](/guide/core/logging)** - Structured logging with configurable formatters
 -   **[Observability](/guide/core/observability)** - Built-in logging, tracing, and metrics using OpenTelemetry
 
-## Installation
+## Installation 
 
 ### npm
 

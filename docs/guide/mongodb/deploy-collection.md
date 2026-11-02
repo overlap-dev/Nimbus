@@ -3,6 +3,10 @@ description: deployMongoCollection declaratively creates or updates collections 
 prev:
     text: "handleMongoError"
     link: "/guide/mongodb/handle-mongo-error"
+
+next:
+    text: "Checkpoint Store"
+    link: "/guide/mongodb/checkpoint-store"
 ---
 
 # Deploy Collection
