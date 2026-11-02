@@ -1,4 +1,7 @@
-import { getEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
+import {
+    getEventSourcingDBClient,
+    listEventObservers,
+} from '@nimbus-cqrs/eventsourcingdb';
 import { getMongoConnectionManager } from '@nimbus-cqrs/mongodb';
 
 type HealthStatus = 'healthy' | 'error';
@@ -8,12 +11,9 @@ export type ApiHealth = {
     http: HealthStatus;
     mongodb: HealthStatus;
     eventSourcingDB: HealthStatus;
+    observers: HealthStatus;
 };
 
-// TODO: When projections move into the framework, report halted
-// consumers here. A consumer that exhausted its retries stays degraded
-// while MongoDB and EventSourcingDB are still reachable, so this check
-// currently stays healthy.
 export const checkApiHealth = async () => {
     const mongodbHealth =
         await getMongoConnectionManager('default').healthCheck();
@@ -25,10 +25,23 @@ export const checkApiHealth = async () => {
         eventSourcingDBHealth = 'error';
     }
 
+    // An observer reports an error once it gave up reconnecting or once one of
+    // its consumers exhausted its retries and halted. MongoDB and
+    // EventSourcingDB can be reachable while a projection is stuck, so the
+    // observers get their own entry.
+    const observersHealth: HealthStatus = listEventObservers().every(
+        (observer) => {
+            return observer.healthCheck().status === 'healthy';
+        },
+    )
+        ? 'healthy'
+        : 'error';
+
     let overallHealth: HealthStatus = 'healthy';
     if (
         mongodbHealth.status !== 'healthy' ||
-        eventSourcingDBHealth !== 'healthy'
+        eventSourcingDBHealth !== 'healthy' ||
+        observersHealth !== 'healthy'
     ) {
         overallHealth = 'error';
     }
@@ -38,5 +51,6 @@ export const checkApiHealth = async () => {
         http: 'healthy',
         mongodb: mongodbHealth.status,
         eventSourcingDB: eventSourcingDBHealth,
+        observers: observersHealth,
     };
 };

@@ -2,10 +2,10 @@ import { getEnv, getLogger } from '@nimbus-cqrs/core';
 import {
     deployMongoCollection,
     getMongoConnectionManager,
+    MONGO_CHECKPOINTS_COLLECTION,
     type MongoCollectionDefinition,
 } from '@nimbus-cqrs/mongodb';
 import { initMongoDB } from '../api/mongodb.ts';
-import { OBSERVER_CHECKPOINTS_COLLECTION } from '../api/shared/lib/eventsourcingdb/observer-checkpoints.collection.ts';
 import { TICKETING_NOTIFIED_ASSIGNMENTS_COLLECTION } from '../api/ticketing/agg-ticket/shell/stores/notified-assignments.collection.ts';
 import { TICKETING_PM_SETTLED_ARCHIVE_COLLECTION } from '../api/ticketing/pm-settled-archive/shell/stores/settled-archive.collection.ts';
 import { TICKETING_RM_TICKETS_COLLECTION } from '../api/ticketing/rm-tickets/shell/stores/tickets.collection.ts';
@@ -14,7 +14,7 @@ import { setupLogger } from '../logger.ts';
 setupLogger();
 
 const COLLECTIONS: MongoCollectionDefinition[] = [
-    OBSERVER_CHECKPOINTS_COLLECTION,
+    MONGO_CHECKPOINTS_COLLECTION,
     TICKETING_RM_TICKETS_COLLECTION,
     TICKETING_PM_SETTLED_ARCHIVE_COLLECTION,
     TICKETING_NOTIFIED_ASSIGNMENTS_COLLECTION,

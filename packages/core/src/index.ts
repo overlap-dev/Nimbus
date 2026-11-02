@@ -1,3 +1,5 @@
+export * from './lib/checkpoint/checkpoint.ts';
+export * from './lib/checkpoint/inMemoryCheckpointStore.ts';
 export * from './lib/env/getEnv.ts';
 export * from './lib/eventBus/eventBus.ts';
 export * from './lib/exception/exception.ts';
