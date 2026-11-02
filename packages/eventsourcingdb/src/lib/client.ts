@@ -130,8 +130,10 @@ export const setupEventSourcingDBClient = async ({
     });
 
     if (eventObservers?.length) {
+        // Sequential on purpose: observers register in declaration order
+        // and the first one that cannot start fails the setup.
         for (const eventObserver of eventObservers) {
-            await initEventObserver(eventObserver);
+            await initEventObserver(eventObserver); // NOSONAR
         }
     }
 };

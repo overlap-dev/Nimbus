@@ -152,7 +152,13 @@ Its checkpoint is written like any other so operators can see where it is, but t
 `dependsOn` works only in one direction: A consumer that resumes from its checkpoint must not depend on a `head` consumer. The observer rejects that at start, since the dependency never built state for older events.
 A `head` consumer can still depend on a `checkpoint` consumer.
 
-The option covers "live only". To add a new checkpointed consumer to a long subject without backfilling it, reset its checkpoint to the current head once before the first deploy instead.
+The option covers "live only". To add a new checkpointed consumer to a long subject without backfilling it, seed its checkpoint with the current head once before the first deploy instead. `reset` only moves existing checkpoints, so use `save`:
+
+```typescript
+await checkpointStore.save([
+    { consumer: "ticketing.audit", observer: "ticketing", position: headEventId },
+]);
+```
 
 ## Retry Options
 

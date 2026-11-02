@@ -1,17 +1,25 @@
-import { getEnv, getLogger } from '@nimbus-cqrs/core';
-import {
-    isEventData,
-    setupEventSourcingDBClient,
-} from '@nimbus-cqrs/eventsourcingdb';
-import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
-import {
-    getContactProjectionLowerBound,
-    projectContacts,
-} from './read/iam/users/projections/contacts.projection.ts';
-import {
-    getUserProjectionLowerBound,
-    projectUsers,
-} from './read/iam/users/projections/users.projection.ts';
+import { getEnv } from '@nimbus-cqrs/core';
+import { setupEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
+
+// TODO: The event observers below still use the pre-3.0 observer API
+// (eventHandler, lowerBound, onHandlerError) and are disabled until this
+// demo is rewritten together with the docs. Observers now take named
+// consumers and a checkpoint store, see
+// https://nimbus.overlap.at/guide/eventsourcingdb/event-observer.html
+//
+// Disabled imports for the observers:
+//
+// import { getLogger } from '@nimbus-cqrs/core';
+// import { isEventData } from '@nimbus-cqrs/eventsourcingdb';
+// import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
+// import {
+//     getContactProjectionLowerBound,
+//     projectContacts,
+// } from './read/iam/users/projections/contacts.projection.ts';
+// import {
+//     getUserProjectionLowerBound,
+//     projectUsers,
+// } from './read/iam/users/projections/users.projection.ts';
 
 export const initEventSourcingDB = async () => {
     const env = getEnv({
@@ -22,6 +30,7 @@ export const initEventSourcingDB = async () => {
         url: new URL(env.ESDB_URL),
         apiToken: env.ESDB_API_TOKEN,
 
+        /*
         // We utilize EventSourcingDB to also be our "event bus".
         // We can register event observers to get all events
         // based on a defined subject.
@@ -104,5 +113,6 @@ export const initEventSourcingDB = async () => {
                 },
             },
         ],
+        */
     });
 };

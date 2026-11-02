@@ -82,7 +82,7 @@ type CheckpointUpdate = {
 
 ### reset
 
-Moves a consumer to `position`, or back to the beginning of the stream when `position` is omitted, and clears any failure marker. Use it to rebuild a projection or to skip an event a consumer cannot handle.
+Moves a consumer to `position`, or back to the beginning of the stream when `position` is omitted, and clears any failure marker. Use it to rebuild a projection or to skip an event a consumer cannot handle. A consumer without a checkpoint is left alone. To give a new consumer a starting position use `save`.
 
 This is an **offline operation**. The observer running the consumer must not be active. It keeps its positions in memory and would overwrite the reset with its next save.
 

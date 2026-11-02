@@ -324,6 +324,132 @@ test('onExhausted halts the failed consumers and persists the failure', async ()
     });
 });
 
+test('a halted consumer whose failure could not be saved gets it persisted by the next flush', async () => {
+    const store = new InMemoryCheckpointStore();
+    let saveFails = false;
+    const flakyStore: CheckpointStore = {
+        load: (names) => store.load(names),
+        reset: (name, position) => store.reset(name, position),
+        save: (updates) => {
+            return saveFails
+                ? Promise.reject(new Error('store down'))
+                : store.save(updates);
+        },
+    };
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('ok'),
+            consumer('failing', {
+                handle: () => Promise.reject(new Error('boom')),
+            }),
+        ],
+        checkpointStore: flakyStore,
+        head: null,
+    });
+
+    const event = rawEvent('5');
+    const error = (await runner.handle(event).catch((reason: unknown) => {
+        return reason;
+    })) as Error;
+
+    saveFails = true;
+    await assert.rejects(runner.onExhausted(error, event), /store down/);
+    assert.equal(runner.status()[1]?.halted, true);
+    assert.equal((await store.load(['failing'])).get('failing'), undefined);
+
+    saveFails = false;
+    await runner.handle(rawEvent('6'));
+
+    const stored = (await store.load(['failing'])).get('failing');
+    assert.equal(stored?.position, undefined);
+    assert.equal(stored?.failure?.position, '5');
+    assert.equal(stored?.failure?.error, 'Error: boom');
+    assert.deepEqual(await positionsOf(store, ['ok']), { ok: '6' });
+});
+
+test('a mapping failure after an earlier halt still halts the remaining consumers', async () => {
+    const store = new InMemoryCheckpointStore();
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('failing', {
+                handle: () => Promise.reject(new Error('boom')),
+            }),
+            consumer('ok'),
+        ],
+        checkpointStore: store,
+        head: null,
+    });
+
+    const first = rawEvent('1');
+    const error = (await runner.handle(first).catch((reason: unknown) => {
+        return reason;
+    })) as Error;
+    await runner.onExhausted(error, first);
+
+    // An event the mapper rejects never reaches a consumer, so the
+    // failure is not attributable to one of them.
+    const unmappable = { ...rawEvent('2'), time: 'not a date' };
+    const mappingError = (await runner
+        .handle(unmappable as unknown as EventSourcingDBEvent)
+        .catch((reason: unknown) => {
+            return reason;
+        })) as Error;
+    await runner.onExhausted(
+        mappingError,
+        unmappable as unknown as EventSourcingDBEvent,
+    );
+
+    assert.deepEqual(
+        runner.status().map((consumer) => {
+            return [consumer.name, consumer.halted];
+        }),
+        [
+            ['failing', true],
+            ['ok', true],
+        ],
+    );
+    assert.equal((await store.load(['ok'])).get('ok')?.failure?.position, '2');
+});
+
+test('a throwing predicate is a failure of that consumer alone', async () => {
+    const store = new InMemoryCheckpointStore();
+    const handledByOk: string[] = [];
+
+    const runner = await createConsumerRunner({
+        observer: OBSERVER,
+        consumers: [
+            consumer('picky', {
+                handles: () => {
+                    throw new Error('cannot decide');
+                },
+            }),
+            consumer('ok', {
+                handle: (event) => {
+                    handledByOk.push(event.id);
+                    return Promise.resolve();
+                },
+            }),
+        ],
+        checkpointStore: store,
+        head: null,
+    });
+
+    await assert.rejects(
+        runner.handle(rawEvent('1')),
+        /picky: Error: cannot decide/,
+    );
+
+    assert.deepEqual(handledByOk, ['1']);
+    assert.deepEqual(await positionsOf(store, ['picky', 'ok']), {
+        picky: undefined,
+        ok: '1',
+    });
+});
+
 test('onExhausted halts every consumer when the failure happened outside a consumer', async () => {
     const store = new InMemoryCheckpointStore();
 

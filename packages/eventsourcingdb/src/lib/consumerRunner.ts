@@ -2,6 +2,7 @@ import {
     type CheckpointFailure,
     type CheckpointStore,
     type CheckpointUpdate,
+    type Event,
     GenericException,
     getLogger,
 } from '@nimbus-cqrs/core';
@@ -56,7 +57,7 @@ type ConsumerState = {
     consumer: EventConsumer;
     /** Last finished event id; null until the consumer finishes its first. */
     position: bigint | null;
-    /** Position changed since the last flush. */
+    /** Position or failure changed since the last successful flush. */
     pending: boolean;
     halted: boolean;
     failure?: CheckpointFailure;
@@ -352,15 +353,29 @@ export const createConsumerRunner = async ({
         for (const state of states) {
             const error = failed?.errors.get(state.consumer.name);
 
-            if (!state.pending && error === undefined) {
+            if (failed !== undefined && error !== undefined) {
+                state.failure = {
+                    position: failed.position,
+                    error: `${error.name}: ${error.message}`,
+                    at: now,
+                };
+                state.pending = true;
+            }
+
+            if (!state.pending) {
                 continue;
             }
 
+            // A halted consumer carries its marker on every write until
+            // it is reset, so a marker whose first write failed is still
+            // persisted by the next successful flush. A running consumer
+            // only has a marker loaded from the store, which the save
+            // after its next success clears.
             const failure =
-                failed !== undefined && error !== undefined
+                state.halted && state.failure !== undefined
                     ? {
-                          position: failed.position,
-                          error: `${error.name}: ${error.message}`,
+                          position: state.failure.position,
+                          error: state.failure.error,
                       }
                     : undefined;
 
@@ -372,10 +387,6 @@ export const createConsumerRunner = async ({
                     : {}),
                 ...(failure !== undefined ? { failure } : {}),
             });
-
-            if (failure !== undefined) {
-                state.failure = { ...failure, at: now };
-            }
         }
 
         if (updates.length === 0) {
@@ -389,69 +400,105 @@ export const createConsumerRunner = async ({
         }
     };
 
+    /**
+     * The error that blocks the consumer on this event because one of its
+     * dependencies failed on it or is halted, or `undefined`.
+     */
+    const dependencyFailure = (
+        state: ConsumerState,
+        failures: ReadonlyMap<string, Error>,
+        eventId: string,
+    ): Error | undefined => {
+        const failedDependency = (state.consumer.dependsOn ?? []).find(
+            (dependency) => {
+                return (
+                    failures.has(dependency) ||
+                    statesByName.get(dependency)?.halted === true
+                );
+            },
+        );
+
+        return failedDependency === undefined
+            ? undefined
+            : new GenericException(
+                  `Dependency "${failedDependency}" did not finish event ${eventId}`,
+                  { dependency: failedDependency },
+              );
+    };
+
+    /**
+     * Offers the event to one consumer. Both the predicate and the handler
+     * run inside the error boundary, so a throwing predicate is a failure
+     * of this consumer alone and its siblings still receive the event.
+     */
+    const runConsumer = async (
+        state: ConsumerState,
+        event: Event,
+        raw: EventSourcingDBEvent,
+    ): Promise<{ handled: boolean; error?: Error }> => {
+        try {
+            if (!state.consumer.handles(event)) {
+                return { handled: false };
+            }
+
+            await state.consumer.handle(event, raw);
+
+            return { handled: true };
+        } catch (error) {
+            const failure = toError(error);
+
+            getLogger().error({
+                category: 'Nimbus',
+                message: `Consumer "${state.consumer.name}" failed to handle event ${raw.id} (${raw.type})`,
+                error: failure,
+                data: {
+                    observer,
+                    consumer: state.consumer.name,
+                    eventId: raw.id,
+                    eventType: raw.type,
+                },
+                correlationId: event.correlationid,
+            });
+
+            return { handled: true, error: failure };
+        }
+    };
+
     const handle = async (raw: EventSourcingDBEvent) => {
         const eventId = BigInt(raw.id);
-        const event = eventSourcingDBEventToNimbusEvent(raw);
         const failures = new Map<string, Error>();
         let handled = false;
 
+        // Before mapping: an event that cannot be mapped leaves an empty
+        // map behind, which tells onExhausted to halt every consumer.
         lastFailures = failures;
+
+        const event = eventSourcingDBEventToNimbusEvent(raw);
         burstTimer.start(raw.id);
 
         try {
             for (const state of states) {
-                if (state.halted) {
+                if (
+                    state.halted ||
+                    (state.position !== null && eventId <= state.position)
+                ) {
                     continue;
                 }
 
-                if (state.position !== null && eventId <= state.position) {
+                const blocked = dependencyFailure(state, failures, raw.id);
+
+                if (blocked !== undefined) {
+                    failures.set(state.consumer.name, blocked);
                     continue;
                 }
 
-                const failedDependency = (state.consumer.dependsOn ?? []).find(
-                    (dependency) => {
-                        return (
-                            failures.has(dependency) ||
-                            statesByName.get(dependency)?.halted === true
-                        );
-                    },
-                );
+                // Declaration order: a later consumer reads the earlier projection.
+                const result = await runConsumer(state, event, raw); // NOSONAR
+                handled ||= result.handled;
 
-                if (failedDependency !== undefined) {
-                    failures.set(
-                        state.consumer.name,
-                        new GenericException(
-                            `Dependency "${failedDependency}" did not finish event ${raw.id}`,
-                            { dependency: failedDependency },
-                        ),
-                    );
+                if (result.error !== undefined) {
+                    failures.set(state.consumer.name, result.error);
                     continue;
-                }
-
-                if (state.consumer.handles(event)) {
-                    handled = true;
-
-                    try {
-                        // Declaration order: a later consumer reads the earlier projection.
-                        const consumption = state.consumer.handle(event, raw);
-                        await consumption; // NOSONAR
-                    } catch (error) {
-                        const failure = toError(error);
-                        failures.set(state.consumer.name, failure);
-                        getLogger().error({
-                            category: 'Nimbus',
-                            message: `Consumer "${state.consumer.name}" failed to handle event ${raw.id} (${raw.type})`,
-                            error: failure,
-                            data: {
-                                observer,
-                                consumer: state.consumer.name,
-                                eventId: raw.id,
-                                eventType: raw.type,
-                            },
-                            correlationId: event.correlationid,
-                        });
-                        continue;
-                    }
                 }
 
                 state.position = eventId;

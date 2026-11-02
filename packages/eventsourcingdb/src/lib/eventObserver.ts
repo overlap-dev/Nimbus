@@ -339,8 +339,8 @@ const handleEventWithRetry = async (
         try {
             await runner.onExhausted(handlerError, event);
         } catch (err: unknown) {
-            // The consumers are halted in memory either way; only the
-            // persisted failure marker is lost.
+            // The consumers are halted in memory either way. The failure
+            // marker is written with the next successful checkpoint save.
             getLogger().critical({
                 category: 'Nimbus',
                 message: `Could not persist the failure of observer "${observer.name}" at event "${event.id}" (${event.type}).`,
