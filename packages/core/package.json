@@ -1,6 +1,6 @@
 {
   "name": "@nimbus-cqrs/core",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0",
   "description": "Simplify Event-Driven Applications - Core building blocks of the Nimbus framework.",
   "keywords": [
     "nimbus",
