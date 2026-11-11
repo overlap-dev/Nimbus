@@ -2,6 +2,7 @@ import { getEnv } from '@nimbus-cqrs/core';
 import {
     getMongoConnectionManager,
     MongoDBRepository,
+    updateOne,
 } from '@nimbus-cqrs/mongodb';
 import { type Document, ObjectId } from 'mongodb';
 import { USERS_COLLECTION, User } from './users.collection.ts';
@@ -48,15 +49,18 @@ class UserRepository extends MongoDBRepository<User> {
         };
     }
 
-    public async getLastProjectedEventId(): Promise<string> {
-        const users = await this.find({
-            filter: {},
-            limit: 1,
-            skip: 0,
-            sort: { revision: -1 },
-        });
+    // Inserts the user only if there is no user with the same id yet.
+    // The projection uses this to stay idempotent. Applying the same
+    // event twice still results in one single document.
+    public async insertOnce(user: User): Promise<void> {
+        const collection = await this._getCollection();
 
-        return users[0]?.revision ?? '0';
+        await updateOne({
+            collection,
+            filter: { id: user.id },
+            update: { $setOnInsert: this._mapEntityToDocument(user) },
+            options: { upsert: true },
+        });
     }
 }
 

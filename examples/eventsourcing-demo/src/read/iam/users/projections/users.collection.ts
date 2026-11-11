@@ -12,11 +12,15 @@ export const User = z.object({
     // information. We set the latest event id
     // from the EventSourcingDB related to this user
     // here.
-    // This is used to resume the projection if the
-    // application is restarted. We do not want to
-    // apply all events again but pick up where we left off.
+    // A client reads the revision with the user and sends
+    // it back as the expectedRevision of a command. This
+    // way the write side can detect if the user was changed
+    // in the meantime.
     //
-    // See also getUserProjectionLowerBound() in users.projection.ts
+    // The revision is not used to resume the projection
+    // after a restart. The event observer stores a
+    // checkpoint for the projection to do this.
+    // See also usersProjection in users.projection.ts
     // for additional details on this.
     revision: z.string(),
 
@@ -68,9 +72,5 @@ export const USERS_COLLECTION: MongoCollectionDefinition = {
             },
         },
     },
-    indexes: [
-        { key: { id: 1 }, unique: true },
-        { key: { revision: 1 } },
-        { key: { acceptedAt: 1 } },
-    ],
+    indexes: [{ key: { id: 1 }, unique: true }, { key: { acceptedAt: 1 } }],
 };

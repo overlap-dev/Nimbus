@@ -25,25 +25,26 @@ The demo itself is small. About 25 short, well-commented files. The most rewardi
 
 All paths below are under [`examples/eventsourcing-demo`](https://github.com/overlap-dev/Nimbus/tree/main/examples/eventsourcing-demo) on `main`. Line ranges point at the symbols discussed on this page.
 
-| Area                 | File                                                                                                                                                                                                | Lines                      |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| Bootstrap            | [`src/main.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/main.ts#L1-L89)                                                                                     | App startup order          |
-| HTTP                 | [`src/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/http.ts#L19-L105)                                                                                    | Hono app and server        |
-| Event store          | [`src/eventsourcingdb.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/eventsourcingdb.ts#L16-L52)                                                              | Client + observers         |
-| MongoDB              | [`src/mongodb.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/mongodb.ts#L5-L22)                                                                               | Connection setup           |
-| Write router         | [`src/write/commandRouter.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/commandRouter.ts#L4-L30)                                                       | Command router             |
-| Read router          | [`src/read/queryRouter.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/queryRouter.ts#L4-L30)                                                             | Query router               |
-| Invite HTTP          | [`src/write/iam/users/shell/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/http.ts#L28-L44)                                        | `/invite-user` route       |
-| Invite shell handler | [`inviteUser.command.ts` (shell)](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/inviteUser.command.ts#L23-L66)                     | `inviteUserCommandHandler` |
-| Invite core          | [`inviteUser.command.ts` (core)](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/core/commands/inviteUser.command.ts#L53-L87)                       | `inviteUser`               |
-| Accept shell handler | [`acceptUserInvitation.command.ts` (shell)](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/acceptUserInvitation.command.ts#L17-L42) | Replay + persist           |
-| State reducer        | [`user.state.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/core/domain/user.state.ts#L20-L44)                                                | `applyEventToUserState`    |
-| Users projection     | [`users.projection.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.projection.ts#L28-L115)                                    | `projectUsers`             |
-| Users collection     | [`users.collection.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.collection.ts#L7-L76)                                      | Schema and indexes         |
-| Users repository     | [`users.repository.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.repository.ts#L1-L63)                                      | `UserRepository`           |
-| Get user query       | [`getUser.query.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/queries/getUser.query.ts#L23-L31)                                               | `getUserQueryHandler`      |
-| Register commands    | [`registerUserCommands.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/registerUserCommands.ts#L19-L33)                         | Router registration        |
-| Register queries     | [`registerUserQueries.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/queries/registerUserQueries.ts#L18-L38)                                   | Router registration        |
+| Area                 | File                                                                                                                                                                                                 | Lines                      |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| Bootstrap            | [`src/main.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/main.ts#L1-L76)                                                                                      | App startup order          |
+| HTTP                 | [`src/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/http.ts#L22-L117)                                                                                    | Hono app and server        |
+| Event store          | [`src/eventsourcingdb.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/eventsourcingdb.ts#L11-L60)                                                               | Client + observers         |
+| MongoDB              | [`src/mongodb.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/mongodb.ts#L5-L22)                                                                                | Connection setup           |
+| Write router         | [`src/write/commandRouter.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/commandRouter.ts#L4-L30)                                                        | Command router             |
+| Read router          | [`src/read/queryRouter.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/queryRouter.ts#L4-L30)                                                              | Query router               |
+| Invite HTTP          | [`src/write/iam/users/shell/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/http.ts#L28-L49)                                         | `/invite-user` route       |
+| Invite shell handler | [`inviteUser.command.ts` (shell)](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/inviteUser.command.ts#L23-L73)                      | `inviteUserCommandHandler` |
+| Invite core          | [`inviteUser.command.ts` (core)](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/core/commands/inviteUser.command.ts#L60-L94)                        | `inviteUser`               |
+| Accept shell handler | [`acceptUserInvitation.command.ts` (shell)](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/acceptUserInvitation.command.ts#L17-L103) | Replay + persist           |
+| State reducer        | [`user.state.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/core/domain/user.state.ts#L20-L39)                                                 | `applyEventToUserState`    |
+| Users projection     | [`users.projection.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.projection.ts#L28-L70)                                      | `projectUsers`             |
+| Users consumer       | [`users.projection.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.projection.ts#L83-L91)                                      | `usersProjection`          |
+| Users collection     | [`users.collection.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.collection.ts#L7-L76)                                       | Schema and indexes         |
+| Users repository     | [`users.repository.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.repository.ts#L1-L67)                                       | `UserRepository`           |
+| Get user query       | [`getUser.query.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/queries/getUser.query.ts#L23-L31)                                                | `getUserQueryHandler`      |
+| Register commands    | [`registerUserCommands.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/registerUserCommands.ts#L19-L33)                          | Router registration        |
+| Register queries     | [`registerUserQueries.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/queries/registerUserQueries.ts#L18-L38)                                    | Router registration        |
 
 ## The Mental Model in Five Minutes
 
@@ -138,6 +139,8 @@ src/
 ├── http.ts              # Hono app + middleware + sub-routers
 ├── eventsourcingdb.ts   # ESDB client + event observers
 ├── mongodb.ts           # MongoDB connection manager
+├── otel.ts              # Optional OpenTelemetry bootstrap
+├── telemetry.ts         # Telemetry shutdown hook
 ├── write/               # CQRS write side
 │   ├── commandRouter.ts
 │   ├── http.ts
@@ -166,7 +169,7 @@ Second, on the **read side** there is no `core/shell` split. Why? Because the re
 
 ## Setting the Stage: Bootstrap, Dependency by Dependency
 
-[`src/main.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/main.ts#L1-L89) is short on purpose. It is a linear list of "start this, then start that", because everything later in the file depends on everything earlier in the file. Open it now and read along - we will go through it from top to bottom.
+[`src/main.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/main.ts#L1-L76) is short on purpose. It is a linear list of "start this, then start that", because everything later in the file depends on everything earlier in the file. Open it now and read along - we will go through it from top to bottom.
 
 ### Logging First
 
@@ -180,10 +183,11 @@ setupLogger({
             ? prettyLogFormatter
             : jsonLogFormatter,
     useConsoleColors: process.env.LOG_FORMAT === "pretty",
+    truncator: createLogTruncator(),
 });
 ```
 
-Once `setupLogger` has run, anywhere else in the app we can call `getLogger()` and get the same configured instance. The full logging story lives in [Logging](/guide/core/logging).
+Once `setupLogger` has run, anywhere else in the app we can call `getLogger()` and get the same configured instance. The `truncator` shortens large payloads before they are written so a single log line can not flood your log pipeline. The full logging story lives in [Logging](/guide/core/logging).
 
 ### MongoDB Connection
 
@@ -197,7 +201,7 @@ export const initMongoDB = () => {
 
     setupMongoConnectionManager({
         name: "default",
-        uri: env["MONGO_URL"],
+        uri: env.MONGO_URL,
         options: {
             /* ... */
         },
@@ -212,27 +216,36 @@ The pattern is documented in [Connection Manager](/guide/mongodb/connection-mana
 Now things get interesting. We initialize EventSourcingDB and, in the same call, register an **event observer** for the `/users` subject:
 
 ```typescript
+const checkpointStore = new MongoCheckpointStore(() => {
+    return getMongoConnectionManager().getCollection(
+        env.MONGO_DB,
+        MONGO_CHECKPOINTS_COLLECTION.name
+    );
+});
+
 await setupEventSourcingDBClient({
     url: new URL(env.ESDB_URL),
     apiToken: env.ESDB_API_TOKEN,
 
     eventObservers: [
         {
+            name: "iam",
             subject: "/users",
             recursive: true,
-            eventHandler: projectUsers,
-            lowerBound: (await getUserProjectionLowerBound()) as any,
+            checkpointStore,
+            consumers: [usersProjection, contactsProjection],
         },
     ],
 });
 ```
 
-Two ideas to absorb here:
+Three ideas to absorb here:
 
-1. **EventSourcingDB doubles as our event bus.** When we write a new event, every observer that subscribed to its subject gets called. There is no separate message broker to deploy or maintain.
-2. **`lowerBound` matters.** On every startup, the observer first **replays** every past event for `/users`, then keeps listening to new ones. The `lowerBound` tells ESDB "I have already projected up to this event, please start after it" - otherwise we would re-apply the entire history every time we boot.
+1. **EventSourcingDB doubles as our event bus.** When we write a new event, every observer that watches its subject receives it. There is no separate message broker to deploy or maintain.
+2. **An observer feeds consumers.** The observer watches one subject and hands every event to the **consumers** in its list. Here these are our two projections. They run one after the other in the order they are declared.
+3. **Checkpoints matter.** On every startup, the observer first **replays** the past events for `/users` that its consumers have not seen yet, then keeps listening to new ones. Every consumer remembers the id of the last event it finished in a **checkpoint**, and the `checkpointStore` persists those checkpoints in MongoDB. Without them we would re-apply the entire history every time we boot.
 
-We will get to `projectUsers` and `getUserProjectionLowerBound` later, when we look at the read side. For now you only need to know that the wiring happens here. Full client setup lives in [Client Setup](/guide/eventsourcingdb/client-setup).
+We will get to `usersProjection` and the checkpoints later, when we look at the read side. For now you only need to know that the wiring happens here. Full client setup lives in [Client Setup](/guide/eventsourcingdb/client-setup).
 
 ### Command and Query Routers
 
@@ -273,7 +286,7 @@ Nothing exotic, but it is the kind of detail that pays off the moment your app g
 
 ## The HTTP Front Door
 
-[`src/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/http.ts#L19-L105) builds the [Hono](https://hono.dev/) app and lines up middlewares before mounting the two sub-routers. Let us walk through them in order.
+[`src/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/http.ts#L22-L117) builds the [Hono](https://hono.dev/) app and lines up middlewares before mounting the two sub-routers. Let us walk through them in order.
 
 ```typescript
 app.use(correlationId());
@@ -307,7 +320,7 @@ Time to follow a single request from end to end. We will pretend we are an admin
 
 ### Step 1 - The HTTP Request Arrives
 
-The route lives in [`src/write/iam/users/shell/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/http.ts#L28-L44). From this point on, we are inside Nimbus territory.
+The route lives in [`src/write/iam/users/shell/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/http.ts#L28-L49). From this point on, we are inside Nimbus territory.
 
 ```typescript
 httpUserCommandRouter.post("/invite-user", async (c) => {
@@ -319,6 +332,13 @@ httpUserCommandRouter.post("/invite-user", async (c) => {
         source: "https://nimbus.overlap.at",
         correlationid: correlationId,
         data: body,
+
+        // This is just an example on how authentication
+        // context could be passed as an extension attribute.
+        authcontext: {
+            sub: "123",
+            email: "test@example.com",
+        },
     });
 
     const result = await getRouter("commandRouter").route(command);
@@ -328,6 +348,8 @@ httpUserCommandRouter.post("/invite-user", async (c) => {
 ```
 
 The Hono handler does only three things: parse the body, build a typed Nimbus command from it, and hand the command to the router. That is intentional. If you ever add a gRPC or WebSocket entrypoint, the only thing you would change is how the command is built. Everything past `getRouter("commandRouter").route(command)` would stay exactly the same.
+
+The `authcontext` is hard-coded here to keep the demo small. In a real application an authentication middleware would provide it.
 
 ### Step 2 - Building a Typed Command
 
@@ -367,13 +389,30 @@ If validation fails, the router throws - and remember, our `onError` handler tur
 
 ### Step 4 - The Handler Lives in the Shell
 
-The handler for `inviteUser` is in [`src/write/iam/users/shell/commands/inviteUser.command.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/inviteUser.command.ts#L23-L66). Its job is _coordination_, not business logic:
+The handler for `inviteUser` is in [`src/write/iam/users/shell/commands/inviteUser.command.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/inviteUser.command.ts#L23-L73). Its job is _coordination_, not business logic:
 
 ```typescript
 export const inviteUserCommandHandler = async (command: InviteUserCommand) => {
-    const state: UserState = { id: ulid() };
+    const state: UserState = {
+        id: ulid(),
+    };
 
-    const events = inviteUser(state, command);
+    let isEmailPristine: boolean = false;
+
+    const eventSourcingDBClient = getEventSourcingDBClient();
+
+    for await (const row of eventSourcingDBClient.runEventQlQuery(`
+        FROM e IN events
+        WHERE e.type == "${USER_INVITED_EVENT_TYPE}" AND e.data.payload.email == "${command.data.email.toLowerCase()}"
+        PROJECT INTO {
+            total: COUNT()
+        }
+      `)) {
+        const total = (row as { total: number }).total;
+        isEmailPristine = total === 0;
+    }
+
+    const events = inviteUser(state, command, isEmailPristine);
 
     const writtenEvents = await writeEvents(events, [
         isSubjectPristine(events[0].subject),
@@ -386,15 +425,20 @@ export const inviteUserCommandHandler = async (command: InviteUserCommand) => {
 };
 ```
 
-Three lines of meaningful work:
+Four steps of meaningful work:
 
 1. **Build initial state.** Inviting a user starts a brand-new lifecycle, so we mint a fresh `ulid()` (a sortable, URL-safe id) and start with an empty `UserState`. There is nothing to load from the event log yet.
-2. **Call the core.** `inviteUser(state, command)` returns the events that should be appended. The handler does not know what those events look like or why they were chosen - that is the core's job.
-3. **Persist the events.** `writeEvents` appends the events to EventSourcingDB and returns them with the ids the server assigned. The second argument is an array of preconditions; we will look at it in a second. The id of the last written event is the user's **revision**, which we hand back to the caller - it will matter when we accept the invitation.
+2. **Gather the facts the core needs.** An email address should only be invited once. The core has to know if the address is still free, but it is not allowed to do I/O. So the shell asks EventSourcingDB with a small EventQL query that counts the `UserInvited` events with the same email address.
+3. **Call the core.** `inviteUser(state, command, isEmailPristine)` returns the events that should be appended. The handler does not know what those events look like or why they were chosen. That is the core's job.
+4. **Persist the events.** `writeEvents` appends the events to EventSourcingDB and returns them with the ids the server assigned. The second argument is an array of preconditions and we will look at it in a second. The id of the last written event is the user's **revision**, which we hand back to the caller. It will matter when we accept the invitation.
+
+::: tip Keep in mind
+Counting the `UserInvited` events is enough for this demo. If your application can delete users and wants to free their email address again, those events have to be part of the check as well.
+:::
 
 ### Step 5 - The Pure Core Does the Thinking
 
-The core function lives in [`src/write/iam/users/core/commands/inviteUser.command.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/core/commands/inviteUser.command.ts#L53-L87). It is the entire business definition of "what does it mean to invite a user".
+The core function lives in [`src/write/iam/users/core/commands/inviteUser.command.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/core/commands/inviteUser.command.ts#L60-L94). It is the entire business definition of "what does it mean to invite a user".
 
 ```typescript
 // GIVEN: state = A
@@ -403,9 +447,22 @@ The core function lives in [`src/write/iam/users/core/commands/inviteUser.comman
 // THEN: [EventA, EventB]
 export const inviteUser = (
     state: UserState,
-    command: InviteUserCommand
+    command: InviteUserCommand,
+    isEmailPristine: boolean
 ): [UserInvitedEvent] => {
     const email = command.data.email.toLowerCase();
+
+    if (!isEmailPristine) {
+        throw new Exception(
+            "CONFLICT",
+            "The email address is already used",
+            {
+                errorCode: "EMAIL_ALREADY_USED",
+                email: command.data.email,
+            },
+            409
+        );
+    }
 
     const userInvitedEvent = createEvent<UserInvitedEvent>({
         type: USER_INVITED_EVENT_TYPE,
@@ -425,7 +482,9 @@ export const inviteUser = (
 };
 ```
 
-Take a moment to appreciate what is _not_ in this function. There is no database. No HTTP. No `await`. No mocks or test doubles to set up. It takes data in and returns data out. That is what "pure" means, and it is why every single business scenario can be unit-tested with a one-line `expect(inviteUser(state, command)).toEqual([...])` - no Nimbus, no Mongo, no Hono required.
+Take a moment to appreciate what is _not_ in this function. There is no database. No HTTP. No `await`. No mocks or test doubles to set up. It takes data in and returns data out. That is what "pure" means, and it is why every single business scenario can be unit-tested with a one-line `expect(inviteUser(state, command, true)).toEqual([...])` - no Nimbus, no Mongo, no Hono required.
+
+The arguments of the function define all the information the business rules need. Most of the time the state and the command are enough. Here the core also wants to know if the email address is still free, so the shell passes that fact in as `isEmailPristine`. If it is not, the core throws a `CONFLICT` exception and no event is produced.
 
 The `subject` field on the event is also worth pausing on. It is the address inside the event log where this event will live: `/users/abc`. Every event we ever write for this user will share this subject. That is what makes "give me everything that happened to user `abc`" a fast operation.
 
@@ -434,7 +493,9 @@ The `subject` field on the event is also worth pausing on. It is the address ins
 Back in the handler:
 
 ```typescript
-await writeEvents(events, [isSubjectPristine(events[0].subject)]);
+const writtenEvents = await writeEvents(events, [
+    isSubjectPristine(events[0].subject),
+]);
 ```
 
 `isSubjectPristine` says: "only succeed if the log under this subject is currently empty." Because we just generated a fresh `ulid()`, that should always be true. If it somehow is not - say, two requests arrived at the same millisecond and we hit the astronomically unlikely id collision - the write fails loudly instead of silently corrupting the log. Belt and suspenders.
@@ -462,12 +523,12 @@ That is the only artifact this command produced. There is no row in any "users" 
 With the demo running, you can fire this command from your terminal:
 
 ```bash
-curl -X POST http://localhost:3000/command/iam/users/invite-user \
+curl -X POST http://localhost:3100/command/iam/users/invite-user \
   -H "Content-Type: application/json" \
   -d '{"email":"jane@example.com","firstName":"Jane","lastName":"Doe"}'
 ```
 
-You will get back `{ "userId": "01H..." }`. Hold on to that id - we need it for the next command.
+You will get back something like `{ "userId": "01H...", "revision": "1" }`. Hold on to both values. We need them for the next command.
 :::
 
 ::: warning Prerequisites!
@@ -484,7 +545,7 @@ Now we are the invitee. We received the email, clicked the link, and our client 
 
 ### Loading State From History
 
-The handler is in [`src/write/iam/users/shell/commands/acceptUserInvitation.command.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/acceptUserInvitation.command.ts#L17-L42). Unlike the invite handler, it cannot start from an empty state - "accepting" only makes sense if there is something to accept. So the first thing it does is replay the user's history into a fresh `UserState`:
+The handler is in [`src/write/iam/users/shell/commands/acceptUserInvitation.command.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/acceptUserInvitation.command.ts#L17-L103). Unlike the invite handler, it cannot start from an empty state - "accepting" only makes sense if there is something to accept. So the first thing it does is replay the user's history into a fresh `UserState`:
 
 ```typescript
 let state: UserState = { id: command.data.id };
@@ -500,7 +561,7 @@ for await (const eventSourcingDBEvent of readEvents(
 
 This is the "state is a fold over events" idea, made concrete. We ask EventSourcingDB for every event under `/users/{id}` ([Read Events](/guide/eventsourcingdb/read-events)), convert each one back into a typed Nimbus event ([Event Mapping](/guide/eventsourcingdb/event-mapping)), and feed it into the reducer one by one.
 
-The reducer itself lives in [`src/write/iam/users/core/domain/user.state.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/core/domain/user.state.ts#L20-L44):
+The reducer itself lives in [`src/write/iam/users/core/domain/user.state.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/core/domain/user.state.ts#L14-L46):
 
 ```typescript
 export type UserState = {
@@ -575,29 +636,50 @@ Up in the HTTP layer, our `app.onError(handleError)` middleware catches these ex
 Once the rules pass, the core returns a `UserInvitationAccepted` event and the handler appends it - this time with a different precondition:
 
 ```typescript
+let revision: string;
+
 try {
-    await writeEvents(events, [
+    const writtenEvents = await writeEvents(events, [
         isSubjectOnEventId(events[0].subject, command.data.expectedRevision),
     ]);
+
+    revision = writtenEvents[writtenEvents.length - 1].id;
 } catch (error) {
     const isStateConflict =
         error instanceof DbApiError &&
         error.code === ErrorCode.preconditionViolated;
 
+    getLogger().error({
+        category: "AcceptUserInvitationCommandHandler",
+        message: "Error accepting user invitation",
+        error: error as Error,
+    });
+
     if (isStateConflict) {
         throw new Exception(
             "CONFLICT",
             "The expected revision does not match the current revision anymore",
-            { errorCode: "REVISION_CONFLICT", userId: state.id },
+            {
+                errorCode: "REVISION_CONFLICT",
+                userId: state.id,
+                expectedRevision: command.data.expectedRevision,
+            },
             409
         );
+    } else {
+        throw error;
     }
-
-    throw error;
 }
+
+return {
+    userId: state.id,
+    revision,
+};
 ```
 
 `expectedRevision` is the id of the last event the _client_ saw for this user when it built its accept request. EventSourcingDB will only allow the write if the subject is still on that exact event. If somebody else managed to append a different event in the meantime, the write fails with a `DbApiError` whose `code` is `ErrorCode.preconditionViolated` (both imported from `eventsourcingdb`). The handler translates that into a Nimbus `Exception` with status `409`, which `handleError` turns into a proper HTTP conflict response.
+
+When the write succeeds, the id of the newly written event is the user's new revision. The handler returns it so the client can use it for its next command.
 
 ::: warning Why this precondition matters
 Imagine two browser tabs both trying to accept the same invitation at the same instant. Without `isSubjectOnEventId`, both writes would succeed, and the user would have two `UserInvitationAccepted` events in their history. With the precondition, the second write fails and the client can decide what to do (probably: refresh and tell the user it is already accepted).
@@ -629,35 +711,52 @@ We are leaving the write side now. Take a breath. The hard architectural ideas a
 
 ### Observers in Plain English
 
-Remember the `eventObservers` array we passed to `setupEventSourcingDBClient` back in [`src/eventsourcingdb.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/eventsourcingdb.ts#L16-L52)? An **observer** is just a function that EventSourcingDB calls _once for every event matching a subject_. It runs during the startup replay (catching up on history), and then it keeps running for every new event written from that point on.
+Remember the `eventObservers` array we passed to `setupEventSourcingDBClient` back in [`src/eventsourcingdb.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/eventsourcingdb.ts#L11-L60)? An **observer** is a background loop that watches one subject in EventSourcingDB and hands _every event matching that subject_ to its **consumers**. It runs during the startup replay (catching up on history), and then it keeps running for every new event written from that point on.
 
-Our observer is `projectUsers`, registered on the subject `/users` with `recursive: true` so it picks up everything under `/users/abc`, `/users/xyz`, and so on. The full mechanics are at [Event Observer](/guide/eventsourcingdb/event-observer).
+Our observer is called `iam`. It watches the subject `/users` with `recursive: true` so it picks up everything under `/users/abc`, `/users/xyz`, and so on. It feeds two consumers, `usersProjection` and `contactsProjection`. We will follow the first one. The second one builds another read model from the same events and works the same way. The full mechanics are at [Event Observer](/guide/eventsourcingdb/event-observer).
+
+### The Consumer
+
+A **consumer** is one named reader of the observed events. `usersProjection` is defined in [`src/read/iam/users/projections/users.projection.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.projection.ts#L83-L91):
+
+```typescript
+export const usersProjection: EventConsumer = {
+    name: "iam.users",
+    handles: (event) => {
+        return (
+            isUserInvitedEvent(event) || isUserInvitationAcceptedEvent(event)
+        );
+    },
+    handle: projectUsers,
+};
+```
+
+It has three properties:
+
+-   `name` identifies the consumer. The observer stores the progress of the consumer under this name, so it has to be unique in the application and it has to stay stable.
+-   `handles` tells the observer which events the consumer wants to get.
+-   `handle` is the function the observer calls for each of those events.
 
 ### The Projection Function
 
-`projectUsers` is in [`src/read/iam/users/projections/users.projection.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.projection.ts#L28-L115). It is a reducer, just like `applyEventToUserState` - except the state lives in MongoDB instead of in memory:
+`projectUsers` is in the [same file](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.projection.ts#L28-L70). It is a reducer, just like `applyEventToUserState` - except the state lives in MongoDB instead of in memory:
 
 ```typescript
-export const projectUsers = async (
-    eventSourcingDBEvent: EventSourcingDBEvent
-) => {
-    const event = eventSourcingDBEventToNimbusEvent<
-        UserInvitedEvent | UserInvitationAcceptedEvent
-    >(eventSourcingDBEvent);
-
+export const projectUsers = async (event: Event): Promise<void> => {
     if (isUserInvitedEvent(event)) {
-        await userRepository.insertOne({
-            item: {
-                _id: new ObjectId().toString(),
-                id: event.data.id,
-                revision: event.id,
-                email: event.data.email,
-                firstName: event.data.firstName,
-                lastName: event.data.lastName,
-                invitedAt: event.data.invitedAt,
-                acceptedAt: null,
-            },
-        });
+        const user: User = {
+            _id: new ObjectId().toString(),
+            id: event.data.id,
+            revision: event.id,
+            email: event.data.email,
+            firstName: event.data.firstName,
+            lastName: event.data.lastName,
+            invitedAt: event.data.invitedAt,
+            acceptedAt: null,
+        };
+
+        await userRepository.insertOnce(user);
+
         return;
     }
 
@@ -671,14 +770,15 @@ export const projectUsers = async (
                 },
             },
         });
-        return;
     }
 };
 ```
 
-The pattern is simple: convert the raw ESDB event back into a typed Nimbus event, then dispatch on its type. On `UserInvited` we insert a brand-new document. On `UserInvitationAccepted` we patch the matching document.
+The pattern is simple. The observer already converted the raw ESDB event back into a typed Nimbus event, so all that is left to do is to dispatch on its type. On `UserInvited` we insert a brand-new document. On `UserInvitationAccepted` we patch the matching document.
 
-Notice the `revision: event.id` field on every write. Each document remembers the id of the last event that touched it. We will see why in a moment.
+Notice the `revision: event.id` field on every write. Each document remembers the id of the last event that touched it. This is the revision a client reads together with the user and sends back as `expectedRevision` when it accepts the invitation.
+
+Also notice that there is no `try/catch`. If the projection can not apply an event it simply throws. We will see what the observer does with that in a moment.
 
 ### Worked Example
 
@@ -718,26 +818,34 @@ That is the whole job of the projection: turn the timeline of events into a row 
 
 ### Resuming After a Restart
 
-Now back to that `revision` field. Every time the application starts, we tell the observer where to begin:
+Every time the application starts, the observer has to know where each consumer stopped. That is the job of the **checkpoint**. After the consumers finished an event, the observer writes the id of that event to the checkpoint store. In the demo this is the `MongoCheckpointStore` we created in `eventsourcingdb.ts`, so the checkpoints live in a `nimbus_checkpoints` collection right next to the read model:
 
-```typescript
-export const getUserProjectionLowerBound = async () => {
-    const lastEventId = await userRepository.getLastProjectedEventId();
-
-    return {
-        id: lastEventId,
-        type: lastEventId === "0" ? "inclusive" : "exclusive",
-    };
-};
+```json
+{
+    "consumer": "iam.users",
+    "observer": "iam",
+    "position": "2",
+    "updatedAt": { "$date": "2026-04-24T09:18:00.100Z" }
+}
 ```
 
-`getLastProjectedEventId` looks at the most recent `revision` we have stored in MongoDB. If we have never projected anything, it returns `"0"` and we ask for events inclusively from the start. Otherwise, we ask for events _exclusive_ of that id - "everything after the last one I already saw."
+On the next start the observer loads the checkpoints of its consumers and asks EventSourcingDB for everything after the lowest position. A consumer that is already further ahead skips the events it has seen. A consumer without a checkpoint starts at the beginning of the log.
 
-Without this, every restart would re-apply the entire event history. For an app that has been running for a year, that could be tens of millions of events, every time. With this little lower-bound dance, a restart catches up only on what is genuinely new.
+Without this, every restart would re-apply the entire event history. For an app that has been running for a year, that could be tens of millions of events, every time. With checkpoints, a restart catches up only on what is genuinely new.
+
+Checkpoints also make it easy to rebuild a read model. Stop the application, empty the collection of the read model, reset the checkpoint of its consumer and start again. The projection then replays the log from the beginning. The details are at [Checkpoint Store](/guide/mongodb/checkpoint-store).
 
 ::: warning Idempotency still matters
-A lower bound is a nice optimization, but it does not relieve you of the responsibility of making projections **idempotent**. If you ever rebuild the projection from scratch, or if the bound is wrong for any reason, the same event might be processed twice. Designing your reducer so that "process this event twice" produces the same result as "process this event once" is a habit worth forming early.
+A checkpoint is written _after_ the consumer handled the event. If the application crashes right in between, the same event is delivered again on the next start. This is called **at-least-once** delivery and it means a projection has to be **idempotent**. Processing this event twice has to produce the same result as processing this event once.
+
+That is why the projection calls `insertOnce` and not a plain insert. It only inserts the user if there is no document with that id yet. The update for `UserInvitationAccepted` sets fixed values, so applying it twice is harmless as well.
 :::
+
+### When a Projection Fails
+
+`projectUsers` does not catch errors, and that is on purpose. A consumer that throws keeps its checkpoint on the last event it finished, and the observer retries the event a few times. If it still fails, the consumer is **halted**. A critical log entry is written, the failure is stored together with the checkpoint, and the consumer does not get any more events until the application is restarted. The other consumers of the observer keep going.
+
+This way a projection never silently skips an event. The `/health` route of the demo makes the problem visible as well. It asks every observer for its health and reports `eventObservers: "ERROR"` as soon as an observer stopped or one of its consumers is halted.
 
 ## Storing the Read Model
 
@@ -757,25 +865,20 @@ export const USERS_COLLECTION: MongoCollectionDefinition = {
             },
         },
     },
-    indexes: [
-        { key: { id: 1 }, unique: true },
-        { key: { revision: 1 } },
-        { key: { acceptedAt: 1 } },
-    ],
+    indexes: [{ key: { id: 1 }, unique: true }, { key: { acceptedAt: 1 } }],
 };
 ```
 
 Each index serves a specific question:
 
--   `{ id: 1, unique }` powers `getUser` and prevents duplicate user ids.
--   `{ revision: 1 }` powers `getLastProjectedEventId` (sort by revision descending, take the first).
+-   `{ id: 1, unique }` powers `getUser` and `insertOnce`, and prevents duplicate user ids.
 -   `{ acceptedAt: 1 }` powers `listPendingUsersEmails` (filter by `acceptedAt: null`).
 
-You provision these collections in your environments with [Deploy Collection](/guide/mongodb/deploy-collection).
+You provision these collections in your environments with [Deploy Collection](/guide/mongodb/deploy-collection). The `@nimbus-cqrs/mongodb` package exports a ready-made `MONGO_CHECKPOINTS_COLLECTION` definition for the checkpoints, which you deploy the same way.
 
 ### The Repository
 
-[`src/read/iam/users/projections/users.repository.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.repository.ts#L1-L63) extends Nimbus's [`MongoDBRepository`](/guide/mongodb/repository) with two concrete responsibilities: mapping between BSON documents and the `User` Zod type, and exposing the small helper that the projection lower-bound calculation needs.
+[`src/read/iam/users/projections/users.repository.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/read/iam/users/projections/users.repository.ts#L1-L67) extends Nimbus's [`MongoDBRepository`](/guide/mongodb/repository) with two concrete responsibilities: mapping between BSON documents and the `User` Zod type, and exposing the small helper that the projection needs to insert a user only once.
 
 ```typescript
 class UserRepository extends MongoDBRepository<User> {
@@ -786,15 +889,15 @@ class UserRepository extends MongoDBRepository<User> {
         /* ... */
     }
 
-    public async getLastProjectedEventId(): Promise<string> {
-        const users = await this.find({
-            filter: {},
-            limit: 1,
-            skip: 0,
-            sort: { revision: -1 },
-        });
+    public async insertOnce(user: User): Promise<void> {
+        const collection = await this._getCollection();
 
-        return users[0]?.revision ?? "0";
+        await updateOne({
+            collection,
+            filter: { id: user.id },
+            update: { $setOnInsert: this._mapEntityToDocument(user) },
+            options: { upsert: true },
+        });
     }
 }
 
@@ -802,6 +905,8 @@ export const userRepository = new UserRepository();
 ```
 
 The mapping methods exist because BSON and TypeScript do not see the world the same way. A `Date` in BSON is not a `string`, an `ObjectId` is not a `string`, and we want our domain code to deal in the friendly TypeScript types. Doing the conversion explicitly keeps surprises out of the rest of the app.
+
+`insertOnce` is an upsert that only writes when it has to insert. If a user with that id already exists, MongoDB leaves the document untouched.
 
 The base `MongoDBRepository` gives every repository a clean set of [CRUD+](/guide/mongodb/crud) methods - `findOne`, `find`, `insertOne`, `updateOne`, etc.
 
@@ -903,23 +1008,25 @@ sequenceDiagram
     participant Cmd as commandRouter
     participant Core as Pure core
     participant ESDB as EventSourcingDB
-    participant Obs as projectUsers
+    participant Obs as usersProjection
     participant Mongo as MongoDB
     participant Qry as queryRouter
 
     Client->>Hono: POST /command/.../invite-user
     Hono->>Cmd: route(InviteUserCommand)
-    Cmd->>Core: inviteUser(state, command)
+    Cmd->>ESDB: is the email still free?
+    ESDB-->>Cmd: yes
+    Cmd->>Core: inviteUser(state, command, isEmailPristine)
     Core-->>Cmd: [UserInvitedEvent]
     Cmd->>ESDB: writeEvents([UserInvitedEvent])
     ESDB-->>Cmd: ok
-    Cmd-->>Hono: { userId }
+    Cmd-->>Hono: { userId, revision }
     Hono-->>Client: 200 OK
 
     Note over ESDB,Obs: async observer wakes up
 
     ESDB-->>Obs: deliver UserInvitedEvent
-    Obs->>Mongo: insertOne(user)
+    Obs->>Mongo: insertOnce(user)
 
     Client->>Hono: GET /query/.../get-user-by-id/:id
     Hono->>Qry: route(GetUserQuery)
@@ -961,14 +1068,14 @@ The fastest way to lock in everything above is to add something. Here is the rec
 
 1. Create `*.event.ts` in `core/events/`: define the `_EVENT_TYPE` constant, the data Zod schema (`eventSchema.extend({...})`), the inferred TypeScript type, and a small `is*Event` type guard.
 2. Handle it in `applyEventToUserState` if the write side needs to react to it.
-3. Handle it in `projectUsers` to keep the read model up to date.
+3. Handle it in `projectUsers` and add it to `handles` of `usersProjection` to keep the read model up to date.
 
 ### Add a new command
 
 1. Create `*.command.ts` in `core/commands/`: define the `_COMMAND_TYPE` constant, the input Zod schema (`commandSchema.extend({...})`), the inferred TypeScript type, and the pure function that takes `(state, command)` and returns events.
 2. Create the matching handler in `shell/commands/`: load state, call the core, write events with the appropriate precondition.
 3. Register the type, handler, and schema in [`registerUserCommands.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/commands/registerUserCommands.ts#L19-L33).
-4. Expose an HTTP route in [`shell/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/http.ts#L28-L44) that builds the typed command and calls `getRouter('commandRouter').route(...)`.
+4. Expose an HTTP route in [`shell/http.ts`](https://github.com/overlap-dev/Nimbus/blob/main/examples/eventsourcing-demo/src/write/iam/users/shell/http.ts#L28-L49) that builds the typed command and calls `getRouter('commandRouter').route(...)`.
 
 ### Add a new query
 
@@ -985,17 +1092,19 @@ Two layers, and they pay off very differently.
 
 ## Glossary / Cheat Sheet
 
-| Term                 | One-line definition                                                                                            |
-| -------------------- | -------------------------------------------------------------------------------------------------------------- |
-| **Command**          | A typed, validated request to change state. Routed to one handler.                                             |
-| **Event**            | A typed fact that has already happened. Append-only, never edited.                                             |
-| **Query**            | A typed request to read state. Routed to one handler.                                                          |
-| **Subject**          | The address inside the event log where related events live (e.g. `/users/abc`).                                |
-| **Revision**         | The id of the last event written under a subject. Used for optimistic concurrency and projection resumability. |
-| **Projection**       | A function that consumes events from the log and writes a queryable view (often into a different database).    |
-| **Reducer**          | A function `(state, event) => newState` that folds events into state.                                          |
-| **Pure core**        | The business logic, written as pure functions with no I/O.                                                     |
-| **Imperative shell** | The wrapper around the core that handles HTTP, databases, and external systems.                                |
-| **Router**           | The Nimbus piece that maps a message `type` to its schema + handler and dispatches to it.                      |
-| **Handler**          | The function that runs for a given command or query type.                                                      |
-| **Observer**         | A function the event store calls once per matching event, both during replay and live.                         |
+| Term                 | One-line definition                                                                                             |
+| -------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Command**          | A typed, validated request to change state. Routed to one handler.                                              |
+| **Event**            | A typed fact that has already happened. Append-only, never edited.                                              |
+| **Query**            | A typed request to read state. Routed to one handler.                                                           |
+| **Subject**          | The address inside the event log where related events live (e.g. `/users/abc`).                                 |
+| **Revision**         | The id of the last event written under a subject. Used for optimistic concurrency.                              |
+| **Projection**       | A function that consumes events from the log and writes a queryable view (often into a different database).     |
+| **Reducer**          | A function `(state, event) => newState` that folds events into state.                                           |
+| **Pure core**        | The business logic, written as pure functions with no I/O.                                                      |
+| **Imperative shell** | The wrapper around the core that handles HTTP, databases, and external systems.                                 |
+| **Router**           | The Nimbus piece that maps a message `type` to its schema + handler and dispatches to it.                       |
+| **Handler**          | The function that runs for a given command or query type.                                                       |
+| **Observer**         | A background loop that watches one subject and hands every event to its consumers, both during replay and live. |
+| **Consumer**         | A named reader of the events of an observer, for example a projection. Resumes from its own checkpoint.         |
+| **Checkpoint**       | The id of the last event a consumer finished. Stored so a restart continues where the consumer stopped.         |

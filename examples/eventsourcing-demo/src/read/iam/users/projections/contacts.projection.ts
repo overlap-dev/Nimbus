@@ -1,30 +1,22 @@
-import { getLogger } from '@nimbus-cqrs/core';
-import { eventSourcingDBEventToNimbusEvent } from '@nimbus-cqrs/eventsourcingdb';
-import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
+import { type Event, getLogger } from '@nimbus-cqrs/core';
+import type { EventConsumer } from '@nimbus-cqrs/eventsourcingdb';
 import { ObjectId } from 'mongodb';
-import {
-    isUserInvitedEvent,
-    type UserInvitedEvent,
-} from '../../../../write/iam/users/core/events/userInvited.event.ts';
+import { isUserInvitedEvent } from '../../../../write/iam/users/core/events/userInvited.event.ts';
 import type { Contact } from './contacts.collection.ts';
 import { contactRepository } from './contacts.repository.ts';
 
 // Here we define the "contacts" projection.
 // Just a second projection for demo purposes to demonstrate how
 // The same events can be used to build different projections.
+//
+// It is a second consumer on the same event observer as the
+// "users" projection and it owns its own checkpoint.
 
-export const projectContacts = async (
-    eventSourcingDBEvent: EventSourcingDBEvent,
-) => {
+export const projectContacts = async (event: Event): Promise<void> => {
     getLogger().debug({
         category: 'ProjectContacts',
-        message: `Projecting event ${eventSourcingDBEvent.type} to contacts.`,
+        message: `Projecting event ${event.type} to contacts.`,
     });
-
-    const event =
-        eventSourcingDBEventToNimbusEvent<UserInvitedEvent>(
-            eventSourcingDBEvent,
-        );
 
     if (isUserInvitedEvent(event)) {
         const contact: Contact = {
@@ -36,32 +28,14 @@ export const projectContacts = async (
             lastName: event.data.lastName,
         };
 
-        try {
-            await contactRepository.insertOne({ item: contact });
-
-            return;
-        } catch (error) {
-            getLogger().error({
-                category: 'ProjectContacts',
-                message: `Could not project event ${event.type} to contacts view.`,
-                error: error as Error,
-            });
-
-            return;
-        }
+        await contactRepository.insertOnce(contact);
     }
-
-    getLogger().warn({
-        category: 'ProjectContacts',
-        message: `Unknown event type ${(event as { type: string }).type}`,
-    });
 };
 
-export const getContactProjectionLowerBound = async () => {
-    const lastEventId = await contactRepository.getLastProjectedEventId();
-
-    return {
-        id: lastEventId,
-        type: lastEventId === '0' ? 'inclusive' : 'exclusive',
-    };
+export const contactsProjection: EventConsumer = {
+    name: 'iam.contacts',
+    handles: (event) => {
+        return isUserInvitedEvent(event);
+    },
+    handle: projectContacts,
 };

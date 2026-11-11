@@ -2,6 +2,7 @@ import { getEnv } from '@nimbus-cqrs/core';
 import {
     getMongoConnectionManager,
     MongoDBRepository,
+    updateOne,
 } from '@nimbus-cqrs/mongodb';
 import { type Document, ObjectId } from 'mongodb';
 import { CONTACTS_COLLECTION, Contact } from './contacts.collection.ts';
@@ -44,15 +45,17 @@ class ContactRepository extends MongoDBRepository<Contact> {
         };
     }
 
-    public async getLastProjectedEventId(): Promise<string> {
-        const contacts = await this.find({
-            filter: {},
-            limit: 1,
-            skip: 0,
-            sort: { revision: -1 },
-        });
+    // Inserts the contact only if there is no contact with the same id yet.
+    // See insertOnce() in users.repository.ts for the details.
+    public async insertOnce(contact: Contact): Promise<void> {
+        const collection = await this._getCollection();
 
-        return contacts[0]?.revision ?? '0';
+        await updateOne({
+            collection,
+            filter: { id: contact.id },
+            update: { $setOnInsert: this._mapEntityToDocument(contact) },
+            options: { upsert: true },
+        });
     }
 }
 
