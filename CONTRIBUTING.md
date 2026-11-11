@@ -130,7 +130,7 @@ docker pull thenativeweb/eventsourcingdb
 ```bash
 docker run -it -p 3000:3000 \
   thenativeweb/eventsourcingdb run \
-  --api-token=secret \
+  --api-token=secret-that-has-at-least-32-characters \
   --data-directory-temporary \
   --http-enabled \
   --https-enabled=false \
@@ -146,7 +146,7 @@ docker run -it \
   -p 3000:3000 \
   -v ./esdb-data:/var/lib/esdb \
   thenativeweb/eventsourcingdb run \
-  --api-token=secret \
+  --api-token=secret-that-has-at-least-32-characters \
   --data-directory=/var/lib/esdb \
   --http-enabled \
   --https-enabled=false \
