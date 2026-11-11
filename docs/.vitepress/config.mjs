@@ -126,8 +126,8 @@ export default withMermaid(defineConfig({
                     link: "/guide/architecture",
                 },
                 {
-                    text: "The Era of AI",
-                    link: "/guide/era-of-ai",
+                    text: "Nimbus for AI",
+                    link: "/guide/nimbus-for-ai",
                 },
                 {
                     text: "Quickstart",

@@ -936,7 +936,7 @@ Why is this shape worth the upfront thinking? A few reasons that compound over t
 -   **Replayability.** The event log is the truth. If you ever need a new view of the data, you write a new projection and replay the log into it. No backfills, no migrations.
 -   **Audit and explainability.** Every change in the system is a discrete, time-stamped event with a `correlationid`. "Why does the user look like this?" has a literal, machine-readable answer.
 -   **Multi-view reads.** One projection feeds many queries; many projections can feed many UIs. None of them step on each other because they are derivations, not the source.
--   **A foundation for AI and analytics.** Models and pipelines thrive on high-quality, time-ordered data. The event log is exactly that. The [Era of AI](/guide/era-of-ai) page expands on this idea.
+-   **A foundation for AI and analytics.** Models and pipelines thrive on high-quality, time-ordered data. The event log is exactly that. The [Nimbus for AI](/guide/nimbus-for-ai) page expands on this idea.
 
 ## A Note on Aggregates
 

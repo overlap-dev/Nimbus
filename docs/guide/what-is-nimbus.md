@@ -9,7 +9,7 @@ Nimbus is a lightweight TypeScript framework for building event-driven applicati
 ## Other Topics
 
 -   [The Philosophy behind Nimbus](/guide/philosophy)
--   [The Era of AI](/guide/era-of-ai)
+-   [Nimbus for AI](/guide/nimbus-for-ai)
 -   [Architecture Recommendation](/guide/architecture)
 -   [Glossary](/guide/glossary) — pinned terminology for humans and AI agents
 
