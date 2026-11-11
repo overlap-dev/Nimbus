@@ -1,6 +1,6 @@
 {
   "name": "@nimbus-cqrs/mongodb",
-  "version": "2.5.0",
+  "version": "3.0.0-beta.1",
   "description": "Simplify Event-Driven Applications - MongoDB integration for the Nimbus framework.",
   "keywords": [
     "nimbus",
