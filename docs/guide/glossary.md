@@ -1,8 +1,8 @@
 ---
 description: Pinned vocabulary for Nimbus, CQRS, and Event Sourcing — use these definitions literally when reasoning about the framework.
 prev:
-    text: "In Depth Example"
-    link: "/guide/in-depth-example"
+    text: "ESDM Demo"
+    link: "/guide/esdm-demo"
 next:
     text: "Core"
     link: "/guide/core"

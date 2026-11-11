@@ -64,12 +64,7 @@ npx skills update
 
 The Nimbus packages try to not be too opinionated. The skills are different. A coding agent delivers better and more consistent results when it follows clear rules. So the skills make the decisions up front and follow one fixed workflow.
 
-This workflow is built around [ESDM](https://www.esdm.io/), the Event-Sourced Domain Modeling language. ESDM describes an event-sourced domain as a set of YAML files. It covers the building blocks of Domain Driven Design, CQRS and Event Sourcing like Bounded Contexts, Aggregates, Commands, Events, Process Managers and Read Models. The format is plain enough that humans and coding agents can both read and write it.
-
-The skills treat the ESDM model as the source of truth for your project and work in two steps.
-
-1. **Model first.** The `nimbus-domain-modeling` skill builds the model together with you. It challenges vague terms, checks them against the ubiquitous language and tests the model with concrete scenarios. Every resolved term is written to the ESDM files right away. The model stays free of implementation details so that all stakeholders can understand it.
-2. **Implement second.** The `nimbus` skill loads the documentation mentioned above, reads the model and implements every construct the task needs. If a construct is missing or contradicts the task the agent goes back and fixes the model before it writes any code.
+This workflow is built around [ESDM](https://www.esdm.io/), the Event-Sourced Domain Modeling language. The domain is modeled first and the code is implemented from that model afterwards. The [ESDM Demo](/guide/esdm-demo) page explains both steps and shows the result in a complete example application.
 
 The modeling skill needs the `esdm` binary on your `PATH`. Follow the [ESDM installation guide](https://www.esdm.io/getting-started/installing-esdm/) to set it up.
 
@@ -135,5 +130,5 @@ The complete rules are part of the `nimbus` skill. Have a look at [PROJECT-STRUC
 This structure is stricter than the layout of the demo in the [In Depth Example](/guide/in-depth-example). When the two disagree the structure of the skill wins.
 
 ::: tip See it in action
-The example application [esdm-full-example](https://github.com/overlap-dev/Nimbus/tree/main/examples/esdm-full-example) shows this structure in a complete application. It contains the ESDM model, the architecture decision records and the code that implements them.
+The [ESDM Demo](/guide/esdm-demo) shows this structure in a complete application. It contains the ESDM model, the architecture decision records and the code that implements them.
 :::

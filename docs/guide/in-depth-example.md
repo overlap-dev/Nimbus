@@ -1,8 +1,8 @@
 ---
 description: Walkthrough of eventsourcing-demo — CQRS, Event Sourcing, pure core vs shell, projections, and queries with links to source files.
 next:
-    text: "Glossary"
-    link: "/guide/glossary"
+    text: "ESDM Demo"
+    link: "/guide/esdm-demo"
 ---
 
 # An in Depth Example

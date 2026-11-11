@@ -9,7 +9,7 @@
     "includes": [
       "packages/**",
       "examples/eventsourcing-demo/**",
-      "examples/esdm-full-example/**",
+      "examples/esdm-demo/**",
       "scripts/**",
       "skills/**",
       "*.json",
