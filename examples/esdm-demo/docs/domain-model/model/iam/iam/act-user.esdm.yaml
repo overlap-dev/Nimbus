@@ -1,0 +1,8 @@
+apiVersion: schema.esdm.io/core/v1
+kind: actor
+name: user
+description: A person with an account, signed in or about to sign in.
+scope:
+  domain: esdm-demo
+  boundedContext: iam
+type: human

@@ -1,7 +1,10 @@
 import process from 'node:process';
 import { serve } from '@hono/node-server';
 import { getEnv, getLogger } from '@nimbus-cqrs/core';
-import { getEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
+import {
+    getEventSourcingDBClient,
+    listEventObservers,
+} from '@nimbus-cqrs/eventsourcingdb';
 import {
     correlationId,
     getCorrelationId,
@@ -47,6 +50,14 @@ app.get('/health', async (c) => {
         eventSourcingDBHealth = 'ERROR';
     }
 
+    // An event observer is unhealthy once it stopped reconnecting
+    // or one of its consumers was halted after failing to handle an event.
+    // The databases can be reachable while a projection is stuck.
+    // So the observers get their own entry.
+    const areEventObserversHealthy = listEventObservers().every((observer) => {
+        return observer.healthCheck().status === 'healthy';
+    });
+
     return c.json({
         timestamp: new Date().toISOString(),
         correlationId: getCorrelationId(c),
@@ -54,6 +65,7 @@ app.get('/health', async (c) => {
             httpApi: 'OK',
             mongoDb: mongoDbHealth.status === 'healthy' ? 'OK' : 'ERROR',
             eventSourcingDB: eventSourcingDBHealth,
+            eventObservers: areEventObserversHealthy ? 'OK' : 'ERROR',
         },
     });
 });

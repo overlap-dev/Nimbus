@@ -37,6 +37,7 @@ export default withMermaid(defineConfig({
 ## Optional
 
 - [eventsourcing-demo](https://github.com/overlap-dev/Nimbus/tree/main/examples/eventsourcing-demo): Full CQRS + Event Sourcing example application
+- [esdm-demo](https://github.com/overlap-dev/Nimbus/tree/main/examples/esdm-demo): Ticketing example application with an ESDM domain model, built in the project structure of the Nimbus skills
 - [npm @nimbus-cqrs](https://www.npmjs.com/org/nimbus-cqrs): Published packages
 - [EventSourcingDB docs](https://docs.eventsourcingdb.io/): Event store used by the EventSourcingDB package
 - [CloudEvents](https://cloudevents.io/): Message format used by Commands, Events, and Queries
@@ -126,8 +127,8 @@ export default withMermaid(defineConfig({
                     link: "/guide/architecture",
                 },
                 {
-                    text: "The Era of AI",
-                    link: "/guide/era-of-ai",
+                    text: "Nimbus for AI",
+                    link: "/guide/nimbus-for-ai",
                 },
                 {
                     text: "Quickstart",
@@ -136,6 +137,10 @@ export default withMermaid(defineConfig({
                 {
                     text: "In Depth Example",
                     link: "/guide/in-depth-example",
+                },
+                {
+                    text: "ESDM Demo",
+                    link: "/guide/esdm-demo",
                 },
                 {
                     text: "Glossary",

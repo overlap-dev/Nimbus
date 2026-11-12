@@ -1,118 +1,60 @@
 import { getEnv } from '@nimbus-cqrs/core';
 import { setupEventSourcingDBClient } from '@nimbus-cqrs/eventsourcingdb';
-
-// TODO: The event observers below still use the pre-3.0 observer API
-// (eventHandler, lowerBound, onHandlerError) and are disabled until this
-// demo is rewritten together with the docs. Observers now take named
-// consumers and a checkpoint store, see
-// https://nimbus.overlap.at/guide/eventsourcingdb/event-observer.html
-//
-// Disabled imports for the observers:
-//
-// import { getLogger } from '@nimbus-cqrs/core';
-// import { isEventData } from '@nimbus-cqrs/eventsourcingdb';
-// import type { Event as EventSourcingDBEvent } from 'eventsourcingdb';
-// import {
-//     getContactProjectionLowerBound,
-//     projectContacts,
-// } from './read/iam/users/projections/contacts.projection.ts';
-// import {
-//     getUserProjectionLowerBound,
-//     projectUsers,
-// } from './read/iam/users/projections/users.projection.ts';
+import {
+    getMongoConnectionManager,
+    MONGO_CHECKPOINTS_COLLECTION,
+    MongoCheckpointStore,
+} from '@nimbus-cqrs/mongodb';
+import { contactsProjection } from './read/iam/users/projections/contacts.projection.ts';
+import { usersProjection } from './read/iam/users/projections/users.projection.ts';
 
 export const initEventSourcingDB = async () => {
     const env = getEnv({
-        variables: ['ESDB_URL', 'ESDB_API_TOKEN'],
+        variables: ['ESDB_URL', 'ESDB_API_TOKEN', 'MONGO_DB'],
+    });
+
+    // Every consumer of an event observer owns a checkpoint.
+    // The checkpoint is the id of the last event the consumer finished.
+    //
+    // We store the checkpoints in a MongoDB collection right next to
+    // the projections. This way the consumers survive a restart of the
+    // application and continue where they stopped.
+    const checkpointStore = new MongoCheckpointStore(() => {
+        return getMongoConnectionManager().getCollection(
+            env.MONGO_DB,
+            MONGO_CHECKPOINTS_COLLECTION.name,
+        );
     });
 
     await setupEventSourcingDBClient({
         url: new URL(env.ESDB_URL),
         apiToken: env.ESDB_API_TOKEN,
 
-        /*
         // We utilize EventSourcingDB to also be our "event bus".
         // We can register event observers to get all events
         // based on a defined subject.
         //
-        // As soon the application starts all event in the EventSourcingDB
-        // for the defined subject will be replayed first, then the observer
-        // will pick up all new incoming events.
+        // As soon the application starts the observer replays all events
+        // for the defined subject its consumers have not seen yet. Then
+        // it will pick up all new incoming events.
         //
         // In this case we add an event observer for the "users" subject.
-        // This is used to build the users projection.
+        // It feeds two consumers which build the users and the contacts
+        // projection.
         // read/iam/users/projections/users.projection.ts
+        // read/iam/users/projections/contacts.projection.ts
         //
         // We will receive all events with the subject "/users"
         // and want this to be recursive so we get all events for all sub-subjects
         // e.g. "/users/123" as well.
         eventObservers: [
             {
+                name: 'iam',
                 subject: '/users',
                 recursive: true,
-                eventHandler: projectUsers,
-                lowerBound: (await getUserProjectionLowerBound()) as any,
-            },
-            {
-                subject: '/users',
-                recursive: true,
-                eventHandler: projectContacts,
-                lowerBound: (await getContactProjectionLowerBound()) as any,
-            },
-
-            // Example: handling observer handler failures.
-            //
-            // The observer retries the handler based on
-            // handlerRetryOptions, then calls onHandlerError.
-            // Decide per use case what to do when an event
-            // still cannot be handled (e.g. dead-letter / alert).
-            {
-                subject: '/users',
-                recursive: true,
-                handlerRetryOptions: {
-                    maxRetries: 2,
-                    initialRetryDelayMs: 1000,
-                },
-                onHandlerError: (_error, event) => {
-                    const correlationId = isEventData(event.data)
-                        ? event.data.nimbusMeta.correlationid
-                        : undefined;
-
-                    getLogger().info({
-                        category: 'DLQ',
-                        message: `DLQ received event: ${event.id}`,
-                        correlationId,
-                    });
-                },
-                eventHandler: async (
-                    eventSourcingDBEvent: EventSourcingDBEvent,
-                ) => {
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-                    const correlationId = isEventData(eventSourcingDBEvent.data)
-                        ? eventSourcingDBEvent.data.nimbusMeta.correlationid
-                        : undefined;
-
-                    getLogger().debug({
-                        category: 'FaultyEventHandler',
-                        message: `Got event: "${eventSourcingDBEvent.id}" (${eventSourcingDBEvent.type}) for subject: "${eventSourcingDBEvent.subject}"`,
-                        correlationId,
-                    });
-
-                    if (eventSourcingDBEvent.id === '1') {
-                        getLogger().debug({
-                            category: 'FaultyEventHandler',
-                            message: `Will demo faulty behavior by throwing an error.`,
-                            correlationId,
-                        });
-
-                        throw new Error(
-                            'Faulty behavior demo: throwing an error',
-                        );
-                    }
-                },
+                checkpointStore,
+                consumers: [usersProjection, contactsProjection],
             },
         ],
-        */
     });
 };

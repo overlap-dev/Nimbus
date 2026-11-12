@@ -45,8 +45,5 @@ export const CONTACTS_COLLECTION: MongoCollectionDefinition = {
             key: { id: 1 },
             unique: true,
         },
-        {
-            key: { revision: 1 },
-        },
     ],
 };

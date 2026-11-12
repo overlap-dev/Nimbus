@@ -110,21 +110,10 @@ You can check the `llms.txt` and `llms-full.txt` under `http://localhost:4173/ll
 
 ### Examples
 
-`examples/eventsourcing-demo` is part of the pnpm workspace and consumes the
-packages directly from source via `workspace:` dependencies. Run it with
-`pnpm dev` inside its directory (it needs MongoDB and EventSourcingDB, see
-below and its `.env.example`).
-
-`examples/node-demo` is intentionally **not** part of the workspace. It uses
-plain npm and consumes the *published* `@nimbus-cqrs/*` packages, so it acts
-as a smoke test for what consumers actually install. It is excluded from Biome
-and the workspace scripts. To work on it:
-
-```sh
-cd examples/node-demo && npm install && npm run dev
-```
-
-Refer to the example's README for details.
+`examples/eventsourcing-demo` and `examples/esdm-demo` are part of the pnpm
+workspace and consume the packages directly from source via `workspace:`
+dependencies. Run them with `pnpm dev` inside their directory (they need
+MongoDB and EventSourcingDB, see below and their `.env.example`).
 
 ### EventSourcingDB
 
@@ -141,7 +130,7 @@ docker pull thenativeweb/eventsourcingdb
 ```bash
 docker run -it -p 3000:3000 \
   thenativeweb/eventsourcingdb run \
-  --api-token=secret \
+  --api-token=secret-that-has-at-least-32-characters \
   --data-directory-temporary \
   --http-enabled \
   --https-enabled=false \
@@ -157,7 +146,7 @@ docker run -it \
   -p 3000:3000 \
   -v ./esdb-data:/var/lib/esdb \
   thenativeweb/eventsourcingdb run \
-  --api-token=secret \
+  --api-token=secret-that-has-at-least-32-characters \
   --data-directory=/var/lib/esdb \
   --http-enabled \
   --https-enabled=false \
@@ -193,9 +182,7 @@ pnpm version:set 2.0.2
 pnpm version:set 3.0.0-rc.1
 ```
 
-This updates the `version` field in every `packages/<PACKAGE_NAME>/package.json`
-and rewrites the `@nimbus-cqrs/*` dependencies in
-`examples/node-demo/package.json` to the new caret range.
+This updates the `version` field in every `packages/<PACKAGE_NAME>/package.json`.
 
 Commit, push and open a pull request to `main`.
 Squash and merge the pull request with the message `chore: release <VERSION>`.
